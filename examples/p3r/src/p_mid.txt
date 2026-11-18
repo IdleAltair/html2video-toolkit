@@ -1,0 +1,45 @@
+</style>
+</head>
+<body>
+<!-- 页面底色（独立提升层：下坠时不需要重栅格）-->
+<div id="bg" aria-hidden="true"></div>
+<!-- 底部 HUD：页码 / 进度 / 页名 / 键位（F 纯净屏隐藏此栏）-->
+<div id="hud">
+  <button id="mbtn" title="预留：配乐开关（M）">♪</button>
+  <b id="idx" class="idx">01 / --</b>
+  <div id="prog"><i></i></div>
+  <div id="cap" class="cap">封面</div>
+  <div id="keys">
+    <span class="kbd">→</span>/<span class="kbd">空格</span> 下一页 ·
+    <span class="kbd">←</span> 上一页 ·
+    <span class="kbd">Home</span>/<span class="kbd">End</span> 首尾 ·
+    <span class="kbd">F</span> 纯净屏 ·
+    <span class="kbd">P</span> 内容块全屏 ·
+    <span class="kbd">M</span> 音乐
+  </div>
+</div>
+
+<!-- 斜切擦除转场（沿用 llm-html2video 的三层色带思路）-->
+<div id="wipe"><div class="w w1"></div><div class="w w2"></div><div class="w w3"></div></div>
+
+<!-- 分镜页渲染到此容器 -->
+<div id="stage"></div>
+
+<!-- 末页「沉海」落幕（参考 P3R 的入水镜头：水面光柱 → 上浮气泡 → 白影下沉）-->
+<div id="sea" aria-hidden="true">
+  <div class="abyss"></div>
+  <div class="blackout"></div>
+  <div id="seaHint">CLICK / → · 沉入水中</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 配乐：assets/bgm.m4a，M 键 / ♪ 按钮开关；?auto=1 自动起播 -->
+<audio id="bgm" src="assets/bgm.m4a" loop preload="auto"></audio>
+
+<!-- 数据注入点：build.mjs 用 window.__DATA__（全部来自 data/）替换此行 -->
+<!--@DATA@-->
+<script>

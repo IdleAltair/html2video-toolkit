@@ -1,0 +1,701 @@
+/* arena-video 展示页样式 —— P3R 亮版：钴蓝底 / 白字 / 水青高光 / 红信号 / 2560×1440 录屏
+ * 配色取自本机《【P3R】全UI展示.mp4》逐帧量化：底钴蓝 #0f2ab0、面板深蓝 #081238、白 #ffffff、
+ * 水青 #58f8f8 作高光；红 #ff3b30 只给错误 / 负值 / 本机。三场页主题色：圈地冰蓝、炸弹人琥珀、夺旗淡紫。
+ * 版式、字号、SVG 图元结构与浅色版一致，本次只换颜色层。
+ */
+/* 中文字体直接引用 llm-html2video 里现成的 NotoSansSC，绝对路径，不复制 8MB 字体 */
+@font-face{
+  font-family:'NotoSC';
+  src:url(__FONT400__) format('woff2');
+  font-weight:400;font-display:swap;
+}
+@font-face{
+  font-family:'NotoSC';
+  src:url(__FONT700__) format('woff2');
+  font-weight:700;font-display:swap;
+}
+
+:root{
+  --paper:#0f2ab0;        /* 页面底 · 钴蓝（P3R 亮版）*/
+  --paper2:#081238;       /* 卡片底 · 深蓝面板 */
+  --paper3:#0a1a70;       /* 次级底 / 轨道 / 斜纹 */
+  --ink:#ffffff;          /* 正文 */
+  --ink2:#bcd0ff;         /* 次级 */
+  --line:#2f4fd8;         /* 分隔 */
+  --red:#ff3b30;          /* 信号红 · 错误 / 负值 / 本机 */
+  --red2:#e0001a;
+  --land:#4fe08b;         /* 圈地 · 薄荷绿（原冰蓝在钴蓝底上区分度不够）*/
+  --bomb:#ffc21f;         /* 炸弹人 · 琥珀（唯一暖色，爆炸语义）*/
+  --ctf:#c9a7ff;          /* 夺旗 · 淡紫 */
+  --good:#3ce69a;
+  --warn:#ffc44d;
+  --deep:#0a1030;         /* 亮块上的反衬色 */
+  --mono:'Cascadia Code','Consolas','NotoSC',monospace;
+  --me-main:#ffffff;      /* 本机正赛版 */
+  --me-ot:#ff3b30;        /* 本机加时终版 */
+  --peer:#6d86c8;         /* 同表其他选手统一色 */
+  --q5:#f2f6ff;           /* Q5_K_XL 的交卷柱：钴蓝底上的近白 */
+  --q5ot:#58f8f8;         /* Q5_K_XL 的加时柱：水青 */
+  --acc:var(--red);       /* 当前页主题色，JS 覆盖 */
+  --slash:var(--red);     /* 背景斜线颜色：JS 逐页设成 --acc，?slash=red 可强制回红 */
+  --shadow:7px 7px 0 rgba(0,0,0,.38);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'NotoSC',system-ui,sans-serif;
+  color:var(--ink);
+  background:#0f2ab0;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* 页面底色：整块提升为合成层，页面下坠/黑潮上升时它不需要重栅格 */
+#bg{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  transform:translateZ(0);will-change:transform;
+  background:
+    /* 半调点阵（白点）*/
+    radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,.085) 1.5px, transparent 2.4px) 0 0/26px 26px,
+    /* 大红斜线 + 一条细白斜切（构成主义骨架）*/
+    linear-gradient(115deg, transparent 0 49.7%, color-mix(in srgb, var(--slash) 32%, transparent) 49.7% 50.3%, transparent 50.3%),
+    linear-gradient(115deg, transparent 0 62%, rgba(255,255,255,.075) 62% 74%, transparent 74%),
+    /* 右上水青辉光 + 左下深蓝收底（菜单水面感）*/
+    radial-gradient(85% 65% at 86% -8%, rgba(88,248,248,.42) 0%, rgba(88,248,248,0) 62%),
+    radial-gradient(120% 110% at 8% 112%, #050c33 0%, rgba(5,12,51,0) 68%),
+    /* 主渐变：钴蓝 → 深蓝 */
+    linear-gradient(152deg, #2350e0 0%, var(--paper) 46%, #0a1c86 100%);
+}
+
+/* 颗粒（SVG 噪声叠加，深底用滤色提一点亮）*/
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.04;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+#stage{position:absolute;inset:0;overflow:hidden}
+
+/* ---- 页容器 ---- */
+.page{
+  position:absolute;inset:0;
+  padding:6.2vh 5.2vw 11vh;   /* 底部 11vh 是字幕安全区：成片要在画面下方压一行中文字幕 */
+  display:flex;flex-direction:column;gap:1.7vh;
+  opacity:0;visibility:hidden;
+  transition:opacity .3s ease, visibility .3s;
+}
+.page.active{opacity:1;visibility:visible}
+/* 信息量最大的几页：压留白塞进一屏 */
+.page.dense{padding-top:3.7vh;gap:1.15vh}   /* 底部让给字幕安全区后，dense 表页从顶部与行距里把高度补回来 */
+.page.dense .alert{padding:1.2vh 1.3vw}
+.page.dense .alert p{font-size:3.05vh;line-height:1.42}
+.page.dense .card .big{font-size:6.2vh}
+.page.dense table{font-size:3.05vh}
+.page.dense th,.page.dense td{padding:.7vh .8vw}
+.page.dense .card p{font-size:3.05vh;line-height:1.46}
+/* dense 页的台账表：不加这条，六行表会向上溢出压住标题（layout.mjs 的「压标题」项就是抓这个）*/
+.page.dense .tablepanel{padding:0.78vh 1.5vw}
+.page.dense .tablepanel thead th{font-size:2.54vh;padding:0.33vh .8vw}
+.page.dense .tablepanel tbody td{font-size:2.97vh;padding:0.44vh .8vw}
+/* 11 行的同表拆成两栏并排：单栏的自然高会撑破 .fig（table 的 height:100% 只是下限，压字号压不住），
+   两栏各 6 / 5 行，字号就不必往回缩。flex-basis 0 才压得过内联 width，两栏真等宽。 */
+.stattab.two{flex-direction:row;align-items:flex-start;gap:1.6vw}
+.stattab.two table{flex:1 1 0;min-width:0}
+.page.dense .tablepanel .note{font-size:2.47vh}
+.page.dense .card h3{font-size:3.07vh;margin-bottom:.8vh}
+.page.dense .chip{padding:1.1vh 1.1vw;min-width:12vw}
+.page.dense .chip .v{font-size:3.2vh}
+.page.dense .chip.hot .v{font-size:3.1vh}
+.page.dense .mini{font-size:2.76vh;line-height:1.45}
+.page.dense .pill{font-size:2.39vh}
+.page.tight .card{padding:1.5vh 1.2vw}
+.page.tight .card h3{font-size:3.33vh;margin-bottom:.6vh}
+.page.tight .card p,.page.tight .note{font-size:2.83vh;line-height:1.4}
+.page.tight table{font-size:2.83vh}
+.page.tight th,.page.tight td{padding:.55vh .7vw}
+.page.tight .chip{padding:.9vh .95vw;min-width:11vw}
+.page.tight .chip .v{font-size:3.33vh}
+.page.tight .chip.hot .v{font-size:3.58vh}
+.page.tight .alert p{font-size:2.83vh;line-height:1.4}
+.page.tight .mini{font-size:2.68vh;line-height:1.42}
+.page.tight .lead,.page.tight ul.pts li{font-size:3.19vh}
+/* 三场时间轴页逐行压扁 */
+.page.ep-land .tl-row,.page.ep-bomb .tl-row,.page.ep-ctf .tl-row{min-height:7.2vh}
+.page.ep-land .tl-time,.page.ep-bomb .tl-time,.page.ep-ctf .tl-time{font-size:3.33vh}
+.page.ep-land .tl-label,.page.ep-bomb .tl-label,.page.ep-ctf .tl-label{font-size:3.12vh}
+.page.ep-land .tl-desc,.page.ep-bomb .tl-desc,.page.ep-ctf .tl-desc{font-size:2.49vh}
+.page.ep-land .tl-dot,.page.ep-bomb .tl-dot,.page.ep-ctf .tl-dot{width:2.4vh;height:2.4vh;border-width:3px}
+.page.ep-land .tl-tag,.page.ep-bomb .tl-tag,.page.ep-ctf .tl-tag{font-size:2.1vh}
+.page.ep-land .vslot,.page.ep-bomb .vslot,.page.ep-ctf .vslot{min-height:11vh}
+
+.kicker{
+  font-size:2.9vh;letter-spacing:.42em;text-transform:uppercase;color:var(--acc);
+  transform:skewX(-12deg);display:inline-flex;align-items:center;gap:.7em;font-weight:700;
+}
+.kicker::before{content:"";width:3.4vh;height:1.6vh;background:var(--acc);transform:skewX(14deg);display:inline-block}
+
+h1.title{margin-bottom:1.4vh;font-size:8.6vh;line-height:.98;font-weight:700;letter-spacing:.01em;transform:rotate(-1.4deg);text-shadow:6px 6px 0 rgba(0,0,0,.65)}
+h1.title .em{color:var(--acc)}
+.subtitle{font-size:3vh;color:var(--ink2);font-weight:400;line-height:1.4}
+
+/* ---- 一屏一个观点：主视觉容器与超大字 ---- */
+.fig{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2vh}
+.fig svg{width:100%;height:100%;max-height:64vh;overflow:visible}
+.oneliner{font-size:5.6vh;line-height:1.16;font-weight:700;letter-spacing:.01em}
+.oneliner .em{color:var(--acc)}
+.hero{font-family:var(--mono);font-size:15vh;font-weight:800;line-height:.9;color:var(--acc);letter-spacing:-.02em}
+.hero .u{font-size:3.2vh;color:var(--ink2);font-weight:400;letter-spacing:.06em;margin-left:.4em}
+.sub{font-size:3.33vh;color:var(--ink2);line-height:1.4}
+.tagline{display:flex;gap:.8vw;flex-wrap:wrap;align-items:baseline}
+.tagline span{font-family:var(--mono);font-size:3.2vh;font-weight:700;color:var(--ink);border-bottom:4px solid var(--acc);padding-bottom:.2vh}
+.tagline span.bad{border-color:var(--red)}
+.tagline span.mut{color:var(--ink2);border-color:var(--line)}
+
+/* SVG 图元：字号一律写在元素的 font-size 属性上（viewBox 用户单位），
+   CSS 里只给颜色和线型——用 vh 会让文字不随 viewBox 缩放，位置全错。 */
+.svg-mono{font-family:var(--mono)}
+/* 时间占比条内的标签与数值：不同字号 + 明确墨色，避免糊在一起 */
+.riblab{font-weight:600;letter-spacing:.02em}
+.ribval{font-family:var(--mono);font-weight:700;letter-spacing:-.01em}
+.ax{fill:var(--ink2)}
+.ax.big{fill:var(--ink);font-weight:700}
+.vlab{fill:var(--ink);font-weight:700;font-family:var(--mono)}
+.vlab.acc{fill:var(--acc)}
+/* 长条放不下数值时写进条内，用页面底色反衬 */
+.vlabin{fill:var(--deep);font-weight:700;font-family:var(--mono)}
+.gl{stroke:var(--line);stroke-width:1}
+.gl.zero{stroke:var(--ink);stroke-width:2;stroke-dasharray:7 5}
+.gl.thr{stroke:var(--red);stroke-width:2;stroke-dasharray:9 6}
+.gl.split{stroke:#ffffff;stroke-width:3;stroke-dasharray:11 7;opacity:.92}
+.trk{fill:var(--paper3)}
+.bar{stroke:rgba(255,255,255,.30);stroke-width:1}
+.pt{stroke:var(--paper2);stroke-width:2}
+.ann{fill:var(--ink2)}
+.ann.acc{fill:var(--acc)}
+
+/* ---- 入场动效 ----
+   静态规则一律不设 opacity:0 / stroke-dasharray：起始态只写在 @keyframes 的 from 里。
+   这样 ?anim=0（body.noanim）把 animation 整个关掉时，元素自然回到可见终态，layout.mjs 量的就是它。 */
+@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes growX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes draw{from{stroke-dasharray:1;stroke-dashoffset:1}to{stroke-dasharray:1;stroke-dashoffset:0}}
+@keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+
+/* 页内顶层块：自上而下错峰浮现 */
+.page.active>*{animation:rise .58s cubic-bezier(.22,.8,.26,1) both}
+.page.active>:nth-child(2){animation-delay:.08s}
+.page.active>:nth-child(3){animation-delay:.16s}
+.page.active>:nth-child(4){animation-delay:.24s}
+.page.active>:nth-child(5){animation-delay:.3s}
+/* 卡片 / 策略块 / 芯片：同一层内再错开一点 */
+.page.active .grid>*,.page.active .chips>*{animation:rise .54s cubic-bezier(.22,.8,.26,1) both}
+.page.active .grid>*:nth-child(2),.page.active .chips>*:nth-child(2){animation-delay:.1s}
+.page.active .grid>*:nth-child(3),.page.active .chips>*:nth-child(3){animation-delay:.18s}
+.page.active .grid>*:nth-child(n+4){animation-delay:.26s}
+/* 条形：从基准线往外长，按行号排队 */
+.fig svg .bar{transform-box:fill-box}
+.page.active .fig svg .bar{animation:growX .62s cubic-bezier(.2,.78,.26,1) both;animation-delay:calc(var(--i,0)*34ms + .12s)}
+/* SVG 里的标签与数值：跟着自己那一根条一起出现 */
+.page.active .fig svg .ain{animation:fadeIn .42s ease both;animation-delay:calc(var(--i,0)*34ms + .2s)}
+/* 折线：描边，末端圆点最后弹出 */
+.page.active .fig svg .lnpath{animation:draw 1s cubic-bezier(.36,.1,.2,1) both;animation-delay:calc(var(--i,0)*90ms + .1s)}
+.fig svg .pt{transform-box:fill-box;transform-origin:center}
+.page.active .fig svg .pt{animation:pop .42s cubic-bezier(.2,1.5,.4,1) both;animation-delay:.92s}
+/* 时间轨道：段落从左推开 */
+.fig svg .trk{transform-box:fill-box;transform-origin:left center}
+.page.active .fig svg .trk{animation:growX .6s cubic-bezier(.2,.78,.26,1) both;animation-delay:calc(var(--i,0)*40ms + .15s)}
+/* 关掉动效（量版式 / 抓静态用）：node pipeline/layout.mjs 走的就是这个开关 */
+body.noanim *{animation:none!important;transition:none!important}
+
+/* ---- 通用卡片 / 网格 ---- */
+.grid{display:grid;gap:1.6vh 1.4vw}
+/* grid/flex 子项默认 min-width:auto，塞进 SVG 时会被内容撑破视口，一律放开 */
+.grid>*{min-width:0}
+.fig{min-width:0}
+.fig svg{max-width:100%}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.card{
+  background:var(--paper2);
+  border:1px solid var(--line);
+  border-left:6px solid var(--acc);
+  border-radius:5px;
+  padding:2.2vh 1.5vw;
+  transform:rotate(-.5deg);
+  box-shadow:var(--shadow);
+}
+.card:hover{transform:rotate(0deg) translateY(-2px);border-color:var(--acc);transition:.2s}
+.card h3{font-size:3.33vh;color:var(--ink);margin-bottom:1.1vh;letter-spacing:.02em}
+.card .big{font-size:7.4vh;font-weight:700;line-height:1;color:var(--acc)}
+.card .big .u{font-size:3.33vh;color:var(--ink2);font-weight:400;margin-left:.3em}
+.card p{font-size:3.19vh;color:var(--ink2);line-height:1.5}
+/* 第 21 页三张事实卡：标题按场次主题色上色并放大到比正文更大（原来三张都是 --acc，分不开）*/
+.card.ev .tag{font-family:var(--mono);font-size:3.9vh;font-weight:700;letter-spacing:.12em;line-height:1.15;margin-bottom:.6vh}
+.card.ev-land{border-left-color:var(--land)}
+.card.ev-bomberman{border-left-color:var(--bomb)}
+.card.ev-ctf{border-left-color:var(--ctf)}
+.card.ev-land .tag{color:var(--land)}
+.card.ev-bomberman .tag{color:var(--bomb)}
+.card.ev-ctf .tag{color:var(--ctf)}
+/* 策略对照块：正赛这版 / 加时改成什么，各配一句好处一句代价 */
+.strat{align-items:stretch}
+.strat .card{padding:1.8vh 1.3vw}
+.strat .tag{font-family:var(--mono);font-size:2.97vh;font-weight:700;color:var(--ink2);letter-spacing:.08em}
+.strat .card.hot .tag{color:var(--acc)}
+.strat h3{font-size:3.71vh;line-height:1.28;margin:.6vh 0 .8vh;color:var(--ink)}
+.strat .idea{font-size:3.19vh;line-height:1.5;color:var(--ink2)}
+.strat .pm{margin-top:1.1vh;font-size:3.05vh;line-height:1.45}
+.strat .pm b{font-family:var(--mono);font-size:2.76vh;margin-right:.5em}
+.strat .pm.up b{color:var(--good)}
+.strat .pm.dn b{color:var(--red)}
+.card p b{color:var(--ink);font-weight:700}
+
+.row{display:flex;gap:1.4vw;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:1.4vh}
+
+/* 巨型描边数字（背景装饰）*/
+.bignum{position:absolute;right:2vw;bottom:6vh;font-size:34vh;font-weight:800;color:transparent;
+  -webkit-text-stroke:2px rgba(255,255,255,.13);line-height:.8;pointer-events:none;z-index:0}
+.page>*{position:relative;z-index:1}
+
+/* ---- 事实卡：页面底部的数据详情区（值全部来自 __DATA__）---- */
+.facts{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:1vw;margin-top:auto}
+.fact{background:rgba(6,14,46,.62);border:1px solid var(--line);border-left:5px solid var(--acc);border-radius:4px;
+  padding:.95vh 1.1vw;min-width:0}
+.fact.hot{border-left-color:var(--red);background:rgba(255,59,48,.15)}
+.fact .fk{font-size:2.54vh;color:var(--acc);font-weight:700;letter-spacing:.18em;margin-bottom:.5vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fact .fv{font-family:var(--mono);font-size:3.58vh;font-weight:700;color:var(--ink);line-height:1.12}
+.fact.hot .fv{color:var(--red)}
+.fact.hot .fk{color:var(--red)}
+.fact .fn{font-size:2.1vh;color:var(--ink2);line-height:1.35;margin-top:.5vh}
+.page.dense .facts .fact{padding:0.51vh .9vw}
+.page.dense .facts .fk{font-size:2.25vh;margin-bottom:.3vh}
+.page.dense .facts .fv,.page.tight .facts .fv{font-size:3.07vh}
+.page.dense .facts .fn,.page.tight .facts .fn{font-size:2.32vh}
+
+/* ---- 列表 / 要点 ---- */
+ul.pts{list-style:none;display:flex;flex-direction:column;gap:1.3vh}
+ul.pts li{font-size:3.33vh;line-height:1.45;color:var(--ink);padding-left:1.7em;position:relative}
+ul.pts li::before{content:"▹";position:absolute;left:0;color:var(--acc);font-weight:700}
+ul.pts li b{color:var(--acc);font-weight:700}
+ul.pts li .muted{color:var(--ink2)}
+.note{font-size:3.05vh;color:var(--ink2);line-height:1.5}
+
+/* ---- 表格 ---- */
+/* 整块表格垫一层深底，与页面背景分开 */
+.tablepanel{background:rgba(5,14,58,.62);border:1px solid rgba(150,190,255,.32);border-radius:10px;padding:1.32vh 2.2vw;box-shadow:7px 7px 0 rgba(0,0,0,.32)}
+table{width:100%;border-collapse:collapse;font-size:3.33vh}
+th,td{padding:1.05vh 1vw;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--ink2);font-weight:400;font-size:2.76vh;letter-spacing:.05em;text-transform:uppercase}
+td.num{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+tr.me td{background:rgba(255,59,48,.22);color:var(--ink);font-weight:700}
+tr.me td:first-child{border-left:5px solid var(--red)}
+tr.anchor td{color:var(--ink2);font-style:italic}
+.tbar{display:inline-block;height:1.4vh;background:var(--acc);border-radius:2px;vertical-align:middle}
+
+/* ---- 时间轴 ---- */
+.timeline{display:flex;flex-direction:column;gap:0;margin-left:.4vw;position:relative}
+.tl-row{display:grid;grid-template-columns:13vw 24vh 1fr;align-items:stretch;min-height:9.2vh}
+.tl-time{font-family:var(--mono);font-size:3.46vh;font-weight:700;color:var(--acc);align-self:center}
+.tl-track{position:relative}
+.tl-track::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;background:var(--line);transform:translateX(-50%)}
+.tl-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:3vh;height:3vh;border-radius:50%;
+  background:var(--paper);border:4px solid var(--acc);box-shadow:0 0 0 4px rgba(255,255,255,.14)}
+.tl-dot.crash{border-color:var(--red);background:var(--red)}
+.tl-dot.issue{border-color:var(--ctf)}
+.tl-body{display:flex;flex-direction:column;justify-content:center;gap:.35vh}
+.tl-label{font-size:3.33vh;font-weight:700;color:var(--ink)}
+.tl-desc{font-size:2.83vh;color:var(--ink2);line-height:1.4}
+.tl-tag{display:inline-block;font-size:2.32vh;font-family:var(--mono);padding:.1em .6em;border:1px solid var(--line);border-radius:3px;color:var(--ink2);margin-left:.5em}
+.tl-tag.hit{color:var(--good);border-color:var(--good)}
+.tl-tag.bad{color:var(--red);border-color:var(--red)}
+
+/* ---- 代码块：比卡片再暗一档，蓝边，像深色面板里嵌的一块屏 ---- */
+.code{
+  background:#050b2a;border:1px solid var(--line);border-radius:5px;overflow:auto;
+  font-family:var(--mono);font-size:2.61vh;line-height:1.5;color:#d8ecff;
+  max-height:60vh;scrollbar-width:thin;scrollbar-color:var(--red) #01050f;
+  box-shadow:var(--shadow);
+}
+.code::-webkit-scrollbar{width:10px}.code::-webkit-scrollbar-thumb{background:var(--red);border-radius:6px}
+.code .ln{display:block;padding:.1em 1.1em .1em .1em;white-space:pre}
+.code .ln:nth-child(odd){background:rgba(255,255,255,.06)}
+.code .ln i{display:inline-block;width:3.2em;text-align:right;padding-right:1em;color:#7288d8;font-style:normal;user-select:none}
+.code .cm{color:#93a9e6}
+.code .flag{color:#ff8a6e}
+/* 整份照抄的启动脚本：两栏排，不靠滚动（录屏里滚不动的块等于没展示）*/
+.code.cols2{columns:2;column-gap:1.2vw;max-height:none;overflow:visible}
+.code.cols2 .ln{break-inside:avoid}
+.code.wrapall{max-height:none;overflow:visible}
+.code.wrapall .ln{white-space:pre-wrap;word-break:break-all}
+
+.prompt-block{background:var(--paper2);border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:5px;
+  padding:2.4vh 1.8vw;font-size:3.19vh;line-height:1.62;color:var(--ink);white-space:pre-wrap;max-height:none;overflow:visible;
+  box-shadow:var(--shadow)}
+
+/* ---- 徽标 / 徽章 ---- */
+.chips{display:flex;flex-wrap:wrap;gap:1.2vh}
+.chip{display:flex;flex-direction:column;gap:.3vh;background:var(--paper2);border:1px solid var(--line);border-radius:5px;padding:1.4vh 1.4vw;min-width:14vw;transform:rotate(-.4deg);box-shadow:4px 4px 0 rgba(0,0,0,.45)}
+.chip .k{font-size:2.47vh;color:var(--ink2);letter-spacing:.04em}
+.chip .v{font-size:3.33vh;font-weight:700;color:var(--ink);font-family:var(--mono);word-break:break-word;line-height:1.15}
+.chip .v .u{font-size:.62em;color:var(--ink2);font-weight:400;margin-left:.35em}
+.chip.hot .v{color:var(--acc);font-size:3.3vh}
+
+/* 缓存命中可视化条 */
+.cachebar{display:flex;height:4.4vh;border-radius:4px;overflow:hidden;border:1px solid var(--line);font-family:var(--mono)}
+.cachebar .seg{display:flex;align-items:center;justify-content:center;font-size:2.61vh;color:var(--deep);font-weight:700;white-space:nowrap;overflow:hidden;padding:0 .4em}
+.cachebar .cache{background:linear-gradient(90deg,#4fe0b0,#a8f5dc)}
+.cachebar .fresh{background:linear-gradient(90deg,#3f8dff,#8fc4ff)}
+
+/* 警告条 */
+.alert{border:2px solid var(--warn);background:rgba(255,196,77,.13);border-radius:5px;padding:1.8vh 1.6vw;position:relative;transform:rotate(-.4deg)}
+.alert.red{border-color:var(--red);background:rgba(255,59,48,.16)}
+.alert .tag{display:inline-block;font-size:2.61vh;font-weight:700;letter-spacing:.14em;color:var(--deep);background:var(--warn);padding:.15em .8em;border-radius:3px;transform:skewX(-12deg);margin-bottom:.9vh}
+.alert.red .tag{background:var(--red);color:#fff}
+.alert p{font-size:3.12vh;line-height:1.5;color:var(--ink)}
+
+/* 占位 / 待补 */
+.todo{border:2px dashed var(--line);border-radius:8px;background:
+  repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0 16px,transparent 16px 32px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4vh;text-align:center;padding:3vh;flex:1;min-height:26vh}
+.todo .badge{font-size:3.07vh;font-weight:700;letter-spacing:.2em;color:var(--ctf);transform:skewX(-12deg)}
+.todo .ph{font-size:3.19vh;color:var(--ink2);line-height:1.5;max-width:70%}
+.todo .src{font-family:var(--mono);font-size:2.61vh;color:var(--ink2)}
+
+/* 视频槽（占位：待录屏后按 cuts.json 落 clips/）*/
+.vslot{border:1px solid var(--line);border-radius:8px;background:repeating-linear-gradient(135deg,var(--paper3) 0 22px,#081238 22px 44px);
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;min-height:15vh}
+.vslot .rec{position:absolute;top:1.2vh;left:1.4vw;font-family:var(--mono);font-size:2.61vh;color:var(--red);display:flex;align-items:center;gap:.5em}
+.vslot .rec::before{content:"";width:1.4vh;height:1.4vh;border-radius:50%;background:var(--red);box-shadow:0 0 8px rgba(255,45,45,.7)}
+.vslot .want{font-size:2.9vh;color:var(--ink2);font-family:var(--mono)}
+/* 数据页右侧的视频位：固定 16:9，P3R 式亮边框 + 外发光 */
+.vslot.side{width:auto;height:46vh;aspect-ratio:16/9;min-height:0;align-self:center;justify-self:center;margin:0 auto;max-width:100%;
+  border:2px solid rgba(150,205,255,.55);box-shadow:0 12px 34px rgba(0,0,0,.45),0 0 0 6px rgba(255,255,255,.05)}
+.vslot.side .want{font-size:3.05vh;letter-spacing:.12em;text-transform:uppercase}
+
+
+/* 一列放两个录像位时压矮，给底部事实卡让位 */
+.vstack .vslot.side{height:23vh}
+
+/* 键位/页脚 HUD */
+#hud{position:fixed;left:0;right:0;bottom:0;height:5.4vh;display:flex;align-items:center;gap:1.4vw;
+  padding:0 1.6vw;background:linear-gradient(0deg,var(--paper),rgba(9,20,90,.80));z-index:40;font-size:2.61vh;color:var(--ink2);
+  border-top:1px solid var(--line)}
+#hud .idx{font-family:var(--mono);color:var(--ink);font-weight:700;min-width:7vw}
+#hud .cap{color:var(--acc);font-weight:700;min-width:22vw;letter-spacing:.03em}
+#prog{flex:1;height:6px;background:var(--paper3);border-radius:4px;overflow:hidden;min-width:12vw}
+#prog>i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+#keys{margin-left:auto;letter-spacing:.02em;white-space:nowrap}
+#hud .kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:3px;padding:.05em .4em;color:var(--ink);font-family:var(--mono);background:var(--paper2)}
+#mbtn{background:var(--paper2);border:1px solid var(--line);color:var(--ink);border-radius:4px;width:3.6vh;height:3.6vh;font-size:2.76vh;cursor:pointer}
+
+/* 擦除转场（斜切色带：P3R 式红 → 深蓝 → 电青）*/
+#wipe{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0}
+#wipe.go{animation:wp .62s ease}
+.w{position:absolute;inset:0;transform:translateX(-105%) skewX(-14deg)}
+.w1{background:var(--red)}
+.w2{background:#0f2ab0}
+.w3{background:#58f8f8}
+@keyframes wp{
+  0%{opacity:1}
+  18%{opacity:1}
+  45%{opacity:1}
+  100%{opacity:0}
+}
+#wipe.go .w{animation:wp-x .62s ease}
+#wipe.go .w1{animation-delay:0s}
+#wipe.go .w2{animation-delay:.06s}
+#wipe.go .w3{animation-delay:.12s}
+@keyframes wp-x{0%{transform:translateX(-105%) skewX(-14deg)}45%{transform:translateX(0) skewX(-14deg)}55%{transform:translateX(0) skewX(-14deg)}100%{transform:translateX(105%) skewX(-14deg)}}
+
+/* 纯净屏：隐藏 HUD 与鼠标 */
+body.clean #hud{opacity:0;transform:translateY(100%);pointer-events:none}
+body.clean{cursor:none}
+/* clean=1（纯净屏/录制）下连落幕提示行也藏掉：成片黑幕上不该出现「复位可重录」 */
+body.clean #seaHint{display:none}
+#hud{transition:opacity .3s,transform .3s}
+
+/* P：当前内容块假全屏 */
+#stage figure.zoom{position:fixed;inset:0;z-index:50;background:var(--paper);margin:0;padding:5vh 5vw;display:flex;flex-direction:column;gap:2vh;
+  opacity:0;transform:scale(1.03);animation:zin .28s ease forwards}
+@keyframes zin{to{opacity:1;transform:none}}
+body.zoomlock .page{visibility:hidden}
+
+/* 拉绳落幕：幕布仍用深红黑，深色页面里靠红边收束 */
+#curtain{position:fixed;inset:0;z-index:70;display:none}
+#curtain.on{display:block}
+#curtain svg{width:100%;height:100%;display:block}
+#curtainHint{position:absolute;right:6vw;top:8vh;color:#fff2ea;font-family:var(--mono);font-size:3.07vh;letter-spacing:.2em;opacity:.85;
+  text-shadow:0 1px 6px rgba(0,0,0,.5)}
+
+/* 27B 形象占位槽：角色图未到位前用虚线方块 + 标号，图来了换成 <img data-avatar> 即可 */
+.ava{display:inline-flex;align-items:center;justify-content:center;width:5.2vh;height:5.2vh;border:2px dashed var(--acc);
+  border-radius:6px;font-family:var(--mono);font-size:2.47vh;font-weight:700;color:var(--acc);background:rgba(255,59,48,.14);vertical-align:middle}
+.ava.lg{width:9vh;height:9vh;font-size:3.07vh}
+.ava-row{display:flex;align-items:center;gap:.9vw;flex-wrap:wrap}
+.ava-slot{border:2px dashed var(--line);border-radius:8px;background:repeating-linear-gradient(135deg,var(--paper3) 0 18px,#081238 18px 36px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8vh;color:var(--ink2);font-family:var(--mono);font-size:2.61vh}
+
+/* 页内小工具 */
+.lead{font-size:3.2vh;line-height:1.42;color:var(--ink)}
+.lead b{color:var(--acc)}
+.mini{font-size:2.68vh;color:var(--ink2);font-family:var(--mono)}
+.spacer{flex:1}
+.pill{display:inline-block;font-family:var(--mono);font-size:2.61vh;padding:.12em .7em;border-radius:99px;border:1px solid rgba(255,255,255,.55);color:#fff;background:rgba(255,255,255,.07)}
+.legend{display:flex;gap:1.6vw;font-size:2.83vh;color:var(--ink2);flex-wrap:wrap}
+.legend i{display:inline-block;width:1.2em;height:1.2em;border-radius:3px;vertical-align:-.1em;margin-right:.4em}
+
+.ava.lg.pic{width:24vh;height:20.4vh;border:3px solid #fff;border-radius:6px;background:#fdf8f0;overflow:hidden;display:block;
+  box-shadow:7px 7px 0 rgba(0,0,0,.38);transform:rotate(-1.6deg);padding:0}
+.ava.lg.pic img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block}
+
+/* ---- 沉海落幕（末页）：水面破裂 → 柔光 → 泡沫铺满再破开 → 急剧扭曲下沉 → 浅蓝转黑 ---- */
+/* ---- 落幕：页面掉入下方 + 黑潮自下而上吞没，同时进行，最后全黑 ---- */
+#sea{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:120;overflow:hidden;transition:opacity .25s ease}
+#sea.on{opacity:1;pointer-events:auto}
+#sea .abyss{position:absolute;inset:0;transform:translateY(101%);
+  background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.42) 13%,rgba(0,0,0,.88) 31%,#000 50%,#000 100%)}
+#sea.deep .abyss{transform:translateY(0);transition:transform 1.1s cubic-bezier(.42,.05,.76,.3)}
+#sea .blackout{position:absolute;inset:0;background:#000;opacity:0}
+#sea.black .blackout{opacity:1;transition:opacity .85s ease-in}
+#stage.sinking{animation:pageSink 1.15s linear both,pageFade 1.15s ease-in both;will-change:transform;transform:translateZ(0)}
+@keyframes pageSink{
+  0%{transform:translateY(0);animation-timing-function:cubic-bezier(.2,.85,.4,1)}
+  10%{transform:translateY(-4.5vh);animation-timing-function:cubic-bezier(.4,.1,.5,.2)}
+  100%{transform:translateY(350vh)}}
+@keyframes pageFade{0%,55%{opacity:1}100%{opacity:0}}
+#seaHint{position:absolute;right:6vw;top:8vh;color:#eafeff;font-family:var(--mono);font-size:3.07vh;
+  letter-spacing:.2em;opacity:.8;text-shadow:0 1px 8px rgba(0,20,60,.6)}
+
+/* ---- 视频槽：有素材时 <video> 铺满槽位，没素材仍是 REC 占位 ---- */
+.vslot{position:relative;overflow:hidden}
+.vslot .vclip{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.vslot.hasclip .rec,.vslot.hasclip .want{display:none}
+
+
+
+
+/* 两本账表格：表头着色 + 斑马纹 + 纵向分隔线，跟页面背景分出层次 */
+.tablepanel table{width:100%;border-collapse:collapse}
+.tablepanel thead th{background:rgba(255,255,255,.12);color:#eaf2ff;font-weight:700;font-size:2.9vh;
+  letter-spacing:.08em;border-bottom:1px solid rgba(255,255,255,.28);padding:1.5vh 1vw}
+.tablepanel tbody td{font-size:3.07vh;padding:0.96vh 1vw;border-bottom:1px solid rgba(255,255,255,.10)}
+.tablepanel tbody tr:nth-child(odd) td{background:rgba(255,255,255,.05)}
+.tablepanel tbody tr.me td{background:rgba(255,59,48,.20)}
+.tablepanel td+td,.tablepanel th+th{border-left:1px solid rgba(255,255,255,.10)}
+
+/* ---- ?cue=1：按配音时间轴逐个点亮（.card 自带 rotate，只淡入不位移）---- */
+.cue .subtitle,.cue .tagline.screen span,.cue .oneliner,.cue .facts .fact,.cue .mini{opacity:0;transform:translateY(1.2vh)}
+.cue .card{opacity:0}
+.cue .subtitle.on,.cue .tagline.screen span.on,.cue .oneliner.on,.cue .facts .fact.on,.cue .mini.on{opacity:1;transform:none;transition:opacity .5s ease,transform .55s cubic-bezier(.2,.8,.3,1)}
+.cue .card.on{opacity:1;transition:opacity .5s ease}
+/* cue 模式下这些元素由时间轴接管，关掉入场 rise（animation 会盖掉 opacity:0） */
+.cue .page.active>.subtitle,.cue .page.active>.oneliner,.cue .page.active>.mini,.cue .page.active>.card,
+.cue .page.active .grid>.card,.cue .page.active .chips>.card{animation:none}
+
+/* ---- 视频位：标签在画面下方（不遮挡画面）---- */
+.vwrap{display:flex;flex-direction:column;align-items:center;gap:.5vh;min-width:0}
+.vwrap.side{width:100%}
+.vwrap>.vslot:not(.side){width:100%;aspect-ratio:16/9}
+.vstack .vwrap{gap:.2vh}
+
+.vcap{display:flex;align-items:baseline;justify-content:center;gap:.7em;flex-wrap:wrap;
+  text-align:center;line-height:1.25;color:var(--ink2);font-size:2.61vh;max-width:100%}
+.vcap b{color:#fff;font-size:2.76vh;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+/* 图注第二行放对手名单，字号压一档才装得下一行不换 */
+.vcap span{font-size:2.1vh;line-height:1.3}
+
+/* ---- 构成主义极简组件（借 presentation-v3：方块阵 / 细线 / 微动 / 箭头）
+   一律元素局部、一次性或极慢，静态规则写终态，起始态只写在 @keyframes 里（?anim=0 才量得准）---- */
+.hrow{position:relative;display:flex;align-items:center;justify-content:space-between;gap:2vw}
+.mx{position:absolute;right:0;top:50%;transform:translateY(-50%);display:grid;grid-template-columns:repeat(6,1.35vh);gap:.6vh;flex:0 0 auto;opacity:.95}
+.mx i{width:1.35vh;height:1.35vh;border:2px solid var(--acc);opacity:.78;transform:scale(1)}
+/* 3.5s 一周：每格亮一下就走，55ms 错峰读成一列扫过；只在当前页跑 */
+.page.active .mx i{animation:mxLoop 3.5s cubic-bezier(.3,.7,.3,1) infinite;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes mxLoop{0%{opacity:.78;transform:scale(1);background:transparent}
+  4%{opacity:1;transform:scale(1.18);background:var(--acc)}
+  11%{opacity:.95;transform:scale(1.02);background:rgba(255,255,255,.06)}
+  20%{opacity:.78;transform:scale(1);background:transparent}
+  100%{opacity:.78;transform:scale(1);background:transparent}}
+
+.facts{position:relative}
+.facts::before{content:"";position:absolute;left:0;right:0;top:-.9vh;height:.3vh;background:var(--acc);opacity:.55;
+  transform:scaleX(1);transform-origin:left center}
+.page.active .facts::before{animation:ruleSweep .82s cubic-bezier(.22,.85,.25,1) .28s both}
+@keyframes ruleSweep{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+
+.page.active .fact.hot{animation:factDrift 14s ease-in-out infinite}
+@keyframes factDrift{0%,100%{transform:translate(0,0)}50%{transform:translate(5px,-4px)}}
+
+.kicker::before{transform-origin:center}
+.page.active .kicker::before{animation:kickerNudge 2.8s ease-in-out infinite}
+@keyframes kickerNudge{0%,100%{transform:skewX(14deg) translateX(0)}50%{transform:skewX(14deg) translateX(3px)}}
+
+/* ===== 21 页版新增：成绩表 / 双栏 / 三集画廊 / 哑铃图 ===== */
+:root{--ink3:#3f5aa8}          /* 哑铃图两点之间的连线 */
+
+/* 左主内容 + 右侧录像位 */
+.cols{display:flex;gap:1.6vw;align-items:stretch;flex:1;min-height:0}
+.cols>.fig{flex:1 1 auto;min-width:0}
+.cols>.vwrap.side{flex:0 0 31vw;width:31vw}
+.cols>.vwrap.side .vslot{width:100%;height:auto;aspect-ratio:16/9}
+
+/* 成绩表：头像 + 外壳 + 思考档 + 两个模型各一列 */
+.scoretab table{table-layout:fixed}
+.scoretab th:nth-child(1),.scoretab td:nth-child(1){width:30%}
+.scoretab th:nth-child(2),.scoretab td:nth-child(2){width:20%}
+.scoretab th:nth-child(3),.scoretab td:nth-child(3){width:15%}
+.scoretab th:nth-child(4),.scoretab td:nth-child(4),.scoretab th:nth-child(5),.scoretab td:nth-child(5){width:17.5%}
+.scoretab .av{width:3vh;height:3vh;border-radius:50%;object-fit:cover;display:inline-block;vertical-align:-.85vh;margin-right:.55vw;background:var(--paper3)}
+.scoretab .av.ph{opacity:.3}
+.scoretab td.q5{color:var(--peer)}
+.scoretab tr.me td{background:rgba(255,255,255,.08);font-weight:700}
+.scoretab tr.me td:first-child{box-shadow:inset .45vh 0 0 var(--acc)}
+.scoretab tr.dimr td{opacity:.55}
+
+/* 三集画廊：三块回放位共用一个网格，页面 data-seq 决定谁在主位、谁在两个副位 */
+.page.gal .gallery{display:flex;gap:1.5vw;flex:1;min-height:0}
+/* 主位换片：原来靠 grid-template-areas 换位，grid-area 不可插值，小窗是「瞬间跳」到主位的。
+   改成绝对定位 + 四个 CSS 变量描述位置，换拍时底部小窗放大滑到主位、旧主位缩小滑回底部。 */
+/* 44.1% 是反推出来的：gstage 高 647，主位取 66% = 427，16:9 要求宽 759，759 / 内容宽 1720 = 44.1%。
+   再宽就只能裁画面（源是 1920×1080），再窄主位就缩了。 */
+.page.gal .gstage{flex:0 0 44.1%;position:relative;min-height:0;min-width:0}
+.page.gal .gstage>.vwrap{position:absolute;left:var(--x);top:var(--y);width:var(--w);height:var(--h);min-height:0;min-width:0;
+  transition:left .8s cubic-bezier(.34,.86,.3,1),top .8s cubic-bezier(.34,.86,.3,1),width .8s cubic-bezier(.34,.86,.3,1),height .8s cubic-bezier(.5,.05,.28,1)}
+.page.gal .gstage>.vwrap:nth-child(1){--x:0%;--y:0%;--w:100%;--h:66%}
+.page.gal .gstage>.vwrap:nth-child(2){--x:0%;--y:70%;--w:45.5%;--h:30%}
+.page.gal .gstage>.vwrap:nth-child(3){--x:54.5%;--y:70%;--w:45.5%;--h:30%}
+.page.gal[data-seq="2"] .gstage>.vwrap:nth-child(1){--x:54.5%;--y:70%;--w:45.5%;--h:30%}
+.page.gal[data-seq="2"] .gstage>.vwrap:nth-child(2){--x:0%;--y:0%;--w:100%;--h:66%}
+.page.gal[data-seq="2"] .gstage>.vwrap:nth-child(3){--x:0%;--y:70%;--w:45.5%;--h:30%}
+.page.gal[data-seq="3"] .gstage>.vwrap:nth-child(1){--x:0%;--y:70%;--w:45.5%;--h:30%}
+.page.gal[data-seq="3"] .gstage>.vwrap:nth-child(2){--x:54.5%;--y:70%;--w:45.5%;--h:30%}
+.page.gal[data-seq="3"] .gstage>.vwrap:nth-child(3){--x:0%;--y:0%;--w:100%;--h:66%}
+.vwrap.fill{position:relative;min-height:0}
+.vwrap.fill>.vslot{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;min-height:0}
+/* 副位缩到 345 宽，图注必须限宽居中才不溢出到隔壁；字号跟着压一档 */
+.vwrap.fill>.vcap{position:absolute;left:.6vw;right:.6vw;bottom:.7vh;z-index:2;font-size:2.3vh;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.epcard{border:1px solid var(--line);border-left:.5vh solid var(--acc);border-radius:6px;padding:1.5vh 1.1vw;background:var(--paper2)}
+.epcard .tag{font-size:2.47vh;font-weight:700;letter-spacing:.14em;color:var(--acc)}
+.epcard h3{font-size:3.71vh;margin:.5vh 0 .4vh}
+.epcard p{font-size:2.76vh;line-height:1.52;color:var(--ink2)}
+.cue .epcard{opacity:0;transform:translateY(1.2vh)}
+.cue .epcard.on{opacity:1;transform:none;transition:opacity .5s ease,transform .55s cubic-bezier(.2,.8,.3,1)}
+
+/* 21 页版第一轮版式修正：成绩表不许顶到标题 */
+.cols{margin-top:1.2vh}
+.page.dense .scoretab tbody td{font-size:2.83vh;padding:0.37vh .7vw}
+.page.dense .scoretab thead th{font-size:2.47vh;padding:0.27vh .7vw}
+.page.dense .scoretab{padding:0.66vh 1.2vw}
+.page.dense .scoretab .note{font-size:2.25vh;line-height:1.42;margin-top:.5vh}
+.cols>.vwrap.side{margin-top:2.2vh}
+.page.dense .scoretab.tall tbody td{font-size:2.31vh;padding:0.05vh .6vw}
+.page.dense .scoretab.tall thead th{font-size:2.32vh;padding:0.16vh .6vw}
+.page.dense .scoretab.tall .av{width:2.3vh;height:2.3vh;vertical-align:-.6vh}
+/* 12 行的成绩表：行高被头像的基线偏移撑到 43px，压 middle + 收 line-height 后一行省 11px，整表才装得下 */
+.page.dense .scoretab.tall .av{vertical-align:middle}
+.page.dense .scoretab.tall tbody td{line-height:1.06}
+/* 夺旗那张表 14 行，是全片最高的表：只给它再收一档，字号仍在 24px 手机可读线上 */
+.page.ep-ctf .scoretab.tall tbody td{font-size:2.26vh;padding:0.02vh .6vw}
+.scoretab td .rk{vertical-align:middle}
+.cols>.fig{flex:0 1 auto}
+/* P17 两组柱共用一行高、各用一套刻度：小标题写在柱上方 */
+.gcap{font-size:3.05vh;color:var(--ink2);font-family:var(--mono);letter-spacing:.04em}
+/* P16 难度对照表：六行四列，字号与行高不压住就会顶到标题 */
+.difftab tbody td{font-size:2.68vh;padding:0.37vh .5vw;line-height:1.32}
+.difftab thead th{font-size:2.47vh;padding:0.3vh .5vw}
+.difftab td:first-child,.difftab th:first-child{white-space:nowrap}
+.page.dense .difftab{padding:1.1vh 1.4vw}
+.page.dense .difftab tbody td{font-size:3.05vh;padding:.85vh .9vw;line-height:1.3}
+.page.dense .difftab thead th{font-size:2.76vh;padding:.6vh .9vw}
+.difftab td.dk,.difftab th.dk{color:var(--acc);font-weight:700;letter-spacing:.03em}
+.difftab td.easy,.difftab th.easy{opacity:.6}
+.difftab td.hard{background:rgba(255,59,48,.18);color:#fff;font-weight:700}
+.difftab th.hard{background:rgba(255,59,48,.32);color:#fff;font-weight:700;letter-spacing:.03em}
+.verdict{font-size:3.7vh;font-weight:700;color:var(--ink);line-height:1.25}
+.verdict .em{color:var(--red)}
+/* 一页一个主视觉的图页：底部留白压掉，竖向空间全给柱子 */
+.page.viz{gap:1.1vh}   /* viz 只收紧块间距；底部留白跟 .page 一致，字幕安全区不给图表让路 */
+/* 图页的数字条：替代事实卡，内容一样，只占一行 */
+.nstrip{display:flex;flex-wrap:wrap;gap:.7vh 2.4vw;font-family:var(--mono);color:var(--ink2);font-size:2.4vh;line-height:1.25}
+.nstrip .ns{display:flex;align-items:baseline;gap:.5vw;white-space:nowrap}
+.nstrip .ns b{color:var(--acc);font-weight:700;letter-spacing:.05em}
+.nstrip .ns i{font-style:normal;color:var(--ink);font-weight:700;font-size:2.7vh}
+.nstrip .ns u{text-decoration:none;opacity:.82}
+.cols>.col{flex:1 1 42%;min-width:0}
+.cols>.fig{flex:1 1 auto}
+.cols>.fig.tablepanel{flex:0 1 auto}
+
+/* 画廊右列：一场一张竖向矩形卡，撑满整列高度（原来三张横卡堆在右列，卡片高度由文字决定，看着像列表不像卡片） */
+.page.gal .glist{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0;position:relative}
+.page.gal .epcard.detail{display:none;flex-direction:column;justify-content:center;gap:1.5vh;height:100%;min-height:0;
+  padding:2.6vh 1.5vw;border-top:.55vh solid var(--acc);border-left:1px solid var(--line)}
+.page.gal:not([data-seq]) .epcard.detail[data-seq="1"]{display:flex}
+.page.gal[data-seq="1"] .epcard.detail[data-seq="1"],
+.page.gal[data-seq="2"] .epcard.detail[data-seq="2"],
+.page.gal[data-seq="3"] .epcard.detail[data-seq="3"]{display:flex}
+.page.gal .epcard.detail h3{font-size:4.3vh;margin:0}
+.page.gal .epcard.detail p{font-size:2.95vh;line-height:1.66}
+
+/* 一页一个主视觉：成绩表页与成绩柱页各占一页，原来「按拍换图」挤在同一槽的做法拆掉了 */
+.cols>.col.wide{flex:1 1 47%;min-width:0}
+.cols>.col.vid{flex:1 1 30%;min-width:0;display:flex;flex-direction:column}
+.cols>.col.vid.side28{flex:0 0 28vw}
+.cols>.col.vid.side37{flex:0 0 37vw}   /* 三张「加时终版成绩」页的录像位加宽；柱图那边改用 w:1180 配尺度，两边都不吃亏 */
+.cols>.col.vid .vwrap.side{width:100%;flex:1;min-height:0}
+/* 画面高 = 列高减掉图注，由 flex 分配；宽度再由 16:9 回算，所以永远不裁、也永远不顶到下面的数字条。
+   原来写 width:100% + aspect-ratio 时高度只跟列宽（vw）挂钩，浏览器可视高不足 1080 就压行（实测 1920×940 压 50px）；
+   换成 vh 上限又管不住第 17 页那种数字条特别高的页（1920×1080 反压 34px）。 */
+.cols>.col.vid .vslot.side{width:100%;height:auto;aspect-ratio:16/9}
+/* 竖向富余时（窗口比 16:9 还高）flex 会给满剩余高度，宽度顶到列宽就被 max-width 夹扁：
+   20.8vw = 37vw 列宽 × 9/16，另两档同理，保证两个方向都不破比例。 */
+.cols>.col.vid .vslot.side{max-height:20.8125vw}
+.cols>.col.vid.side31 .vslot.side{max-height:17.4375vw}
+.cols>.col.vid.side28 .vslot.side{max-height:15.75vw}
+/* 成绩柱旁边的录像列不跟着长，否则 16:9 的盒子比整行还高，图注会压到下面的数字条 */
+.cols>.col.vid.side31{flex:0 0 31vw}
+
+/* 一列成绩的新表：云端对手取两次平均，本机两行各取自己那一次 */
+.scoretab.onecol th:nth-child(1),.scoretab.onecol td:nth-child(1){width:41%}
+.scoretab.onecol th:nth-child(2),.scoretab.onecol td:nth-child(2){width:21%}
+.scoretab.onecol th:nth-child(3),.scoretab.onecol td:nth-child(3){width:16%}
+.scoretab.onecol th:nth-child(4),.scoretab.onecol td:nth-child(4){width:22%}
+.scoretab.onecol td,.scoretab.onecol th{white-space:nowrap}
+.scoretab tr.q5r td{color:var(--peer)}
+.scoretab tr.q5r td:first-child{box-shadow:inset .45vh 0 0 var(--peer)}
+.scoretab .rk{display:inline-block;margin-left:.4vw;font-size:2.35vh;line-height:1.02;opacity:.78;letter-spacing:.02em;vertical-align:middle}
+
+/* 外壳那一格要写三条信息（预设 / 主动压缩 / 同环境），压成三行小字 */
+.fact .fv .hi3{display:inline;font-size:2.35vh;font-weight:400;line-height:1.45;letter-spacing:0;color:var(--ink)}
+.fact .fv .hi3 + .hi3::before{content:" · ";color:var(--ink2)}
+.fact .fv .hi3 b{color:var(--acc);font-weight:700;margin-right:.28vw}
+
+/* 同表页的行名要让给数字列：第一列固定 34%，别让它折行把表顶到标题上 */
+.stattab th:first-child,.stattab td:first-child{width:34%}
+.page.dense .stattab tbody td{padding:0.24vh .55vw;font-size:2.64vh}
+.page.dense .stattab thead th{padding:0.27vh .55vw}
+
+/* 表头不许改大小写：模型名与量化后缀的拼写本身就是信息（Coder390 · Q4LynnStyle） */
+.stattab th,.scoretab th{text-transform:none}
+
+/* ---- 交卷成绩页的两态（表格 → 柱图）----
+   一张榜先按表格读，口播说到「换成柱子看」时整块交叉淡变。两态叠在同一个网格里，
+   标题与字幕条位置不动，所以 layout.mjs 一次量测同时覆盖两态（opacity 不改 rect）。
+   柱子的生长动画必须换个 keyframes 名：同名动画在 data-stage 切换时浏览器不会重播。 */
+.panes{display:grid;grid-template-rows:minmax(0,1fr);flex:1;min-height:0}
+.panes>.pane{grid-row:1;grid-column:1;display:flex;flex-direction:column;gap:1.7vh;min-height:0;
+  transition:opacity .5s ease,transform .6s cubic-bezier(.3,.86,.28,1)}
+/* 表页本来就是 dense 的窄行距，pane 里再按 1.7vh 走会把表格底边推出盒子（夺旗那张 14 行表最先撑不住） */
+.page.dense .panes>.pane{gap:1.15vh}
+.panes>.pane.bb{opacity:0;pointer-events:none}
+.page[data-stage="2"] .panes>.pane.tb{opacity:0;transform:translateY(-1.6vh) scale(.99);pointer-events:none}
+.page[data-stage="2"] .panes>.pane.bb{opacity:1;transform:none;pointer-events:auto}
+/* 柱图态整块浮现，块内元素不再逐句点亮（否则它们会占掉表格态的句序） */
+.cue .panes>.pane.bb .subtitle,.cue .panes>.pane.bb .oneliner,.cue .panes>.pane.bb .facts .fact,
+.cue .panes>.pane.bb .mini,.cue .panes>.pane.bb .card,.cue .panes>.pane.bb .tagline.screen span{opacity:1;transform:none}
+@keyframes growXb{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes fadeInB{from{opacity:0}to{opacity:1}}
+.page[data-stage="2"] .panes>.pane.bb .fig svg .bar{animation:growXb .62s cubic-bezier(.2,.78,.26,1) both;animation-delay:calc(var(--i,0)*34ms + .1s)}
+.page[data-stage="2"] .panes>.pane.bb .fig svg .ain{animation:fadeInB .42s ease both;animation-delay:calc(var(--i,0)*34ms + .18s)}

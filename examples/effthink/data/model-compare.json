@@ -1,0 +1,2102 @@
+{
+  "_note": "本文件是 arena-effthink 工程唯一的读数源。画面与逐字稿只允许引用这里的数字，且每个数带 src 出处。两次评测（Q5_K_XL / Coder390）的分数已并到同一张对手榜里，依据见 comparability 一节——三场比赛云端对手的 bot.cpp 源码在两轮之间逐字节相同，所以同表可比。data/prev-round-q5kxl/ 只作为出处路径存在，页面不直接读它。",
+  "_generatedAt": "2026-10-09T21:20+08:00",
+  "_rounds": {
+    "prev": "Q5_K_XL · unsloth 官方原版基座的 Dynamic 量化档（UD-Q5_K_XL）",
+    "cur": "Coder390 · Qwen3.8-27B-Coder390-EfficientThink，LynnStyle-Q4 + MTP"
+  },
+  "models": {
+    "prev-q5kxl": {
+      "label": "Qwen3.8-27B（官方原版权重）",
+      "file": "D:/biubiu/local-llm/models/Qwen-3.8-uncensored-27b/Qwen-3.8-uncensored-27b-Q5_K_XL/Qwen3.8-27B-UD-Q5_K_XL.gguf",
+      "sizeGB": 20.877,
+      "sizeGiB": 19.44,
+      "paramsB": 27.321,
+      "tensors": 866,
+      "blocks": 65,
+      "contextLength": 262144,
+      "nextnTensors": 4,
+      "nextnPredictLayers": 1,
+      "quantMixByParams": {
+        "Q8_K": 44.8,
+        "Q6_K": 43.6,
+        "Q8_1": 6.4,
+        "I8": 2.7,
+        "Q5_K": 2.2,
+        "IQ3_S": 0.3
+      },
+      "chatTemplate": {
+        "chars": 9993,
+        "sha1_12": "a7e79f8fe37f",
+        "isOfficial": false
+      },
+      "imatrixFile": "Qwen3.8-27B-GGUF/imatrix_unsloth.gguf",
+      "imatrixChunks": 1251,
+      "src": "$TMP/gguf-probe.py 输出（读 GGUF header，不加载权重）",
+      "short": "Q5_K_XL",
+      "bitsPerParam": 6.11,
+      "service": {
+        "bat": "scripts/Qwen3.8-uncensored-27b/UD-llama-Q5_K_XL-tensor.bat",
+        "ctx": 152000,
+        "specDraftNMax": 2,
+        "tensorSplit": "0.5,0.5",
+        "reasoningEffort": "medium",
+        "mtpTokS": 50.9,
+        "mtpTokSNote": "ts 0.49,0.51 时 56.9；与本轮同 ts 的是 50.9",
+        "offTokS": 32.9,
+        "build": "llama.cpp b10448",
+        "src": "D:/biubiu/local-llm/scripts/Qwen3.8-uncensored-27b/测速结果-Q5_K_XL-2026-08-24.md（llama-cli 同 seed 同 prompt，MTP n_max=2）"
+      },
+      "quantTag": "Q5_K_XL"
+    },
+    "cur-q4": {
+      "label": "Qwen3.8-27B-Coder390-EfficientThink Q4LynnStyle-MTP",
+      "file": "D:/biubiu/local-llm/models/Coder390-EfficientThink/Qwen3.8-27B-Coder390-EfficientThink-Q4LynnStyle-MTP.gguf",
+      "sizeGB": 19.62,
+      "sizeGiB": 18.27,
+      "paramsB": 27.321,
+      "tensors": 866,
+      "blocks": 65,
+      "contextLength": 262144,
+      "nextnTensors": 4,
+      "nextnPredictLayers": 1,
+      "quantMixByParams": {
+        "Q5_K": 39.6,
+        "Q8_K": 28.9,
+        "Q6_K": 18.7,
+        "Q8_1": 11.1,
+        "BF16": 1.6,
+        "IQ3_M": 0.1
+      },
+      "chatTemplate": {
+        "chars": 8952,
+        "sha1_12": "08a763ee5e33",
+        "isOfficial": true
+      },
+      "imatrixChunks": 512,
+      "src": "同上；模板 sha1 与本地存的官方 jinja 逐字节相同",
+      "short": "Coder390",
+      "bitsPerParam": 5.75,
+      "service": {
+        "ctx": 152000,
+        "specDraftNMax": 3,
+        "mtpTokS": 61.34,
+        "offTokS": 35.04,
+        "acceptPct": 62.1,
+        "tensorSplit": "0.5,0.5",
+        "build": "llama.cpp b10448",
+        "src": "D:/biubiu/local-llm/scripts/Qwen3.8-27B-Coder390/llama-Coder390-Q4Lynn-mtp3-tensor.bat 头部注释（2x5060 Ti、-c 152000、-fa on、挂视觉、512 token）",
+        "bat": "scripts/Qwen3.8-27B-Coder390/llama-Coder390-Q4Lynn-mtp3-tensor.bat",
+        "reasoningEffort": "xhigh",
+        "ctxNote": "与上一轮同 -c 152000、同 --tensor-split 0.5,0.5"
+      },
+      "quantTag": "Q4LynnStyle",
+      "quantTagSrc": "文件名 Qwen3.8-27B-Coder390-EfficientThink-Q4LynnStyle-MTP.gguf（19,620,406,592 B）；bat 注释写 Q4 LynnStyle"
+    },
+    "cur-q3-not-entered": {
+      "label": "同微调谱系 Q3LynnStyle-MTP（未参赛）",
+      "sizeGB": 17.3,
+      "sizeGiB": 16.12,
+      "paramsB": 27.321,
+      "tensors": 866,
+      "quantMixByParams": {
+        "Q5_K": 30.5,
+        "Q6_K": 22,
+        "Q4_K": 25.4,
+        "Q8_1": 9.3,
+        "Q8_K": 11.1,
+        "BF16": 1.6
+      },
+      "chatTemplate": {
+        "chars": 8952,
+        "sha1_12": "08a763ee5e33",
+        "isOfficial": true
+      }
+    }
+  },
+  "invariants": {
+    "paramsIdentical": true,
+    "detail": "三家参数量 27.321B、张量数 866、block_count 65、embedding 5120、FFN 17408、head 24/4、full_attention_interval 4、context 262144、nextn_predict_layers 1 全部相同 → 微调未改架构，文件大小差纯粹是量化档差。",
+    "templateRuledOut": "两模板接受的 reasoning_effort 合法值同为 {xhigh, medium, low}，传其它值 raise_exception；unsloth 仅多一条 high→xhigh 别名。六场请求均未抛异常 → 该分支未生效，思考指令两边同串。其余 10 处差异为 system 消息合并与工具参数校验，不触及思考长度。",
+    "effortSame": "服务端 .bat 的 --reasoning-effort 两轮写成 medium / xhigh，但 dsh 请求侧两轮都带 reasoningEffort=max，max 对应 xhigh 等级并覆盖服务端默认 → 两轮实际生效的思考档相同，思考长度差不能记到这个参数上。"
+  },
+  "scores": {
+    "_scale": "三场比赛尺度不同，禁止横比：炸弹人/夺旗是 BT 实力值（基准=0、强 10 倍记 +400）；圈地是每模式 anchor-greedy=0、该模式最强=100、两模式平均后最高者归一 100。",
+    "bomberman": {
+      "games": 1320,
+      "schedule": "--seed 20261004、workers 7、sizes 2/3/10 等权",
+      "prev": {
+        "main": 58.47,
+        "overtime": 103.43,
+        "src": "arena-prev-27b-q5kxl-20261004/bomberman-challenge-runs/ctl-main-w7-105906 与 ctl-ot-w7-110757",
+        "bySize": {
+          "2": 0.475,
+          "3": 1.03,
+          "10": 1.653
+        },
+        "bySizeBase": {
+          "2": 0.35,
+          "3": 0.707,
+          "10": 2.475
+        },
+        "faults": 1
+      },
+      "cur": {
+        "main": 239.82,
+        "overtime": 239.82,
+        "rank": "5/11",
+        "faults": 0,
+        "bySize": {
+          "2": 0.85,
+          "3": 1.272,
+          "10": 4.856
+        },
+        "bySizeBase": {
+          "2": 0.3,
+          "3": 0.67,
+          "10": 2.183
+        },
+        "src": "contestants/archive/coder390-20261009/bomberman-coder390/scores"
+      }
+    },
+    "ctf": {
+      "games": 1016,
+      "schedule": "seed 260692018809426、workers 2、sizes 2/3/4/5/6/8/10/13、maps_per_size 8",
+      "prev": {
+        "main": -346,
+        "mainCi": [
+          -394,
+          -302
+        ],
+        "overtime": -52.3,
+        "src": "arena-prev-27b-q5kxl-20261004/ctf-challenge-runs/rerun-main-w2-1005-010034 与 rerun-ot-w2-1005-010034",
+        "bySizeMain": {
+          "2": -124,
+          "3": -205,
+          "4": -210,
+          "5": -173,
+          "6": -209,
+          "8": -210,
+          "10": -203,
+          "13": -94
+        },
+        "faultsMain": 14,
+        "mainNote": "成绩.md 表里就写 −346（区间 −394 ~ −302），与对手榜那一列同精度"
+      },
+      "cur": {
+        "main": -385,
+        "mainCi": [
+          -419,
+          -350
+        ],
+        "overtime": -256,
+        "overtimeCi": [
+          -291,
+          -219
+        ],
+        "rank": "11/12",
+        "faults": 0,
+        "bySizeMain": {
+          "2": -280,
+          "3": -223,
+          "4": -225,
+          "5": -192,
+          "6": -254,
+          "8": -198,
+          "10": -157,
+          "13": -92
+        },
+        "src": "contestants/archive/coder390-20261009/ctf-coder390/scores-overtime.md",
+        "rankMain": "12/12",
+        "rankOvertime": "11/12",
+        "rankNote": "rankMain 是正赛交卷版在那 1016 局表里的名次，rankOvertime 是加时终版在同一套赛程另一张表里的名次",
+        "bySizeOvertime": {
+          "2": -210,
+          "3": -145,
+          "4": -161,
+          "5": -159,
+          "6": -166,
+          "8": -168,
+          "10": -75,
+          "13": -43
+        }
+      }
+    },
+    "land": {
+      "games": 1128,
+      "schedule": "challenge.py --full（单挑 936 + 混战 192），seed-base 默认 1000 → 地图与换边完全确定",
+      "prev": {
+        "main": 6.4,
+        "mainCi": [
+          0.6,
+          11.9
+        ],
+        "rank": "8/10",
+        "duel": 12.9,
+        "duelElo": 91,
+        "melee": 0,
+        "meleeElo": -313,
+        "overtime": 6.2,
+        "overtimeElo": [
+          90,
+          -270
+        ],
+        "src": "arena-prev-27b-q5kxl-20261004/land-challenge-runs/20261004-050654 与 044226",
+        "duelStats": {
+          "games": 144,
+          "scoreRate": 31.9,
+          "avgArea": 457,
+          "avgDeaths": 3.6,
+          "avgKills": 1.2
+        },
+        "meleeStats": {
+          "games": 60,
+          "top1": 3.3,
+          "avgRank": 3.52,
+          "avgArea": 219,
+          "avgDeaths": 8.8,
+          "avgKills": 2.2
+        },
+        "baseDuelStats": {
+          "scoreRate": 23.6,
+          "avgArea": 498,
+          "avgDeaths": 2.7,
+          "avgKills": 0.7
+        },
+        "baseMeleeStats": {
+          "top1": 20.3,
+          "avgRank": 2.44,
+          "avgArea": 580,
+          "avgDeaths": 4.8,
+          "avgKills": 2.2
+        }
+      },
+      "cur": {
+        "main": 17.6,
+        "mainCi": [
+          7.9,
+          32.3
+        ],
+        "rank": "6/10",
+        "duel": 25,
+        "duelElo": 182,
+        "melee": 9,
+        "meleeElo": 15,
+        "duelStats": {
+          "games": 144,
+          "scoreRate": 43.8,
+          "avgArea": 727,
+          "avgDeaths": 3.1,
+          "avgKills": 1.2
+        },
+        "meleeStats": {
+          "games": 60,
+          "top1": 16.7,
+          "avgRank": 2.48,
+          "avgArea": 526,
+          "avgDeaths": 5.6,
+          "avgKills": 1.4
+        },
+        "baseDuelStats": {
+          "scoreRate": 25.7,
+          "avgArea": 485,
+          "avgDeaths": 2.6,
+          "avgKills": 0.8
+        },
+        "baseMeleeStats": {
+          "top1": 15.6,
+          "avgRank": 2.55,
+          "avgArea": 567,
+          "avgDeaths": 4.3,
+          "avgKills": 2.1
+        },
+        "timeouts": 0,
+        "forfeits": 0,
+        "slowestTurnMs": 3.1,
+        "src": "contestants/archive/coder390-20261009/land-coder390/scores-full-main/ratings.md"
+      },
+      "curOvertime": {
+        "botSha": "66b0786112eb",
+        "value": 18.3,
+        "ci": [
+          10.1,
+          33.3
+        ],
+        "rank": "6/10",
+        "duel": 26.1,
+        "duelElo": 181,
+        "melee": 10.4,
+        "meleeElo": 20,
+        "duelStats": {
+          "scoreRate": 43.8,
+          "avgArea": 723,
+          "avgDeaths": 3.1,
+          "avgKills": 1.2
+        },
+        "meleeStats": {
+          "top1": 16.7,
+          "avgRank": 2.48,
+          "avgArea": 527,
+          "avgDeaths": 5.7,
+          "avgKills": 1.4
+        },
+        "src": "land/challenge-runs/20261009-210526/ratings.md",
+        "pairCheck": "1128 局按 key 配对：本机在场 204 局里 11 局逐局有差异（5.4%）；本机不在场 924 局（对手二进制与 seed 都没变，等于同代码重跑的噪声底）里 62 局有差异（6.7%）。两组统计上分不出 → 该改动在 1128 局下没有判据力，不能称『已验证无效』，也不能称『已验证有效』。",
+        "intentVsOutcome": "它台账里自述采纳理由是『把击杀从 1.2 往上抬』；实测单挑击杀 1.15→1.15、混战 1.43→1.42、击杀为 0 的局两边都是 89/204。",
+        "pair": {
+          "withUs": {
+            "games": 204,
+            "differ": 11,
+            "rate": 5.4
+          },
+          "sameCode": {
+            "games": 924,
+            "differ": 62,
+            "rate": 6.7
+          },
+          "floorPct": 6.7,
+          "note": "同代码那 924 局里对手二进制与 seed 都没变，等于同代码重跑的噪声底"
+        }
+      }
+    }
+  },
+  "behavior": {
+    "_src": "contestants/report/stats.json 与 time-cost.json（本轮）；arena-prev-27b-q5kxl-20261004/contestants-report/ 同名件（原版）",
+    "_note": "本轮三场比赛均含加时段。prev 的 requestConfig.maxTokens=85000、cur=105000，但两轮都未触及该上限，不构成口径差，按用户决定不进片。",
+    "rows": [
+      {
+        "ep": "land",
+        "round": "prev",
+        "requests": 143,
+        "outputTok": 327747,
+        "inputTok": 637138,
+        "tokPerReq": 2292,
+        "medianStepS": 22.6,
+        "p95StepS": 193.1,
+        "maxStepMin": 34.9,
+        "effectiveMin": 157.1,
+        "reqPerMin": 0.91
+      },
+      {
+        "ep": "land",
+        "round": "cur",
+        "requests": 112,
+        "outputTok": 154906,
+        "inputTok": 116174,
+        "tokPerReq": 1383,
+        "medianStepS": 20.7,
+        "p95StepS": 99,
+        "maxStepMin": 4.8,
+        "effectiveMin": 61.7,
+        "reqPerMin": 1.82
+      },
+      {
+        "ep": "bomberman",
+        "round": "prev",
+        "requests": 205,
+        "outputTok": 284678,
+        "inputTok": 689226,
+        "tokPerReq": 1389,
+        "medianStepS": 22.1,
+        "p95StepS": 135,
+        "maxStepMin": 12.3,
+        "effectiveMin": 145.6,
+        "reqPerMin": 1.41
+      },
+      {
+        "ep": "bomberman",
+        "round": "cur",
+        "requests": 176,
+        "outputTok": 271914,
+        "inputTok": 343561,
+        "tokPerReq": 1545,
+        "medianStepS": 21.1,
+        "p95StepS": 122.9,
+        "maxStepMin": 4.4,
+        "effectiveMin": 112.6,
+        "reqPerMin": 1.56
+      },
+      {
+        "ep": "ctf",
+        "round": "prev",
+        "requests": 124,
+        "outputTok": 302025,
+        "inputTok": 364194,
+        "tokPerReq": 2436,
+        "medianStepS": 27.5,
+        "p95StepS": 194.1,
+        "maxStepMin": 13.5,
+        "effectiveMin": 135.8,
+        "reqPerMin": 0.91
+      },
+      {
+        "ep": "ctf",
+        "round": "cur",
+        "requests": 110,
+        "outputTok": 272157,
+        "inputTok": 546779,
+        "tokPerReq": 2474,
+        "medianStepS": 34.7,
+        "p95StepS": 280.4,
+        "maxStepMin": 10.7,
+        "effectiveMin": 132.9,
+        "reqPerMin": 0.83
+      }
+    ],
+    "categoryShiftMinutesPct": {
+      "land": {
+        "设计与长考": {
+          "prev": [
+            45,
+            29.5
+          ],
+          "cur": [
+            3,
+            5.9
+          ]
+        },
+        "上下文压缩": {
+          "prev": [
+            7,
+            4.4
+          ],
+          "cur": [
+            1,
+            1.8
+          ]
+        },
+        "编译错误排错": {
+          "prev": [
+            1,
+            0.4
+          ],
+          "cur": [
+            1,
+            1.5
+          ]
+        }
+      },
+      "bomberman": {
+        "复盘与逐帧分析": {
+          "prev": [
+            22,
+            16.3
+          ],
+          "cur": [
+            38,
+            34.7
+          ]
+        },
+        "写代码": {
+          "prev": [
+            35,
+            25.3
+          ],
+          "cur": [
+            11,
+            9.8
+          ]
+        },
+        "进程协议排错": {
+          "prev": [
+            30,
+            21.8
+          ],
+          "cur": [
+            8,
+            7
+          ]
+        },
+        "对局测试": {
+          "prev": [
+            11,
+            7.9
+          ],
+          "cur": [
+            9,
+            8.1
+          ]
+        },
+        "读题/查资料": {
+          "prev": [
+            25,
+            17.9
+          ],
+          "cur": [
+            22,
+            19.6
+          ]
+        }
+      },
+      "ctf": {
+        "写代码": {
+          "prev": [
+            34,
+            25.3
+          ],
+          "cur": [
+            35,
+            30.1
+          ]
+        },
+        "设计与长考": {
+          "prev": [
+            28,
+            20.6
+          ],
+          "cur": [
+            29,
+            25.1
+          ]
+        },
+        "对局测试": {
+          "prev": [
+            16,
+            12.3
+          ],
+          "cur": [
+            2,
+            1.4
+          ]
+        },
+        "工具链/自身调用排错": {
+          "prev": [
+            1,
+            0.5
+          ],
+          "cur": [
+            11,
+            9.2
+          ]
+        },
+        "读题/查资料": {
+          "prev": [
+            20,
+            15.2
+          ],
+          "cur": [
+            14,
+            11.7
+          ]
+        }
+      }
+    },
+    "longStepsOver5min": {
+      "land": {
+        "prev": 4,
+        "cur": 0,
+        "prevMinutes": 56,
+        "curMinutes": 0
+      },
+      "bomberman": {
+        "prev": 2,
+        "cur": 0,
+        "prevMinutes": 22,
+        "curMinutes": 0
+      },
+      "ctf": {
+        "prev": 5,
+        "cur": 4,
+        "prevMinutes": 41,
+        "curMinutes": 33
+      }
+    },
+    "longestSteps": {
+      "_src": "本轮 steps-coder390.tsv 按「该步秒数」取最大；上一轮 time-cost.json runs.*.topSteps[0]。两处秒数与 stats.json stepMs.max 同口径（本轮夺旗 TSV 少 4 条崩溃请求，故取数据件里的 10.7 分钟）。",
+      "_actCaveat": "act 取的是该步那一次工具调用的 description，是这一步的收尾动作，不是整步时间的去向。六场两代的最长步逐条对过原始会话日志：这些步的 step/start→assistant/message 与 step/start→step/end 相同（差不足 0.1 分钟），工具执行不占这 N 分钟，时间全在生成几万 token 的思考上。写画面与口播别说成「这 N 分钟都在做那个动作」。要区分：全场合计里工具尾巴确有占比（夺旗本轮 132.9 分中 16.3 分是尾巴，上一轮同期只有 2.0 分）。",
+      "_note": "步号 x.y 里 x 是第几场、y 是该场第几步；时刻是比赛当地时钟。",
+      "land": {
+        "cur": {
+          "min": 4.8,
+          "out": 13062,
+          "step": "1.7",
+          "at": "18:23:56",
+          "cat": "research",
+          "act": "开局列 TODO：一次想完整份计划",
+          "src": "tsv"
+        },
+        "prev": {
+          "min": 34.9,
+          "out": 84894,
+          "step": "1.6",
+          "at": "14:29:15",
+          "cat": "design",
+          "act": "开局逐条复盘规则与机制，把整套策略想清楚",
+          "src": "json"
+        }
+      },
+      "bomberman": {
+        "cur": {
+          "min": 4.4,
+          "out": 4549,
+          "step": "2.1",
+          "at": "11:24:43",
+          "cat": "replay",
+          "act": "照着回放改出 v4 并起赛测试",
+          "src": "tsv"
+        },
+        "prev": {
+          "min": 12.3,
+          "out": 30700,
+          "step": "1.8",
+          "at": "16:54:40",
+          "cat": "code",
+          "act": "开始写 bot.cpp 骨架",
+          "src": "json"
+        }
+      },
+      "ctf": {
+        "cur": {
+          "min": 10.7,
+          "out": 23836,
+          "step": "3.7",
+          "at": "15:08:35",
+          "cat": "tooling",
+          "act": "一次性写出长距离运旗与深守家的 v4",
+          "src": "tsv"
+        },
+        "prev": {
+          "min": 13.5,
+          "out": 32886,
+          "step": "1.6",
+          "at": "18:57:33",
+          "cat": "design",
+          "act": "读完基准源码、推导它的贪心任务分配，并查时间预算和编译器",
+          "src": "json"
+        }
+      }
+    },
+    "minBasis": {
+      "field": "stats.json sessions[0].stepMs.totalMin = 各步「step/start → step/end」求和（含工具执行尾巴，不含服务中断与等待）",
+      "sameBasis": true,
+      "includesOvertime": true,
+      "note": "六场都是这个字段，所以两次同口径：都含 40 分钟加时段内模型侧的步，都不含加时段的空闲等待。夺旗那场上一轮另有分段口径（主战场 105.7 分 + 自迭代 28.4 分），本表不用分段值。",
+      "overtimeShareMin": {
+        "cur": {
+          "land": 21,
+          "bomberman": 44.2,
+          "ctf": 30
+        },
+        "prev": {
+          "land": 34,
+          "bomberman": 36.9,
+          "ctf": 29.2
+        }
+      },
+      "overtimeShareNote": "本轮炸弹人是两个 40 分钟窗口（第一遍被回滚的那遍也算在内），所以加时占比天然高于其它场。",
+      "src": "按加时发卷那条组织方消息的时刻切分逐步累加（10-10 子代理解出，主 agent 复核过 totalMin 与数据件逐位吻合：61.7/112.6/132.9 与 157.1/145.6/135.8）"
+    },
+    "windowSplit": {
+      "_src": "总分钟 = stats.json sessions[0].stepMs.totalMin；加时段分钟按该场「进入加时自迭代窗口」那条组织方消息的时刻切分逐步累加（10-10 解出，与 totalMin 逐位吻合）",
+      "_note": "正赛段 = 总分钟 − 加时段分钟。本轮炸弹人是两个 40 分钟窗口（第一遍被回滚的那遍也算在内），所以它的加时段占比天然高于其它场。",
+      "perEp": {
+        "land": {
+          "cur": {
+            "total": 61.7,
+            "overtime": 21,
+            "main": 40.7
+          },
+          "prev": {
+            "total": 157.1,
+            "overtime": 34,
+            "main": 123.1
+          }
+        },
+        "bomberman": {
+          "cur": {
+            "total": 112.6,
+            "overtime": 44.2,
+            "main": 68.4
+          },
+          "prev": {
+            "total": 145.6,
+            "overtime": 36.9,
+            "main": 108.7
+          }
+        },
+        "ctf": {
+          "cur": {
+            "total": 132.9,
+            "overtime": 30,
+            "main": 102.9
+          },
+          "prev": {
+            "total": 135.8,
+            "overtime": 29.2,
+            "main": 106.6
+          }
+        }
+      }
+    }
+  },
+  "overtime": {
+    "window": "每场正赛后追加 40 分钟自迭代窗口，到点以 submission/bot.cpp 当前内容为准，未改动也是合法结果",
+    "prompts": "contestants/prompts-selfiter/{bomberman,ctf,land}-coder390.txt；方法论段与上一轮逐字相同，不含因果引导",
+    "bomberman": {
+      "round1": "被组织方提示词污染（含因果引导），4 轮全 KEEP 但方向被带偏，终版 BT 166.65，已由用户回滚",
+      "round2": "严格照抄上一轮结构的 v2，4 轮全判 ROLL BACK，bot.cpp 未改一行，加时终版=正赛版",
+      "finalSha": "a5fe9b807dd5",
+      "polluted": {
+        "bt": 166.65,
+        "drop": 73.17,
+        "selftest": {
+          "tenPlayer": {
+            "after": 7.83,
+            "before": 6
+          },
+          "fivePlayer": {
+            "after": 3.06,
+            "before": 3.375
+          },
+          "duelNet": -1.5
+        },
+        "src": "iterations.csv「采纳后验证」行；对手是 baseline，非正式赛那 9 家"
+      }
+    },
+    "ctf": {
+      "rounds": 4,
+      "keeps": 2,
+      "rollbacks": 2,
+      "finalSha": "7fe79cf4c507",
+      "note": "脚手架自建（arena.py batch 无固定 flag_seed，同代码 NET 在 +24.8/−14.6/−36.8/−17.6/−12.0 之间漂），故每档两遍交换座位"
+    },
+    "land": {
+      "rounds": 6,
+      "keeps": 1,
+      "rollbacks": 4,
+      "tunings": 1,
+      "finalSha": "66b0786112eb",
+      "methodNote": "本轮唯一一次圈地加时真改了代码。它逐字引用了组织方给的噪声底。采纳的 pursuit 在 1v1 自战里 NET=0（三 seed 面积 716:716 / 739:739 / 785:785 分毫不差），并非判据要求的净胜为正；它换用『对锚点 greedy 从 7:1 升到 11:1』作为采纳理由。",
+      "openQuestion": "已验但结论是『测不出』：1128 局下本机在场局的差异率 5.4% 与同代码噪声底 6.7% 无法区分。自战三 seed 面积分毫不差最简解释仍是该分支极少触发，但『零作用』这个说法超出了本次对比的判据力，只能报『无可见效果』。"
+    }
+  },
+  "reproducibility": {
+    "land": "**部分不可复现（本轮实测推翻旧断言）**：seed 确实钉死（round_robin.py:124 seed = seed_base + m，默认 1000，challenge.py 不改它），地图与换边可复现；但同 seed、同二进制重跑，924 局『本机不参与』的对局里仍有 62 局（6.7%）逐局比分不同，个别局名次翻转。→ 圈地单档改动的可检出下限约 6.7%，小于它的改动测不出来。旧断言『同命令重跑 376 局逐局全部一致』来自只比对本机在场的局，样本 204 局且未与不参与局做对照，属方法缺陷。",
+    "bomberman": "赛程可钉，但引擎每回合 50ms 限额受负载影响 → 计分必须独占 CPU",
+    "ctf": "同 seed 也不可复现：engine.py:85 flag_seed = secrets.randbits(64) 每局现取，CLI 与 config 均未暴露"
+  },
+  "media": {
+    "bomberman": {
+      "replaysHtml": 137,
+      "where": "contestants/runs/bomberman-coder390/replays/，命名 fin2_* fin5_* fin10_*，覆盖三个人数档"
+    },
+    "ctf": {
+      "replaysHtml": 1,
+      "where": "contestants/runs/ctf-coder390/replays/latest.html（17:26 一次 batch 的末局）",
+      "gap": "正赛 1016 局那轮 config 是 replays:False，只有逐局 结果.jsonl"
+    },
+    "land": {
+      "replaysHtml": 0,
+      "gap": "本轮三个 run 目录都只有 results.jsonl + ratings.md，无回放"
+    }
+  },
+  "caveats": [
+    "量化档与微调是同时变化的两个变量：原版跑的是 UD-Q5_K_XL，微调跑的是 LynnStyle-Q4。要拆干净需『原版权重 + Q4 级量化』或『Coder390 + Q5 级量化』其中一档，两者本地都没有。",
+    "夺旗是唯一同 seed 不可复现的一场，跨轮读数只能当同赛程抽样、不能当逐局可比。",
+    "圈地/夺旗本轮没有可录回放，出片前必须补跑带 replay 的评测，且不能与推理同时跑。",
+    "本轮 report 的 time-cost 分段逻辑仍带上一轮 ctf-gui1 的硬编码加时起点，本轮三场比赛的加时段拆分改用逐步表另算。",
+    "对手榜取自本轮三场比赛的计分产物，与 scores 同源；云端模型跑的是各自官方 agent 外壳，不是同一个执行环境。",
+    "两轮 MTP 草稿深度不同（2 对 3，n_max=3 接受率反而低），速度读数不同口径——按用户决定不进画面，成片里两个模型的速度写作「总体差不多」。"
+  ],
+  "peers": {
+    "_note": "本轮（2026-10-09）三场比赛的完整对手榜，与成绩页同源。云端对手只作参照，三场比赛尺度不同不可横比。",
+    "bomberman": {
+      "games": 1320,
+      "scale": "BT 实力值：基准 Base=0，强 10 倍记 +400",
+      "us": {
+        "name": "你的 bot",
+        "bt": 239.82,
+        "rank": "5/11"
+      },
+      "rows": [
+        {
+          "name": "GPT-6 Astra",
+          "bt": 458.79,
+          "tool": "Codex · OpenAI 官方",
+          "effort": "medium",
+          "mins": 56.8,
+          "q5": 440.39
+        },
+        {
+          "name": "Opus 5.5",
+          "bt": 314.27,
+          "tool": "Claude Code · Anthropic 官方",
+          "effort": "medium",
+          "mins": 39.5,
+          "q5": 304.06
+        },
+        {
+          "name": "GPT-6 Sol",
+          "bt": 269.93,
+          "tool": "Codex · OpenAI 官方",
+          "effort": "high",
+          "mins": 57.4,
+          "q5": 262.16
+        },
+        {
+          "name": "Kimi K3",
+          "bt": 253.85,
+          "tool": "ZCode · Cline 通行证",
+          "effort": "max",
+          "mins": 67,
+          "q5": 232.74
+        },
+        {
+          "name": "你的 bot",
+          "bt": 239.82,
+          "us": true,
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "mins": null,
+          "q5": 58.47
+        },
+        {
+          "name": "DeepSeek V4.1 Flash",
+          "bt": 217.43,
+          "tool": "ZCode · DeepSeek 官方接口",
+          "effort": "high",
+          "mins": 64,
+          "q5": 212.55
+        },
+        {
+          "name": "Qwen 3.8 Max",
+          "bt": 149.08,
+          "tool": "ZCode · Cline 通行证",
+          "effort": "xhigh",
+          "mins": 78,
+          "q5": 142.51
+        },
+        {
+          "name": "GLM 5.3",
+          "bt": 133.99,
+          "tool": "ZCode · Cline 通行证",
+          "effort": "max",
+          "mins": 60,
+          "q5": 152.48
+        },
+        {
+          "name": "豆包 Seed 2.1",
+          "bt": 75,
+          "tool": "ZCode · OpenRouter",
+          "effort": "开启",
+          "mins": 34,
+          "q5": 75.47
+        },
+        {
+          "name": "MiMo V2.6 Pro",
+          "bt": 57.79,
+          "tool": "ZCode · Cline 通行证",
+          "effort": "开启",
+          "mins": 74,
+          "q5": 75.3
+        },
+        {
+          "name": "Base",
+          "bt": 0,
+          "base": true,
+          "tool": "出题方基准",
+          "effort": "—",
+          "mins": null,
+          "q5": 0
+        }
+      ],
+      "src": "contestants/archive/coder390-20261009/bomberman-coder390/scores/bt.json",
+      "q5Us": {
+        "bt": 58.47,
+        "rank": "10/11",
+        "ot": 103.43,
+        "otRank": "8/11",
+        "bySize": {
+          "2": 0.475,
+          "3": 1.03,
+          "10": 1.653
+        },
+        "bySizeBase": {
+          "2": 0.35,
+          "3": 0.707,
+          "10": 2.475
+        },
+        "faults": {
+          "2": 0,
+          "3": 0,
+          "10": 1
+        },
+        "src": "arena-prev-27b-q5kxl-20261004/bomberman-challenge-runs/ctl-main-w7-105906 与 ctl-ot-w7-110757"
+      },
+      "table": [
+        {
+          "who": "peer",
+          "name": "GPT-6 Astra",
+          "tool": "Codex · OpenAI 官方",
+          "effort": "medium",
+          "score": 449.59,
+          "a": 458.79,
+          "b": 440.39
+        },
+        {
+          "who": "peer",
+          "name": "Opus 5.5",
+          "tool": "Claude Code · Anthropic 官方",
+          "effort": "medium",
+          "score": 309.16,
+          "a": 314.27,
+          "b": 304.06
+        },
+        {
+          "who": "peer",
+          "name": "GPT-6 Sol",
+          "tool": "Codex · OpenAI 官方",
+          "effort": "high",
+          "score": 266.05,
+          "a": 269.93,
+          "b": 262.16
+        },
+        {
+          "who": "peer",
+          "name": "Kimi K3",
+          "tool": "ZCode · Cline 通行证",
+          "effort": "max",
+          "score": 243.3,
+          "a": 253.85,
+          "b": 232.74
+        },
+        {
+          "who": "me",
+          "name": "Coder390",
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "score": 239.82,
+          "a": 239.82,
+          "b": 239.82,
+          "rank": "5/11"
+        },
+        {
+          "who": "peer",
+          "name": "DeepSeek V4.1 Flash",
+          "tool": "ZCode · DeepSeek 官方接口",
+          "effort": "high",
+          "score": 214.99,
+          "a": 217.43,
+          "b": 212.55
+        },
+        {
+          "who": "peer",
+          "name": "Qwen 3.8 Max",
+          "tool": "ZCode · Cline 通行证",
+          "effort": "xhigh",
+          "score": 145.8,
+          "a": 149.08,
+          "b": 142.51
+        },
+        {
+          "who": "peer",
+          "name": "GLM 5.3",
+          "tool": "ZCode · Cline 通行证",
+          "effort": "max",
+          "score": 143.24,
+          "a": 133.99,
+          "b": 152.48
+        },
+        {
+          "who": "peer",
+          "name": "豆包 Seed 2.1",
+          "tool": "ZCode · OpenRouter",
+          "effort": "开启",
+          "score": 75.24,
+          "a": 75,
+          "b": 75.47
+        },
+        {
+          "who": "peer",
+          "name": "MiMo V2.6 Pro",
+          "tool": "ZCode · Cline 通行证",
+          "effort": "开启",
+          "score": 66.55,
+          "a": 57.79,
+          "b": 75.3
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL",
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "score": 58.47,
+          "a": 58.47,
+          "b": 103.43,
+          "rank": "10/11"
+        },
+        {
+          "who": "peer",
+          "name": "Base",
+          "tool": "出题方基准",
+          "effort": "—",
+          "score": 0,
+          "a": 0,
+          "b": 0
+        }
+      ],
+      "chart": [
+        {
+          "who": "peer",
+          "name": "GPT-6 Astra",
+          "score": 449.59
+        },
+        {
+          "who": "peer",
+          "name": "Opus 5.5",
+          "score": 309.16
+        },
+        {
+          "who": "peer",
+          "name": "GPT-6 Sol",
+          "score": 266.05
+        },
+        {
+          "who": "peer",
+          "name": "Kimi K3",
+          "score": 243.3
+        },
+        {
+          "who": "peer",
+          "name": "DeepSeek V4.1 Flash",
+          "score": 214.99
+        },
+        {
+          "who": "peer",
+          "name": "Qwen 3.8 Max",
+          "score": 145.8
+        },
+        {
+          "who": "peer",
+          "name": "GLM 5.3",
+          "score": 143.24
+        },
+        {
+          "who": "peer",
+          "name": "豆包 Seed 2.1",
+          "score": 75.24
+        },
+        {
+          "who": "peer",
+          "name": "MiMo V2.6 Pro",
+          "score": 66.55
+        },
+        {
+          "who": "peer",
+          "name": "Base",
+          "score": 0
+        },
+        {
+          "who": "me",
+          "name": "Coder390 交卷",
+          "score": 239.82,
+          "rank": "5/11"
+        },
+        {
+          "who": "me",
+          "name": "Coder390 加时",
+          "score": 239.82
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL 交卷",
+          "score": 58.47,
+          "rank": "10/11"
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL 加时",
+          "score": 103.43
+        }
+      ]
+    },
+    "ctf": {
+      "games": 1016,
+      "scale": "实力值（同 BT 构造，基准=0）；正赛与加时是两次独立实现，只能同表对照",
+      "us": {
+        "name": "你的 bot",
+        "main": -385,
+        "overtime": -256,
+        "diff": 129,
+        "rankMain": "12/12",
+        "rankOvertime": "11/12"
+      },
+      "noiseNote": "11 个对手的两次漂移范围 −48 ~ +56、中位 +5；本机 +129 超出该范围两倍，且与豆包（两次一分不差）的相对位置翻转 129 分 → 涨幅为真，不是重抽噪声。",
+      "rows": [
+        {
+          "name": "GPT-6.1 Sol",
+          "main": 191,
+          "overtime": 232,
+          "drift": 41,
+          "tool": "Codex 桌面版",
+          "effort": "最高",
+          "mins": 67,
+          "q5": 239
+        },
+        {
+          "name": "GPT-6 Astra",
+          "main": 187,
+          "overtime": 229,
+          "drift": 42,
+          "tool": "Codex 桌面版",
+          "effort": "最高",
+          "mins": 60,
+          "q5": 243
+        },
+        {
+          "name": "Sonnet 5.5",
+          "main": 163,
+          "overtime": 197,
+          "drift": 34,
+          "tool": "Claude Code 命令行 2.1.284",
+          "effort": "max",
+          "mins": 52,
+          "q5": 164
+        },
+        {
+          "name": "Fable 5.1",
+          "main": 139,
+          "overtime": 195,
+          "drift": 56,
+          "tool": "Claude Code 桌面版",
+          "effort": "max",
+          "mins": 39,
+          "q5": 180
+        },
+        {
+          "name": "Opus 5.5",
+          "main": 128,
+          "overtime": 134,
+          "drift": 6,
+          "tool": "Claude Code 桌面版",
+          "effort": "max",
+          "mins": 46,
+          "q5": 181
+        },
+        {
+          "name": "DeepSeek V4.1 Flash",
+          "main": 83,
+          "overtime": 66,
+          "drift": -17,
+          "tool": "dsh 0.2.0-rc.2 标准模式",
+          "effort": "max",
+          "mins": 35,
+          "q5": 114
+        },
+        {
+          "name": "MiMo V2.6 Pro",
+          "main": 2,
+          "overtime": -46,
+          "drift": -48,
+          "tool": "MiMo Code 0.1.15",
+          "effort": "max",
+          "mins": 51.8,
+          "q5": 11
+        },
+        {
+          "name": "Qwen 3.8 Max",
+          "main": -35,
+          "overtime": -30,
+          "drift": 5,
+          "tool": "Qwen Code 0.24.7",
+          "effort": "max",
+          "mins": 49.6,
+          "q5": 16
+        },
+        {
+          "name": "Kimi K3",
+          "main": -58,
+          "overtime": -66,
+          "drift": -8,
+          "tool": "Kimi Code 1.0.4",
+          "effort": "max",
+          "mins": 53.6,
+          "q5": -23
+        },
+        {
+          "name": "GLM 5.3",
+          "main": -108,
+          "overtime": -105,
+          "drift": 3,
+          "tool": "ZCode 3.14.3",
+          "effort": "max",
+          "mins": 63.9,
+          "q5": -112
+        },
+        {
+          "name": "豆包 Seed 2.1 Turbo",
+          "main": -319,
+          "overtime": -319,
+          "drift": 0,
+          "tool": "trae-agent 0.1.0",
+          "effort": "补丁附加",
+          "mins": 53.9,
+          "q5": -289
+        },
+        {
+          "name": "你的 bot",
+          "main": -385,
+          "overtime": -256,
+          "drift": 129,
+          "us": true,
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "mins": null,
+          "q5": -346
+        }
+      ],
+      "tierDiff": {
+        "2": 70,
+        "3": 78,
+        "4": 64,
+        "5": 33,
+        "6": 88,
+        "8": 30,
+        "10": 82,
+        "13": 49
+      },
+      "tierOvertime": {
+        "2": -210,
+        "3": -145,
+        "4": -161,
+        "5": -159,
+        "6": -166,
+        "8": -168,
+        "10": -75,
+        "13": -43
+      },
+      "tierNote": "八档全涨、无一档退",
+      "src": "contestants/archive/coder390-20261009/ctf-coder390/scores-overtime.md",
+      "driftStats": {
+        "min": -48,
+        "max": 56,
+        "median": 5,
+        "us": 129,
+        "rivals": 11
+      },
+      "q5Us": {
+        "main": -346,
+        "ci": [
+          -394,
+          -302
+        ],
+        "rank": "12/12",
+        "ot": -52,
+        "otRank": "9/12",
+        "faultsMain": 14,
+        "faultsOt": 8,
+        "bySizeMain": {
+          "2": -124,
+          "3": -205,
+          "4": -210,
+          "5": -173,
+          "6": -209,
+          "8": -210,
+          "10": -203,
+          "13": -94
+        },
+        "src": "arena-prev-27b-q5kxl-20261004/ctf-challenge-runs/rerun-main-w2-1005-010034 与 rerun-ot-w2-1005-010034"
+      },
+      "table": [
+        {
+          "who": "peer",
+          "name": "GPT-6.1 Sol",
+          "tool": "Codex 桌面版",
+          "effort": "最高",
+          "score": 215,
+          "a": 191,
+          "b": 239
+        },
+        {
+          "who": "peer",
+          "name": "GPT-6 Astra",
+          "tool": "Codex 桌面版",
+          "effort": "最高",
+          "score": 215,
+          "a": 187,
+          "b": 243
+        },
+        {
+          "who": "peer",
+          "name": "Sonnet 5.5",
+          "tool": "Claude Code 命令行 2.1.284",
+          "effort": "max",
+          "score": 163.5,
+          "a": 163,
+          "b": 164
+        },
+        {
+          "who": "peer",
+          "name": "Fable 5.1",
+          "tool": "Claude Code 桌面版",
+          "effort": "max",
+          "score": 159.5,
+          "a": 139,
+          "b": 180
+        },
+        {
+          "who": "peer",
+          "name": "Opus 5.5",
+          "tool": "Claude Code 桌面版",
+          "effort": "max",
+          "score": 154.5,
+          "a": 128,
+          "b": 181
+        },
+        {
+          "who": "peer",
+          "name": "DeepSeek V4.1 Flash",
+          "tool": "dsh 0.2.0-rc.2 标准模式",
+          "effort": "max",
+          "score": 98.5,
+          "a": 83,
+          "b": 114
+        },
+        {
+          "who": "peer",
+          "name": "MiMo V2.6 Pro",
+          "tool": "MiMo Code 0.1.15",
+          "effort": "max",
+          "score": 6.5,
+          "a": 2,
+          "b": 11
+        },
+        {
+          "who": "anchor",
+          "name": "基准",
+          "tool": "出题方",
+          "effort": "—",
+          "score": 0,
+          "a": 0,
+          "b": 0
+        },
+        {
+          "who": "peer",
+          "name": "Qwen 3.8 Max",
+          "tool": "Qwen Code 0.24.7",
+          "effort": "max",
+          "score": -9.5,
+          "a": -35,
+          "b": 16
+        },
+        {
+          "who": "peer",
+          "name": "Kimi K3",
+          "tool": "Kimi Code 1.0.4",
+          "effort": "max",
+          "score": -40.5,
+          "a": -58,
+          "b": -23
+        },
+        {
+          "who": "peer",
+          "name": "GLM 5.3",
+          "tool": "ZCode 3.14.3",
+          "effort": "max",
+          "score": -110,
+          "a": -108,
+          "b": -112
+        },
+        {
+          "who": "peer",
+          "name": "豆包 Seed 2.1 Turbo",
+          "tool": "trae-agent 0.1.0",
+          "effort": "补丁附加",
+          "score": -304,
+          "a": -319,
+          "b": -289
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL",
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "score": -346,
+          "a": -346,
+          "b": -52.3,
+          "rank": "12/12"
+        },
+        {
+          "who": "me",
+          "name": "Coder390",
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "score": -385,
+          "a": -385,
+          "b": -256,
+          "rank": "12/12"
+        }
+      ],
+      "chart": [
+        {
+          "who": "peer",
+          "name": "GPT-6.1 Sol",
+          "score": 215
+        },
+        {
+          "who": "peer",
+          "name": "GPT-6 Astra",
+          "score": 215
+        },
+        {
+          "who": "peer",
+          "name": "Sonnet 5.5",
+          "score": 163.5
+        },
+        {
+          "who": "peer",
+          "name": "Fable 5.1",
+          "score": 159.5
+        },
+        {
+          "who": "peer",
+          "name": "Opus 5.5",
+          "score": 154.5
+        },
+        {
+          "who": "peer",
+          "name": "DeepSeek V4.1 Flash",
+          "score": 98.5
+        },
+        {
+          "who": "peer",
+          "name": "MiMo V2.6 Pro",
+          "score": 6.5
+        },
+        {
+          "who": "anchor",
+          "name": "基准",
+          "score": 0
+        },
+        {
+          "who": "peer",
+          "name": "Qwen 3.8 Max",
+          "score": -9.5
+        },
+        {
+          "who": "peer",
+          "name": "Kimi K3",
+          "score": -40.5
+        },
+        {
+          "who": "peer",
+          "name": "GLM 5.3",
+          "score": -110
+        },
+        {
+          "who": "peer",
+          "name": "豆包 Seed 2.1 Turbo",
+          "score": -304
+        },
+        {
+          "who": "me",
+          "name": "Coder390 交卷",
+          "score": -385,
+          "rank": "12/12"
+        },
+        {
+          "who": "me",
+          "name": "Coder390 加时",
+          "score": -256
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL 交卷",
+          "score": -346,
+          "rank": "12/12"
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL 加时",
+          "score": -52.3
+        }
+      ]
+    },
+    "land": {
+      "games": 1128,
+      "scale": "0–100 归一化：每模式 anchor-greedy=0、该模式最强=100，两模式平均后最高者归一 100",
+      "us": {
+        "name": "your-bot@you",
+        "main": 17.6,
+        "overtime": 18.3,
+        "rank": "6/10"
+      },
+      "rows": [
+        {
+          "name": "sonnet-5@claude-code",
+          "main": 100,
+          "overtime": 100,
+          "tool": "Claude Code",
+          "q5": 100
+        },
+        {
+          "name": "opus-5.5@claude-code",
+          "main": 91.4,
+          "overtime": 77,
+          "tool": "Claude Code",
+          "q5": 67.5
+        },
+        {
+          "name": "gpt-6-astra@codex",
+          "main": 86.3,
+          "overtime": 84.5,
+          "tool": "Codex",
+          "q5": 84.1
+        },
+        {
+          "name": "gpt-6-sol@codex",
+          "main": 50.5,
+          "overtime": 50.5,
+          "tool": "Codex",
+          "q5": 60.8
+        },
+        {
+          "name": "mimo-2.6-pro@zcode",
+          "main": 40.5,
+          "overtime": 39.3,
+          "tool": "ZCode",
+          "q5": 40.8
+        },
+        {
+          "name": "your-bot@you",
+          "main": 17.6,
+          "overtime": 18.3,
+          "us": true,
+          "tool": "dsh（本机）",
+          "q5": 6.4
+        },
+        {
+          "name": "kimi-k3@workbuddy",
+          "main": 9.6,
+          "overtime": 9.7,
+          "tool": "WorkBuddy",
+          "q5": 14.5
+        },
+        {
+          "name": "glm-5.3@workbuddy",
+          "main": 8.1,
+          "overtime": 8.2,
+          "tool": "WorkBuddy",
+          "q5": 13
+        },
+        {
+          "name": "deepseek-4.1f@workbuddy",
+          "main": 0,
+          "overtime": 0,
+          "tool": "WorkBuddy",
+          "q5": 2.7
+        },
+        {
+          "name": "mystery-model@zcode",
+          "main": 0,
+          "overtime": 0,
+          "tool": "ZCode",
+          "q5": 0
+        }
+      ],
+      "anchors": [
+        {
+          "name": "anchor-sparring",
+          "main": 95.1,
+          "overtime": 91.3,
+          "q5": 102.1
+        },
+        {
+          "name": "anchor-greedy",
+          "main": 0,
+          "overtime": 0,
+          "q5": 0
+        },
+        {
+          "name": "anchor-random",
+          "main": 0,
+          "overtime": 0,
+          "q5": 0
+        }
+      ],
+      "src": "contestants/archive/coder390-20261009/land-coder390/scores-full-main/ratings.md + land/challenge-runs/20261009-210526/ratings.md",
+      "effortNote": "圈地这场比赛主办方没逐家记录思考档，只写明「思考强度用各家官方推荐档」（land/CONDITIONS.md:9）；第 3 场比赛才全部开到最高档。",
+      "zeroNote": "总分 0 不等于没得分：每种模式以 greedy=0、该模式最强=100 换算，低于 greedy 记 0（rate.py:121）。DeepSeek 与神秘模型两家都被钳在下限，144 局单挑全部打满、0 超时 0 判负。",
+      "q5Us": {
+        "name": "your-bot@you",
+        "main": 6.4,
+        "ci": [
+          0.6,
+          11.9
+        ],
+        "rank": "8/10",
+        "duel": 12.9,
+        "duelElo": 91,
+        "melee": 0,
+        "meleeElo": -313,
+        "duelStats": {
+          "games": 144,
+          "scoreRate": 31.9,
+          "avgArea": 457,
+          "avgDeaths": 3.6,
+          "avgKills": 1.2
+        },
+        "meleeStats": {
+          "games": 60,
+          "top1": 3.3,
+          "avgRank": 3.52,
+          "avgArea": 219,
+          "avgDeaths": 8.8,
+          "avgKills": 2.2
+        },
+        "baseDuelStats": {
+          "scoreRate": 23.6,
+          "avgArea": 498,
+          "avgDeaths": 2.7,
+          "avgKills": 0.7
+        },
+        "baseMeleeStats": {
+          "top1": 20.3,
+          "avgRank": 2.44,
+          "avgArea": 580,
+          "avgDeaths": 4.8,
+          "avgKills": 2.2
+        },
+        "src": "arena-prev-27b-q5kxl-20261004/land-challenge-runs/20261004-050654/ratings.md"
+      },
+      "table": [
+        {
+          "who": "peer",
+          "name": "sonnet-5@claude-code",
+          "tool": "Claude Code",
+          "effort": "high",
+          "score": 100,
+          "a": 100,
+          "b": 100
+        },
+        {
+          "who": "peer",
+          "name": "gpt-6-astra@codex",
+          "tool": "Codex",
+          "effort": "medium",
+          "score": 85.2,
+          "a": 86.3,
+          "b": 84.1
+        },
+        {
+          "who": "peer",
+          "name": "opus-5.5@claude-code",
+          "tool": "Claude Code",
+          "effort": "medium",
+          "score": 79.45,
+          "a": 91.4,
+          "b": 67.5
+        },
+        {
+          "who": "peer",
+          "name": "gpt-6-sol@codex",
+          "tool": "Codex",
+          "effort": "high",
+          "score": 55.65,
+          "a": 50.5,
+          "b": 60.8
+        },
+        {
+          "who": "peer",
+          "name": "mimo-2.6-pro@zcode",
+          "tool": "ZCode",
+          "effort": "high",
+          "score": 40.65,
+          "a": 40.5,
+          "b": 40.8
+        },
+        {
+          "who": "me",
+          "name": "Coder390",
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "score": 17.6,
+          "a": 17.6,
+          "b": 18.3,
+          "rank": "6/10"
+        },
+        {
+          "who": "peer",
+          "name": "kimi-k3@workbuddy",
+          "tool": "WorkBuddy",
+          "effort": "平台默认",
+          "score": 12.05,
+          "a": 9.6,
+          "b": 14.5
+        },
+        {
+          "who": "peer",
+          "name": "glm-5.3@workbuddy",
+          "tool": "WorkBuddy",
+          "effort": "平台默认",
+          "score": 10.55,
+          "a": 8.1,
+          "b": 13
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL",
+          "tool": "dsh（本机）",
+          "effort": "xhigh",
+          "score": 6.4,
+          "a": 6.4,
+          "b": 6.2,
+          "rank": "8/10"
+        },
+        {
+          "who": "peer",
+          "name": "deepseek-4.1f@workbuddy",
+          "tool": "WorkBuddy",
+          "effort": "平台默认",
+          "score": 1.35,
+          "a": 0,
+          "b": 2.7
+        },
+        {
+          "who": "peer",
+          "name": "mystery-model@zcode",
+          "tool": "ZCode",
+          "effort": "high",
+          "score": 0,
+          "a": 0,
+          "b": 0
+        },
+        {
+          "who": "anchor",
+          "name": "anchor-greedy",
+          "tool": "出题方",
+          "effort": "—",
+          "score": 0,
+          "a": 0,
+          "b": 0
+        }
+      ],
+      "chart": [
+        {
+          "who": "peer",
+          "name": "sonnet-5@claude-code",
+          "score": 100
+        },
+        {
+          "who": "peer",
+          "name": "gpt-6-astra@codex",
+          "score": 85.2
+        },
+        {
+          "who": "peer",
+          "name": "opus-5.5@claude-code",
+          "score": 79.45
+        },
+        {
+          "who": "peer",
+          "name": "gpt-6-sol@codex",
+          "score": 55.65
+        },
+        {
+          "who": "peer",
+          "name": "mimo-2.6-pro@zcode",
+          "score": 40.65
+        },
+        {
+          "who": "peer",
+          "name": "kimi-k3@workbuddy",
+          "score": 12.05
+        },
+        {
+          "who": "peer",
+          "name": "glm-5.3@workbuddy",
+          "score": 10.55
+        },
+        {
+          "who": "peer",
+          "name": "deepseek-4.1f@workbuddy",
+          "score": 1.35
+        },
+        {
+          "who": "peer",
+          "name": "mystery-model@zcode",
+          "score": 0
+        },
+        {
+          "who": "anchor",
+          "name": "anchor-greedy",
+          "score": 0
+        },
+        {
+          "who": "me",
+          "name": "Coder390 交卷",
+          "score": 17.6,
+          "rank": "6/10"
+        },
+        {
+          "who": "me",
+          "name": "Coder390 加时",
+          "score": 18.3
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL 交卷",
+          "score": 6.4,
+          "rank": "8/10"
+        },
+        {
+          "who": "q5",
+          "name": "Q5_K_XL 加时",
+          "score": 6.2
+        }
+      ]
+    }
+  },
+  "harness": {
+    "shell": "dsh（deepseek-harness）Web GUI · profile web",
+    "preset": "PTC 本地版 · 简洁（ptc-local-concise）",
+    "route": "llamacpp/27b → http://127.0.0.1:8080/v1",
+    "effort": "客户端 reasoningEffort=max，服务端 --reasoning-effort xhigh",
+    "same": "同一台机器、同一套外壳与预设、同一份提示词，换的只有权重文件",
+    "src": "contestants/README.md 前置条件表 + run.sh:12-16,61 + stats.json requestConfig",
+    "three": [
+      {
+        "k": "预设",
+        "v": "PTC 本地版 · 简洁",
+        "n": "两次同一份，没为某个模型单独调过"
+      },
+      {
+        "k": "主动压缩",
+        "v": "同一档",
+        "n": "历史满窗自动折叠；圈地那场压缩本身占 7 分 → 1 分"
+      },
+      {
+        "k": "同环境",
+        "v": "同一台机器",
+        "n": "2 × 5060 Ti、同 -c 152000、同一路由 127.0.0.1:8080"
+      }
+    ]
+  },
+  "volume": {
+    "land": {
+      "duelGames": 936,
+      "meleeGames": 192,
+      "meleePairs": 1152,
+      "perBotDuel": 144,
+      "perBotMelee": "52–64",
+      "boot": 200,
+      "anchors": 3,
+      "bots": 13
+    },
+    "bomberman": {
+      "games": 1320,
+      "bySize": {
+        "2": 110,
+        "3": 990,
+        "10": 220
+      },
+      "perBot": {
+        "2": 20,
+        "3": 270,
+        "10": 200
+      },
+      "btIter": 109,
+      "boot": 200
+    },
+    "ctf": {
+      "games": 1016,
+      "tiers": 8,
+      "mapsPerTier": 8,
+      "boot": 200,
+      "faultsQ5": {
+        "main": 14,
+        "ot": 8
+      },
+      "faultsCur": {
+        "main": 0,
+        "ot": 0
+      }
+    },
+    "src": "三场比赛 ratings.md / bt.json / 成绩.md 的脚注与表头"
+  },
+  "comparability": {
+    "samePool": true,
+    "evidence": [
+      "圈地：两轮 run 目录 entries/ 里 9 家云端 bot.cpp 的 sha256 逐个相同（如 deepseek bbc25f2c88345781、mystery-model 7ba1e08add22b710），只有 your-bot@you 那行换了权重",
+      "炸弹人：identity.json 的 bot_hashes 除「你的 bot」外 10 家全等，两轮 schedule_seed 都是 20261004、sizes 都是 [2,3,10]",
+      "夺旗：两轮 config.json 的 players 13 个键与 11 家 bots/*.cpp 路径逐字相同，正赛 seed 都是 260692018809426",
+      "仓库侧：git log 显示 */bots/* 最后改动是 2026-10-02，早于两次评测；git status 干净"
+    ],
+    "caveat": "夺旗只有正赛版两张表同 seed，可并排；加时终版两次 seed 不同（Q5 用 184177823662829、Coder390 用 260692018809426），跨轮并排加时读数时对手分数差里含一次重抽噪声。"
+  },
+  "serviceDelta": {
+    "same": [
+      "-c 152000",
+      "--tensor-split 0.5,0.5",
+      "-ngl 99",
+      "-fa on",
+      "-np 1 --parallel 1",
+      "-ctk/-ctv q8_0",
+      "--reasoning on --reasoning-preserve",
+      "同一 build b10448",
+      "实际生效的思考档：dsh 侧两轮都显式请求 max 档，max 对应 xhigh，会把服务端的 --reasoning-effort 默认值覆盖掉（用户 10-10 确认）"
+    ],
+    "different": [
+      {
+        "item": "MTP 草稿深度 --spec-draft-n-max：2 对 3",
+        "onScreen": false,
+        "why": "n_max=3 的接受率 62.1% 低于 n_max=2 的 70.0%，两轮速度读数不同口径；用户 10-10 决定不写进片子，两个模型的生成速度按「总体差不多」表述。"
+      }
+    ],
+    "src": "两个 .bat 原文 + invariants.templateRuledOut",
+    "notAVariable": "两个 .bat 的服务端默认 --reasoning-effort 写成 medium 与 xhigh，看着像变量，其实不是：dsh 请求里带 max（= xhigh 等级），服务端默认被覆盖。两轮实际生效的思考档相同。",
+    "speedVerdict": "总体差不多，不做快慢对比。"
+  },
+  "tableBasis": {
+    "peerScore": "云端对手一列 = 两次评测里该家成绩的算术平均。依据：三场比赛两轮的局数与赛程完全相同（圈地 1128、炸弹人 1320、夺旗 1016，且对手 bot.cpp 逐字节同一批），权重也相同，所以等权即算术平均。",
+    "caveat": "同一家的两次读数差来自对手池里本机换了模型，属 BT 重拟合的连带位移，不是它自己变了；夺旗两轮加时 seed 不同，那一次还含重抽噪声。",
+    "local": "Coder390 与 Q5_K_XL 各占一行/一根，取各自那次评测的原值，不参与平均。",
+    "rank": "表里的位置是按平均后的对手池重排的；两个本机那行标的名次是它当时那一次评测里的实际名次（平均会挪位置，例如 Q5_K_XL 在炸弹人平均后掉到 Base 之上、当时是 10/11）。"
+  },
+  "avgSpeed": {
+    "unit": "tok/s",
+    "method": "该场 Σ输出 token ÷ Σ纯生成秒。生成秒取每条回复内 chunk 时间戳的跨度，不含预填充与工具执行。",
+    "src": "dsh 会话件 session.v4.jsonl.zstd（多帧 zstd，全部帧解出后按 message.id 去重）：本轮 land-coder390 / bomberman-coder390 / ctf-coder390，上一轮 land-gui2 / bomberman-gui1 / ctf-gui1。10-10 解出，主 agent 复算过加总与除法。",
+    "perEp": {
+      "land": {
+        "cur": 47.1,
+        "prev": 39.1,
+        "curTok": 154906,
+        "prevTok": 327747,
+        "curGenS": 3287.9,
+        "prevGenS": 8384,
+        "curReq": 112,
+        "prevReq": 141,
+        "curMed": 50.3,
+        "prevMed": 41.6
+      },
+      "bomberman": {
+        "cur": 44.4,
+        "prev": 39.2,
+        "curTok": 271914,
+        "prevTok": 284678,
+        "curGenS": 6124.1,
+        "prevGenS": 7252.9,
+        "curReq": 175,
+        "prevReq": 203,
+        "curMed": 47.2,
+        "prevMed": 39.9
+      },
+      "ctf": {
+        "cur": 42.8,
+        "prev": 40,
+        "curTok": 272157,
+        "prevTok": 302025,
+        "curGenS": 6352.7,
+        "prevGenS": 7556.7,
+        "curReq": 106,
+        "prevReq": 124,
+        "curMed": 47.1,
+        "prevMed": 42.9
+      }
+    },
+    "combined": {
+      "cur": 44.3,
+      "prev": 39.4,
+      "curTok": 698977,
+      "prevTok": 914450,
+      "curGenS": 15764.7,
+      "prevGenS": 23193.6
+    },
+    "range": {
+      "cur": [
+        25.3,
+        83.2
+      ],
+      "prev": [
+        24.8,
+        75.8
+      ]
+    },
+    "notEntered": "上一轮 land 还有一次被替换的第一次尝试（land-gui1，38.8/41.0 tok/s），不计入。",
+    "vsServicePeak": "服务侧空载峰值是另一套数（61.34 对 50.9 tok/s），窗口越长越慢，两个口径不混用。",
+    "verdict": "同一台机器上同一量级；这一栏只说明「两次跑的机器速度可比」，不做快慢结论。"
+  },
+  "scaleNotes": {
+    "_note": "柱状图上必须写清尺度。炸弹人与夺旗的实力值是对数构造，圈地是线性归一，不能混为一谈。",
+    "land": {
+      "log": false,
+      "kind": "线性 0–100",
+      "formula": "每种模式以 greedy = 0、该模式最强 = 100 线性归一，两个模式平均后再把最高者归一到 100；低于 greedy 记 0（钳位）",
+      "per100": null
+    },
+    "bomberman": {
+      "log": true,
+      "k": 400,
+      "kind": "对数 BT",
+      "formula": "BT = 400 × log10(实力 / 基准实力)",
+      "per100": 1.7782794100389228,
+      "perK": "每 +400 分 = 10 倍实力"
+    },
+    "ctf": {
+      "log": true,
+      "k": 400,
+      "kind": "对数实力值",
+      "formula": "与炸弹人同一构造：400 × log10(实力 / 基准实力)",
+      "per100": 1.7782794100389228,
+      "perK": "每 +400 分 = 10 倍实力"
+    }
+  },
+  "contextWindow": {
+    "serviceMax": 152000,
+    "usable": 145000,
+    "compactionWindow": 230000,
+    "reserve": 85000,
+    "note": "llama-server 起的是 -c 152000（权重本身支持 262144）；外壳侧压缩阈值 W = 230000、预留 85000，所以真正能装满的是 230000 − 85000 = 145000，两个模型同一档。",
+    "src": "两个 bat 的 -c 参数 + dsh profile 的压缩窗口配置（10-10 核对）"
+  },
+  "difficulty": {
+    "_note": "这张表是组织方按三场比赛官方规则速览做的复杂度对照，不是实测读数；夺旗排在最难。",
+    "src": "meow-ai-arena/{land,bomberman,ctf}/README.md 的规则速览（10-10 逐条核对）；夺旗没有视野限制，别写",
+    "dims": [
+      {
+        "k": "同场方数",
+        "land": "单挑 2 · 混战 4",
+        "bomberman": "2 / 3 / 10 方",
+        "ctf": "2 到 13 方"
+      },
+      {
+        "k": "一步要控制几个单位",
+        "land": "1 个",
+        "bomberman": "1 个",
+        "ctf": "每方 3 个角色"
+      },
+      {
+        "k": "同时挂着的目标",
+        "land": "围地（近似单目标）",
+        "bomberman": "活得久 + 击杀份额",
+        "ctf": "拾旗 · 交旗 · 护送 · 拦截"
+      },
+      {
+        "k": "前瞻要算多远",
+        "land": "轨迹被踩就死，600 回合",
+        "bomberman": "炸弹 4 回合引爆、会连锁",
+        "ctf": "400 回合里抢—送—截循环"
+      },
+      {
+        "k": "专门机制",
+        "land": "不能掉头 · 出生点 3×3 保护",
+        "bomberman": "每人 2 颗弹 · 缩圈 · 不复活",
+        "ctf": "携旗者不能攻击 · 掉旗可重捡 · 10 回合重生"
+      },
+      {
+        "k": "计分档数",
+        "land": "单挑 + 混战两模式",
+        "bomberman": "三档等权",
+        "ctf": "八档等权"
+      }
+    ],
+    "order": [
+      "ctf",
+      "bomberman",
+      "land"
+    ],
+    "verdict": "组织方评估的难度排序：夺旗 > 炸弹人 > 圈地",
+    "basis": "规则复杂度对照，不是实测读数"
+  }
+}

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>B 站封面 · Coder390 性能测评</title>
+<style>
+@font-face{font-family:'NotoSC';src:url(__FONT400__) format('woff2');font-weight:400}
+@font-face{font-family:'NotoSC';src:url(__FONT700__) format('woff2');font-weight:700}
+:root{
+  --paper:#0f2ab0;--paper2:#081238;--paper3:#0a1a70;--ink:#fff;--ink2:#bcd0ff;
+  --line:#2f4fd8;--red:#ff3b30;--land:#4fe08b;--bomb:#ffc21f;--ctf:#c9a7ff;
+  --deep:#0a1030;--q5:#f2f6ff;--q5ot:#58f8f8;
+  /* --red 压在钴蓝渐变底上实测只有 2.99:1（面板上则有 5.13:1）→ 大字强调用提亮档 */
+  --red-hi:#ff5f4a;
+  --mono:'Cascadia Code','Consolas','NotoSC',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{width:1920px;height:1080px;overflow:hidden;background:var(--paper);font-family:'NotoSC',sans-serif;color:var(--ink)}
+.stage{position:relative;width:1920px;height:1080px;background:
+  radial-gradient(120% 90% at 50% 8%,#1a3ad0 0%,var(--paper) 46%,#0a1f86 100%)}
+.slash{position:absolute;left:-140px;top:-260px;width:2650px;height:1700px;
+  background:linear-gradient(transparent 47.2%,rgba(255,59,48,.30) 47.2% 47.9%,transparent 47.9%),
+             linear-gradient(transparent 61.6%,rgba(88,248,248,.16) 61.6% 61.9%,transparent 61.9%);
+  transform:rotate(-19deg)}
+.dots{position:absolute;right:70px;top:64px;width:150px;height:74px;opacity:.5;
+  background-image:radial-gradient(var(--ink2) 1.6px,transparent 1.8px);background-size:19px 19px}
+/* 4:3 安全区：x 240..1680。所有文字与卡片都收在这条带里，只作为布局参考线，导出时关掉 */
+.safe{position:absolute;left:240px;top:0;width:1440px;height:1080px;border:2px dashed rgba(255,255,255,.28)}
+body.no-guide .safe{display:none}
+
+.top{position:absolute;left:240px;top:82px;width:1440px;text-align:center;
+  font-family:var(--mono);font-size:34px;letter-spacing:.14em;color:var(--ink2)}
+.top .sq{display:inline-block;width:26px;height:26px;background:var(--red);vertical-align:-1px;margin-right:16px}
+h1{position:absolute;left:150px;top:164px;width:1620px;text-align:center;white-space:nowrap;
+  font-size:88px;font-weight:700;letter-spacing:.01em;line-height:1.1;
+  text-shadow:0 8px 0 rgba(0,0,0,.26)}
+h1 .em{color:var(--red-hi)}
+.hook{position:absolute;left:150px;top:302px;width:1620px;text-align:center;white-space:nowrap;
+  font-size:100px;font-weight:700;line-height:1.14;text-shadow:0 7px 0 rgba(0,0,0,.24)}
+.hook b{color:var(--red-hi);font-size:118px}
+/* 「掉没掉？」原本用 --ctf 淡紫，在钴蓝底上对比只有 2.6，用户两次指出区分度不够 → 改成琥珀底 + 反衬深色字 */
+.hook .q{color:var(--deep);background:var(--bomb);text-shadow:none;padding:4px 22px 12px;border-radius:10px;
+  box-shadow:0 7px 0 rgba(0,0,0,.24)}
+
+.row{position:absolute;left:240px;top:528px;width:1440px;display:flex;gap:26px;justify-content:center}
+.card{width:452px;height:252px;background:var(--paper2);border:2px solid var(--line);border-top:9px solid var(--red);
+  border-radius:8px;padding:28px 26px 24px;box-shadow:8px 8px 0 rgba(0,0,0,.34)}
+.card .k{font-size:54px;font-weight:700;line-height:1.06;color:var(--red);white-space:nowrap}
+.card .u{font-size:29px;font-weight:400;color:var(--ink2);margin-left:6px}
+.card p{margin-top:14px;font-size:30px;line-height:1.42;color:var(--ink2)}
+.card .l{color:var(--land)}.card .b{color:var(--bomb)}.card .c{color:var(--ctf)}
+.card.g{border-top-color:var(--land)}.card.g .k{color:var(--land)}
+.card.y{border-top-color:var(--bomb)}.card.y .k{color:var(--bomb)}
+
+/* 对照关系要一眼看见：两个模型各一块，Q5_K_XL 用近白 + 水青边（正片里它的柱就是这个配色）*/
+.vs{position:absolute;left:240px;top:842px;width:1440px;display:flex;align-items:center;justify-content:center;gap:26px}
+.side{width:566px;padding:16px 22px 18px;background:var(--paper2);border:2px solid var(--line);border-radius:8px}
+.side .nm{font-size:46px;font-weight:700;line-height:1.08;white-space:nowrap}
+.side .sub{margin-top:7px;font-family:var(--mono);font-size:26px;letter-spacing:.03em;color:var(--ink2)}
+.side.q5{border-color:var(--q5ot)}.side.q5 .nm{color:#f2f6ff}
+.side.cr{border-color:var(--red)}.side.cr .nm{color:var(--red)}
+.mark{font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:.08em;color:var(--ink2)}
+.badge{position:absolute;left:240px;top:1004px;width:1440px;text-align:center;
+  font-size:29px;letter-spacing:.1em;color:var(--ink2)}
+</style>
+</head>
+<body class="no-guide">
+<div class="stage">
+  <div class="slash"></div>
+  <div class="dots"></div>
+  <div class="safe"></div>
+
+  <div class="top"><span class="sq"></span>本地 27B 模型测评 · ARENA 开源赛事</div>
+  <h1>Qwen3.8-27B <span class="em">Coder390</span> 性能测评</h1>
+  <div class="hook">思考量 <b>−24%</b>，能力<span class="q">掉没掉？</span></div>
+
+  <div class="row">
+    <div class="card g card1">
+      <div class="k">3<span class="u">场算法比赛</span></div>
+      <p><span class="l">圈地</span> · <span class="b">炸弹人</span> · <span class="c">夺旗</span><br>同一份提示词写 bot</p>
+    </div>
+    <div class="card card2">
+      <div class="k">3,464<span class="u">局</span></div>
+      <p>两个模型各跑一遍三场<br>纯本地推理，不联网</p>
+    </div>
+    <div class="card y card3">
+      <div class="k">2 × 5060 Ti</div>
+      <p>同一台机器、同一套外壳<br>两个模型跑同一份提示词</p>
+    </div>
+  </div>
+
+  <div class="vs">
+    <div class="side q5"><div class="nm">Q5_K_XL</div><div class="sub">unsloth 原版 · Dynamic 量化档</div></div>
+    <div class="mark">VS</div>
+    <div class="side cr"><div class="nm">Coder390 Q4Lynn</div><div class="sub">post-train 微调 · 思考量 −24%</div></div>
+  </div>
+  <div class="badge">参数量一模一样，差的是量化档 · 成绩带偶然性</div>
+</div>
+<script>
+// 自检：4:3 是从这张 16:9 图按中心裁左右，关键元素必须落在 x 240..1680，且两两不得重叠。
+// 结果写进 <pre id="metrics">（display:none，不进画面），供 `chrome --headless --dump-dom` 读取。
+addEventListener("load", function () {
+  var L = 240, R = 1680;
+  var cardSel = [".card1", ".card2", ".card3"];
+  var textSel = [".top", "h1", ".hook", ".card1 p", ".card2 p", ".card3 p", ".side.q5", ".side.cr", ".badge"];
+  function box(id, b) { return { id: id, x0: Math.round(b.left), x1: Math.round(b.right), y0: Math.round(b.top), y1: Math.round(b.bottom), h: Math.round(b.height) }; }
+  // 居中文本的容器盒是刻意放宽的，量容器会假报越界 → 文本用 Range 量字形真实边界；卡片要看盒子，用容器
+  var cards = cardSel.map(function (s) { return box(s, document.querySelector(s).getBoundingClientRect()); });
+  var texts = textSel.map(function (s) { var r = document.createRange(); r.selectNodeContents(document.querySelector(s)); return box(s, r.getBoundingClientRect()); });
+  var boxes = cards.concat(texts), issues = [];
+  boxes.forEach(function (o) {
+    if (o.x0 < L - 1 || o.x1 > R + 1) issues.push("OUT-OF-4:3 " + o.id + " x[" + o.x0 + "," + o.x1 + "]");
+  });
+  for (var i = 0; i < boxes.length; i++) for (var j = i + 1; j < boxes.length; j++) {
+    var a = boxes[i], b = boxes[j];
+    if (a.id + " p" === b.id || b.id + " p" === a.id) continue;
+    if (a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1) issues.push("OVERLAP " + a.id + " x " + b.id);
+  }
+  var hs = cards.map(function (o) { return o.h; });
+  if (Math.max.apply(null, hs) - Math.min.apply(null, hs) > 1) issues.push("CARD-HEIGHT-UNEQUAL " + hs.join("/"));
+  var two = Math.round(parseFloat(getComputedStyle(document.querySelector(".card p")).lineHeight));
+  texts.forEach(function (o) {
+    if (o.id.indexOf(" p") < 0) return;
+    if (Math.abs(o.h - two * 2) > 2) issues.push("P-NOT-TWO-LINES " + o.id + " h=" + o.h + " expect=" + two * 2);
+  });
+  // 对比度：区分度不能靠肉眼。WCAG 相对亮度比值，大字阈值 3.0
+  function chan(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+  function lum(c) { return 0.2126 * chan(c[0]) + 0.7152 * chan(c[1]) + 0.0722 * chan(c[2]); }
+  function parse(s) { var m = String(s).match(/[\d.]+/g); return m ? [+m[0], +m[1], +m[2], m[3] === undefined ? 1 : +m[3]] : null; }
+  function over(f, b) { var a = f[3]; return [0, 1, 2].map(function (i) { return f[i] * a + b[i] * (1 - a); }); }
+  function ratio(f, b) { var l1 = lum(f), l2 = lum(b); return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05); }
+  var PAGE = [15, 42, 176], PANEL = [8, 18, 56];
+  var contrast = [];
+  [["h1", PAGE], ["h1 .em", PAGE], [".hook", PAGE], [".hook b", PAGE], [".hook .q", PAGE], [".top", PAGE],
+   [".card1 .k", PANEL], [".card2 .k", PANEL], [".card3 .k", PANEL], [".card p", PANEL],
+   [".side.q5 .nm", PANEL], [".side.cr .nm", PANEL], [".side .sub", PANEL], [".mark", PAGE], [".badge", PAGE]].forEach(function (p) {
+    var el = document.querySelector(p[0]), st = getComputedStyle(el);
+    var own = parse(st.backgroundColor), bg = p[1];
+    if (own && own[3] > 0.5) bg = over(own, p[1]);
+    var fg = over(parse(st.color), bg);
+    var r = ratio(fg, bg);
+    contrast.push(p[0] + " " + r.toFixed(2) + ":1");
+    if (r < 3) issues.push("LOW-CONTRAST " + p[0] + " " + r.toFixed(2) + ":1 < 3.0");
+  });
+  var pre = document.createElement("pre");
+  pre.id = "metrics"; pre.style.display = "none";
+  pre.textContent = "METRICS " + JSON.stringify(boxes) + " CONTRAST " + JSON.stringify(contrast) + " ISSUES " + JSON.stringify(issues);
+  document.body.appendChild(pre);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+</style>
+</head>
+<body>
+<div id="hud">
+  <button id="mbtn" title="音乐 开/关（M）">♪</button>
+  <div id="hudl"><b id="idx">01 / 16</b><div id="prog"><i></i></div></div>
+  <div id="hudc">封面 · 主题与配置</div>
+  <div id="hudr"><div id="track"></div><span id="keys">→ / 空格 下一页 · ← 上一页 · 1-9 跳录像 · 0 其他作品 · Home/End 首尾 · F 纯净屏 · P 全屏播录像 · M 音乐</span></div>
+</div>
+<div id="wipe"><div class="w w1"></div><div class="w w2"></div><div class="w w3"></div></div>
+<div id="stage"></div>
+<!-- 落幕转场：拉灯绳（P5R 斗篷式） -->
+<div id="curtain" aria-hidden="true">
+  <svg id="curtainSvg" viewBox="0 0 160 90" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="cGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop id="cs0" offset="0" stop-color="#000000"/>
+        <stop id="cs1" offset="0.45" stop-color="#060404"/>
+        <stop id="cs2" offset="0.72" stop-color="#1c0906"/>
+        <stop id="cs3" offset="0.87" stop-color="#5c130c"/>
+        <stop id="cs4" offset="0.95" stop-color="#a81e12"/>
+        <stop id="cs5" offset="1" stop-color="#e6321c"/>
+      </linearGradient>
+      <clipPath id="cClip"><path id="cClipPath" d=""/></clipPath>
+      <filter id="cGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.15"/></filter>
+    </defs>
+    <path id="cPath" fill="url(#cGrad)" d=""/>
+    <g id="cFolds" clip-path="url(#cClip)"></g>
+    <path id="cEdgeGlow" fill="none" stroke="#ff3520" stroke-width="1.9" opacity="0.55" filter="url(#cGlow)" d=""/>
+    <path id="cEdge" fill="none" stroke="#ff2e1c" stroke-width="0.55" opacity="0.9" d=""/>
+    <path id="cRope" fill="none" stroke="#9a8f80" stroke-width="0.45" d=""/>
+    <path id="cKnot" fill="#e6321c" d=""/>
+  </svg>
+  <div id="curtainHint">PULL · 拉下灯绳</div>
+</div>
+<audio id="bgm" loop preload="auto" src="assets/music-loop.wav"></audio>
+<script type="text/plain" id="prompt-1">请实现一个单文件 HTML 网页，使用纯 Canvas 2D（不依赖任何库），模拟风暴黄昏海面。
+
+视觉要求：
+1. 5层不同深度的海浪，前景波浪更狂暴、颜色更浅、更透明；后景波浪更深沉、颜色更暗、更有深渊感。
+2. 波峰有白色泡沫，海面波浪碎裂成粒子，粒子有飞溅、重力、衰减。
+3. 黄昏黄色太阳透过浓重云层，在水面照出模糊的光晕，太阳在地平线附近模糊显现。
+4. 天空从蓝色渐变到黑色，太阳附近的乌云被晕染出渐变黄色。
+5. 无缝循环动画，电影感，可加入暗角、颗粒、动态模糊等后期效果。
+
+技术约束：
+- 纯 Canvas 2D，禁止使用任何外部库或资源。
+- 动画必须自动运行，无需用户交互。
+
+输出要求：
+- 保存为html文件给出说明
+- 请调用你所有的能力，生成你当前能实现的最高水准作品。</script>
+<script type="text/plain" id="prompt-2">生成一个单文件HTML网页，要求呈现出极其震撼的3D海上龙卷风/风暴视觉奇观。技术栈不限，可以使用任何你认为能发挥到极致的Web技术（WebGL、Three.js、原生GLSL等均可），但所有代码和资源必须完全包含在该HTML文件内（可引用CDN的Three.js等库，但所有自定义脚本、着色器、材质、粒子系统必须内联）。
+
+视觉与美术要求：
+- 龙卷风本体：需体现从云层延伸至海面的漏斗状涡旋，内部有旋转的粒子、水汽、碎片，可见空气涡旋的层次与体积感，光影和色彩必须真实而富有表现力。
+- 风暴海面：巨大的海浪汹涌澎湃，波峰有白色泡沫，海面有飞溅的浪花和反射，需呈现风暴中的动荡与力量。
+- 云层与天空：厚重的积雨云暗沉旋转，云层内部有周期性闪电闪烁，照亮云层和海面，营造出风暴的压抑与戏剧性。
+- 粒子效果：包含雨幕、水雾、被卷起的海水粒子、碎片等动态粒子，增强风暴的混乱感。
+- 前端界面：一个简洁美观、与风暴主题高度统一的UI，可包含风速、气压、粒子数等数据展示，整体设计符合科幻暗黑美学。
+- 所有美术效果请毫无保留地拉满，力求达到电影级/艺术馆级别的观赏性。
+
+交互要求：
+- 页面需支持基本的视角操控（鼠标拖拽旋转、滚轮缩放），可加入自动缓慢旋转。
+- 包含适当的动画或动态效果（龙卷风旋转、海浪动画、粒子运动、闪电周期性出现）。
+
+技术约束：
+- 单文件 HTML，所有代码内联，可引用 CDN 的 Three.js 等库，但自定义着色器必须内联。
+- 允许近似模拟（如龙卷风用粒子螺旋，海面用噪声波形），鼓励视觉效果优先。
+
+输出要求：
+- 请调用你所有的能力，生成你当前能实现的最高水准作品。</script>
+<script type="text/plain" id="prompt-3">你是一名资深 Three.js/WebGL/GLSL 图形工程师，请从零生成一个完整的实时雷暴海面场景（可多文件，也可单文件，但不限制代码行数）。使用原生 HTML/CSS/JavaScript（ES Modules），可通过 CDN 引入 Three.js，不依赖任何构建工具或框架。所有自定义着色器、程序化生成逻辑必须自己实现，禁止使用外部纹理、模型、字体等资源（星空、云层、水面、雨滴、闪电等必须程序化生成）。
+
+视觉与美术要求：
+- 场景主体：无限或大面积海面，上方是厚重旋转的雷暴云层。
+- 海面：动态波浪，有明显起伏；受风力影响，浪花与泡沫；雨滴撞击水面产生涟漪和轻微飞溅。
+- 雨：大量雨滴粒子，带重力，受风影响产生倾斜；粒子数量根据性能动态调整。
+- 风：可通过雨滴倾斜、海浪加剧、云层旋转来体现，不需要单独粒子。
+- 闪电：周期性出现，至少两种表现：云层内部闪烁（体积光感）和劈向海面的枝状闪电（可用线段或粒子模拟）。闪电瞬间照亮整个场景，包括云层内部、海面反射、雨滴高光。
+- 体积光：当闪电发生时，云层内部要有光线穿透的发光效果（可用后处理 bloom + 云层内部自发光近似，或简单 ray marching 体积采样），营造震撼的光影。
+- 天空与氛围：整体黑暗压抑，云层暗沉厚重，闪电时云层边缘被照亮，海面反射暖白/蓝白强光。可加入暗角、胶片颗粒、色差等后期效果增强电影感。
+- 前端界面：显示虚拟风速、雨量、雷电频率、气压等数据；可有一个按钮手动触发闪电。
+
+交互要求：
+- 鼠标拖拽旋转视角，滚轮缩放（可固定在海面高度，允许俯视或平视）。
+- 自动缓慢镜头环绕可选，默认开启或快捷键切换。
+- 闪电自动周期性发生，也允许用户按键触发（如按 L 键）。
+
+技术约束：
+- 必须使用原生 HTML/CSS/JavaScript + ES Modules + Three.js（CDN 或本地 vendor），无需构建步骤。
+- 所有视觉元素必须程序化生成，禁止使用外部纹理、模型、视频或图片。
+- 水面波浪和反射需使用自定义着色器（例如 Gerstner 波叠加 + 菲涅尔反射），不能用简单平面加贴图。
+- 雨滴粒子使用 GPU 友好的 BufferGeometry 或自定义 shader，粒子数量根据质量档位调整。
+- 闪电枝状结构可程序化生成（例如递归分段或 L-system 风格），不能用静态纹理。
+- 云层内部体积光允许使用后处理 bloom 加强，但如果用 ray marching 或体积采样更好，不做强制，但必须视觉可信。
+- 提供 Standard / High / Cinematic 三档质量预设，默认 High 在 1440×900 分辨率下达到 ≥30 FPS（桌面端）。
+- 代码结构清晰，可输出多文件（如 index.html, js/main.js, js/shaders.js, js/lightning.js, js/rain.js, css/style.css 等），也可单文件但不压缩。
+- 请附上启动命令（如 python3 -m http.server 8123）和简短 README。
+
+输出要求：
+- 请输出完整的项目目录和文件内容，并附上启动命令。
+- 请调用你所有能力，生成当前能实现的最高水准作品。</script>
+<script>

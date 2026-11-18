@@ -1,0 +1,16 @@
+{
+  "_src": "这里只留「不是评测成绩」的事实：模型自测读数、版本链、噪声量级、源码常量。评测成绩一律读 data/challenge-full.json（大样本），小样本参赛轮的成绩已按 2026-10-04 的要求删除，不再作对照。",
+  "_note": "三场分数没有共同单位：land 是 0–100 归一化（anchor-greedy=0、该模式最强=100），bomb 与 ctf 是 BT 实力值（基准=0、400×log10、不封顶），不可平均。",
+  "land": {
+    "selftest": { "area": 851, "baseline": 606, "games": 10, "opponent": "greedy" }
+  },
+  "bomb": {
+    "officialTop": { "name": "GPT-6 Astra", "bt": 488.62, "_src": "data/official/bomberman-ratings.json（正式赛 8930 局参照表第一名）" }
+  },
+  "ctf": {
+    "main": { "selftestGames": 54, "selfRecord": { "vs": "基准", "mine": 207, "base": 242, "netPerGame": -3.5 } },
+    "ot": { "chain": ["v9", "v11", "v12", "v13"], "noiseSeat": 2, "noisePeer": 40 }
+  },
+  "weights": { "_src": "ctf-gui1 正赛版 submission/bot.cpp 的打分权重", "centerGun": 33, "encircle": 32, "captureFlag": 0.1 },
+  "memcpy": { "_src": "bomberman-gui1 正赛版 submission/bot.cpp:472 与引擎 size 公式", "cells": 625, "bytesPerCell": 2, "need": 1250, "wrote": 625, "threshold": 312, "board10": 625, "lost10": 313, "formula": "size = 2*ceil(sqrt(14*n))+1" }
+}

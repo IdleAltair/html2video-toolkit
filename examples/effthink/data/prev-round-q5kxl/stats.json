@@ -1,0 +1,893 @@
+{
+  "land-gui2": {
+    "sessions": [
+      {
+        "id": "session-66ced872-dca7-4612-8b70-db2dad0ba736",
+        "preset": "ptc-local-concise",
+        "cwd": "$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-gui2",
+        "createdAt": 1791006153588,
+        "logBytes": 1531491,
+        "decodedEvents": 1214,
+        "turns": 6,
+        "modelRequests": 143,
+        "stepMs": {
+          "n": 143,
+          "median": 22629,
+          "mean": 65916,
+          "p95": 193117,
+          "max": 2093391,
+          "totalMin": 157.1
+        },
+        "tokens": {
+          "input": 637138,
+          "output": 327747,
+          "cacheRead": 9665547,
+          "cacheWrite": 0,
+          "total": 10630432
+        },
+        "cacheHitRate": 93.8,
+        "toolCalls": {
+          "run_code": 136
+        },
+        "toolErrors": 12,
+        "ptcDispatches": {
+          "bash": 123,
+          "write": 7,
+          "compact_region": 9,
+          "edit": 28,
+          "read": 18,
+          "grep": 1
+        },
+        "ptcTotal": 186,
+        "compactions": [
+          {
+            "time": 1791009591160,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1067
+          },
+          {
+            "time": 1791010065351,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 4717
+          },
+          {
+            "time": 1791011738650,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 2663
+          },
+          {
+            "time": 1791015805434,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 2946
+          },
+          {
+            "time": 1791038164128,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1339
+          },
+          {
+            "time": 1791038164135,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1081
+          },
+          {
+            "time": 1791038164140,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1764
+          },
+          {
+            "time": 1791038164143,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1227
+          },
+          {
+            "time": 1791038164149,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1389
+          }
+        ],
+        "requestConfig": {
+          "provider": "llamacpp",
+          "model": "27b",
+          "reasoningEffort": "max",
+          "maxTokens": 85000
+        },
+        "contextInfo": {
+          "provider": "llamacpp",
+          "model": "27b",
+          "contextWindow": 230000
+        },
+        "turnErrors": [
+          {
+            "time": 1791013964508,
+            "msg": "got exception: bad allocation"
+          },
+          {
+            "time": 1791036798517,
+            "msg": "got exception: bad allocation"
+          }
+        ],
+        "firstUser": {
+          "time": 1791006830203,
+          "len": 291,
+          "repeats": 1,
+          "head": "这是一场正式的 AI 编程对抗赛，你的对手是其他顶尖 AI 模型写的 bot，它们会主动切断你、抢你的地。比赛结果会公开排名，请拿出你的最高水平。当前目录就是你的选手包，等同题目里"
+        },
+        "userMessages": [
+          {
+            "time": 1791006830203,
+            "len": 291,
+            "head": "这是一场正式的 AI 编程对抗赛，你的对手是其他顶尖 AI 模型写的 bot，它们会主动切断你、抢你的地。比赛结果会公开排名，请拿出你的最高"
+          },
+          {
+            "time": 1791006830205,
+            "len": 885,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791009477898,
+            "len": 649,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791009591161,
+            "len": 1361,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791009591195,
+            "len": 885,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791010014051,
+            "len": 969,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791010065351,
+            "len": 5000,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791011668942,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791011738650,
+            "len": 2952,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791011738681,
+            "len": 885,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791013213897,
+            "len": 726,
+            "head": "[compact-nudge] This is an efficiency nudge to fold consumed work whil"
+          },
+          {
+            "time": 1791013429468,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791013605870,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791013622541,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791013798067,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791013954641,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791015562876,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791015562876,
+            "len": 85,
+            "head": "服务已恢复，请从中断处继续本轮工作：接着修正并完善 submission/bot.cpp，用选手包自带的引擎/裁判实测它能正常响应并完成对局"
+          },
+          {
+            "time": 1791015773381,
+            "len": 827,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791015805434,
+            "len": 3241,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791015805465,
+            "len": 885,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791035901460,
+            "len": 784,
+            "head": "追加一个 40 分钟的自迭代窗口，题目不用重做，方向你自己定。先给你两个事实。一是成绩：`submission/bot.cpp` 在正式评测"
+          },
+          {
+            "time": 1791037169396,
+            "len": 2,
+            "head": "继续"
+          },
+          {
+            "time": 1791037278621,
+            "len": 1147,
+            "head": "[compact-nudge] This is an efficiency nudge to fold consumed work whil"
+          },
+          {
+            "time": 1791037719033,
+            "len": 17,
+            "head": "你可以检查下计时器，时间还有比较多"
+          },
+          {
+            "time": 1791038041989,
+            "len": 1264,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791038164128,
+            "len": 1634,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791038164135,
+            "len": 1376,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791038164140,
+            "len": 2059,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791038164143,
+            "len": 1522,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791038164149,
+            "len": 1684,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791038164183,
+            "len": 885,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791038305927,
+            "len": 14,
+            "head": "不按照净胜为正你最想保留哪个"
+          },
+          {
+            "time": 1791038403534,
+            "len": 12,
+            "head": "那你提交你最认同的答案吧"
+          }
+        ],
+        "span": {
+          "first": 1791006153595,
+          "last": 1791038494448
+        }
+      }
+    ]
+  },
+  "bomberman-gui1": {
+    "sessions": [
+      {
+        "id": "session-815b0925-131a-4681-a5ca-82a2ef5dfff4",
+        "preset": "ptc-local-concise",
+        "cwd": "$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/bomberman-gui1",
+        "createdAt": 1791006174311,
+        "logBytes": 1623847,
+        "decodedEvents": 1758,
+        "turns": 4,
+        "modelRequests": 205,
+        "stepMs": {
+          "n": 205,
+          "median": 22076,
+          "mean": 42602,
+          "p95": 135024,
+          "max": 739954,
+          "totalMin": 145.6
+        },
+        "tokens": {
+          "input": 689226,
+          "output": 284678,
+          "cacheRead": 16154864,
+          "cacheWrite": 0,
+          "total": 17128768
+        },
+        "cacheHitRate": 95.9,
+        "toolCalls": {
+          "run_code": 201
+        },
+        "toolErrors": 18,
+        "ptcDispatches": {
+          "read": 38,
+          "glob": 3,
+          "bash": 141,
+          "write": 41,
+          "edit": 36,
+          "compact_region": 2,
+          "grep": 14,
+          "job_kill": 1,
+          "job_output": 2
+        },
+        "ptcTotal": 278,
+        "compactions": [
+          {
+            "time": 1791018378372,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 3959
+          },
+          {
+            "time": 1791019787699,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 3030
+          },
+          {
+            "time": 1791022597844,
+            "provider": "llamacpp",
+            "model": "27b",
+            "maxTokens": 32768,
+            "usage": {
+              "inputTokens": 9582,
+              "outputTokens": 7782,
+              "totalTokens": 113861,
+              "cacheReadTokens": 96497
+            },
+            "chars": 9961
+          },
+          {
+            "time": 1791040505019,
+            "provider": "deepseek-official",
+            "model": "deepseek-flash",
+            "maxTokens": 32768,
+            "usage": {
+              "inputTokens": 106533,
+              "outputTokens": 3345,
+              "cacheReadTokens": 0,
+              "cacheWriteTokens": 0,
+              "totalTokens": 109878
+            },
+            "chars": 10265
+          }
+        ],
+        "requestConfig": {
+          "provider": "llamacpp",
+          "model": "27b",
+          "reasoningEffort": "max",
+          "maxTokens": 85000
+        },
+        "contextInfo": {
+          "provider": "llamacpp",
+          "model": "27b",
+          "contextWindow": 230000
+        },
+        "turnErrors": [
+          {
+            "time": 1791021655807,
+            "msg": "got exception: bad allocation"
+          },
+          {
+            "time": 1791039819216,
+            "msg": "got exception: bad allocation"
+          }
+        ],
+        "firstUser": {
+          "time": 1791016714871,
+          "len": 528,
+          "repeats": 2,
+          "head": "当前目录就是你的选手包，等同题目里的 `workspace.zip` 解压后的 `workspace/`。阅读 `README.md` 和 `RULES.md`，编写支持2–10人"
+        },
+        "userMessages": [
+          {
+            "time": 1791016714871,
+            "len": 528,
+            "head": "当前目录就是你的选手包，等同题目里的 `workspace.zip` 解压后的 `workspace/`。阅读 `README.md` 和 "
+          },
+          {
+            "time": 1791016714872,
+            "len": 890,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791018310455,
+            "len": 683,
+            "head": "[compact-nudge] This is an efficiency nudge to fold consumed work whil"
+          },
+          {
+            "time": 1791018378372,
+            "len": 4252,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791018378405,
+            "len": 890,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791019696276,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791019787699,
+            "len": 3323,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791019787728,
+            "len": 890,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791021160322,
+            "len": 726,
+            "head": "[compact-nudge] This is an efficiency nudge to fold consumed work whil"
+          },
+          {
+            "time": 1791021654434,
+            "len": 696,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791021754756,
+            "len": 696,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791021754757,
+            "len": 100,
+            "head": "服务已恢复，请从中断处继续本轮：把 submission/bot.cpp 修到能在裁判的管道 stdin 下正常响应并完成对局，然后交卷。时"
+          },
+          {
+            "time": 1791022005580,
+            "len": 696,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022069601,
+            "len": 696,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022124156,
+            "len": 761,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022228137,
+            "len": 768,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022245772,
+            "len": 899,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022270497,
+            "len": 900,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022284520,
+            "len": 900,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022302226,
+            "len": 901,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022597845,
+            "len": 10204,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791022597854,
+            "len": 901,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791022800323,
+            "len": 890,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791039265894,
+            "len": 848,
+            "head": "追加一个 40 分钟的自迭代窗口，题目不用重做，方向你自己定。先给你两个事实。一是成绩：`submission/bot.cpp` 在正式评测"
+          },
+          {
+            "time": 1791039583112,
+            "len": 1048,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791039684143,
+            "len": 1122,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791039711777,
+            "len": 1122,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791039711777,
+            "len": 162,
+            "head": "background job bash-539 (bash: bash tools/tenp_multi.sh > tools/ten_mu"
+          },
+          {
+            "time": 1791039723293,
+            "len": 1122,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791039754421,
+            "len": 1122,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791039813331,
+            "len": 1122,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791039813332,
+            "len": 206,
+            "head": "background job bash-541 (bash: bash tools/selfplay.sh tools/new_v1.cpp"
+          },
+          {
+            "time": 1791039871031,
+            "len": 1123,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791039871034,
+            "len": 2,
+            "head": "继续"
+          },
+          {
+            "time": 1791040135009,
+            "len": 1123,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040238229,
+            "len": 1123,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040281114,
+            "len": 1189,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040307297,
+            "len": 1197,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040317155,
+            "len": 1196,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040317155,
+            "len": 237,
+            "head": "background job bash-544 (bash: cp submission/bot.cpp tools/new_v2.cpp "
+          },
+          {
+            "time": 1791040328634,
+            "len": 1197,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040373218,
+            "len": 1197,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040383127,
+            "len": 1197,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040408665,
+            "len": 1329,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040408665,
+            "len": 334,
+            "head": "background job bash-546 (bash: cp submission/bot.cpp tools/new_v3.cpp "
+          },
+          {
+            "time": 1791040419205,
+            "len": 1330,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040448539,
+            "len": 1330,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040448539,
+            "len": 233,
+            "head": "background job bash-549 (bash: rm -f tools/ten_multi_v3.log; (for L in"
+          },
+          {
+            "time": 1791040453243,
+            "len": 1330,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040505019,
+            "len": 10513,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791040505043,
+            "len": 1330,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791040505044,
+            "len": 483,
+            "head": "background job bash-550 (bash: rm -f tools/ten_multi_v3b.log; (for L i"
+          },
+          {
+            "time": 1791040551206,
+            "len": 890,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791040608040,
+            "len": 169,
+            "head": "background job bash-554 (bash: bash tools/v3ten.sh > tools/ten_v3_fina"
+          },
+          {
+            "time": 1791041492737,
+            "len": 405,
+            "head": "background job bash-564 (bash: sh run.sh engine/build.py --compile --s"
+          }
+        ],
+        "span": {
+          "first": 1791006174316,
+          "last": 1791041552818
+        }
+      }
+    ]
+  },
+  "ctf-gui1": {
+    "sessions": [
+      {
+        "id": "session-ca533663-6ce1-4c4b-942b-d7da49a7a41f",
+        "preset": "ptc-local-concise",
+        "cwd": "$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-gui1",
+        "createdAt": 1791006194595,
+        "logBytes": 1458541,
+        "decodedEvents": 1225,
+        "turns": 3,
+        "modelRequests": 124,
+        "stepMs": {
+          "n": 124,
+          "median": 27539,
+          "mean": 65717,
+          "p95": 194131,
+          "max": 811453,
+          "totalMin": 135.8
+        },
+        "tokens": {
+          "input": 364194,
+          "output": 302025,
+          "cacheRead": 7877271,
+          "cacheWrite": 0,
+          "total": 8543490
+        },
+        "cacheHitRate": 95.6,
+        "toolCalls": {
+          "run_code": 121
+        },
+        "toolErrors": 6,
+        "ptcDispatches": {
+          "read": 35,
+          "bash": 153,
+          "write": 8,
+          "edit": 50,
+          "compact_region": 5,
+          "grep": 13
+        },
+        "ptcTotal": 264,
+        "compactions": [
+          {
+            "time": 1791026560859,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 2465
+          },
+          {
+            "time": 1791028341456,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 2575
+          },
+          {
+            "time": 1791029825162,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 2651
+          },
+          {
+            "time": 1791034095192,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1677
+          },
+          {
+            "time": 1791034171397,
+            "provider": "llamacpp",
+            "model": "27b",
+            "chars": 1067
+          }
+        ],
+        "requestConfig": {
+          "provider": "llamacpp",
+          "model": "27b",
+          "reasoningEffort": "max",
+          "maxTokens": 85000
+        },
+        "contextInfo": {
+          "provider": "llamacpp",
+          "model": "27b",
+          "contextWindow": 230000
+        },
+        "turnErrors": [],
+        "firstUser": {
+          "time": 1791024015558,
+          "len": 394,
+          "repeats": 1,
+          "head": "按照要求编写尽可能强的 bot，你的对手是全球其他顶尖 AI，可能主动设计战术。基准是一个中等强度、思路常规的 bot，它在正式比赛为 0 分线；战胜基准不代表足够强，正式对手远强"
+        },
+        "userMessages": [
+          {
+            "time": 1791024015558,
+            "len": 394,
+            "head": "按照要求编写尽可能强的 bot，你的对手是全球其他顶尖 AI，可能主动设计战术。基准是一个中等强度、思路常规的 bot，它在正式比赛为 0 "
+          },
+          {
+            "time": 1791024015558,
+            "len": 884,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791025459191,
+            "len": 684,
+            "head": "[compact-nudge] This is an efficiency nudge to fold consumed work whil"
+          },
+          {
+            "time": 1791026475741,
+            "len": 653,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791026560859,
+            "len": 2753,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791026560894,
+            "len": 884,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791028159261,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791028341457,
+            "len": 2858,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791028341493,
+            "len": 884,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791029747577,
+            "len": 695,
+            "head": "[compact-nudge] ⚠ Context pressure is high — compress now. This nudge "
+          },
+          {
+            "time": 1791029825162,
+            "len": 2929,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791029825193,
+            "len": 884,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791030631484,
+            "len": 22,
+            "head": "有没有试过自迭代（自己的新版本与旧版本对打）"
+          },
+          {
+            "time": 1791031685529,
+            "len": 0,
+            "head": ""
+          },
+          {
+            "time": 1791033064688,
+            "len": 604,
+            "head": "追加一个 40 分钟的自迭代窗口，题目不用重做，方向你自己定。先给你两个事实。一是成绩：`submission/bot.cpp`（v9）在正"
+          },
+          {
+            "time": 1791033993514,
+            "len": 801,
+            "head": "[compact-nudge] This is an efficiency nudge to fold consumed work whil"
+          },
+          {
+            "time": 1791034095193,
+            "len": 1966,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          },
+          {
+            "time": 1791034095227,
+            "len": 884,
+            "head": "Current runtime context. This snapshot supersedes earlier runtime-cont"
+          },
+          {
+            "time": 1791034171398,
+            "len": 1362,
+            "head": "This is an automatically generated checkpoint condensing an earlier sp"
+          }
+        ],
+        "span": {
+          "first": 1791006194599,
+          "last": 1791034818253
+        }
+      }
+    ]
+  }
+}

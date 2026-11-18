@@ -1,0 +1,21 @@
+{
+  "_说明": "剪辑表（单一数据源）：cut.mjs 按此裁剪，check.mjs 按此校验。in/out 单位秒；manual=true 的段为手工裁出（入点未记录），只做存在性与时长校验。",
+  "rawDir": "raw",
+  "outDir": "clips",
+  "encode": ["-c:v", "hevc", "-crf", "20", "-preset", "medium", "-s", "2560x1440", "-r", "60", "-c:a", "aac", "-b:a", "192k"],
+  "clips": [
+    { "name": "Q4-test1.mp4",      "src": "three-project-test.mp4", "in": 52,  "out": 58,  "mark": "0:52-0:58",   "scene": "test1 海洋黄昏 · Q4" },
+    { "name": "Q4-test2.mp4",      "src": "three-project-test.mp4", "in": 77,  "out": 87,  "mark": "1:17-1:27",   "scene": "test2 海上龙卷 · Q4" },
+    { "name": "Q4-test3.mp4",      "src": "three-project-test.mp4", "in": 301, "out": 317, "mark": "5:01-5:17",   "scene": "test3 雷暴海面 · Q4" },
+    { "name": "nvfp4-test1.mp4",   "src": "three-project-test.mp4", "in": 25,  "out": 31,  "mark": "0:25-0:31",   "scene": "test1 海洋黄昏 · NVFP4" },
+    { "name": "nvfp4-test2.mp4",   "src": "three-project-test.mp4", "in": 98,  "out": 123, "mark": "1:38-2:03",   "scene": "test2 海上龙卷 · NVFP4" },
+    { "name": "nvfp4-test3.mp4",   "src": "three-project-test.mp4", "in": 384, "out": 414, "mark": "6:24-6:54",   "scene": "test3 雷暴海面 · NVFP4" },
+    { "name": "Q5-test1.mp4",      "src": "three-project-test.mp4", "in": 6,   "out": 12,  "mark": "0:06-0:12",   "scene": "test1 海洋黄昏 · Q5" },
+    { "name": "Q5-test2.mp4",      "src": "three-project-test.mp4", "in": 135, "out": 168, "mark": "2:15-2:48",   "scene": "test2 海上龙卷 · Q5", "note": "2026-08-24 重裁（旧标记 2:24-2:57 作废；此前 3 秒残片事故见 README 排障）" },
+    { "name": "Q5-test3.mp4",      "src": "three-project-test.mp4", "in": 450, "out": 470, "mark": "7:30-7:50",   "scene": "test3 雷暴海面 · Q5" },
+    { "name": "Uncensored-q4-KM-gargantua.mp4", "src": "Desktop 2026.08.17 - 11.42.41.01.mp4", "in": 136, "out": 158, "mark": "2:16-2:38", "scene": "滚筒 · gargantua · Uncensored Q4_K_M" },
+    { "name": "Q5-KXL-gargantua.mp4",           "src": "Q5黑洞 - 13.32.33.03.mp4",            "in": 253, "out": 263, "mark": "4:13-4:23", "scene": "滚筒 · gargantua · Q5_K_XL" },
+    { "name": "Q5-sea-strom.mp4",               "manual": true, "src": "自身早期更长版本（3s-9s 已裁出）", "dur": 6, "scene": "滚筒 · sea storm" },
+    { "name": "Q5-sea-sunset.mp4",              "manual": true, "src": "自身早期更长版本（3s-9s 已裁出）", "dur": 6, "scene": "滚筒 · sea sunset" }
+  ]
+}

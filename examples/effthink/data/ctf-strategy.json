@@ -1,0 +1,75 @@
+{
+  "_note": "夺旗两代「加时终版」bot 的分档实测读数与决策代码位置。读数由逐局 结果.jsonl 现算（$TMP/ctf-bysize.py），代码行号取自两份加时终版源码本体。",
+  "_srcReadings": "Coder390：contestants/archive/coder390-20261009/ctf-coder390/scores-overtime.md（seed 260692018809426）；Q5_K_XL：arena-prev-27b-q5kxl-20261004/ctf-challenge-runs/rerun-ot-w2-1005-010034（seed 184177823662829）",
+  "_srcCode": "Coder390 加时终版：overtime-final/bot-7fe79cf4c507.cpp（sha256 7fe79cf4c507…b5ab，413 行）；Q5_K_XL 加时终版：contestants-archive/post-selfiter-20261003/ctf-gui1/submission/bot.cpp（sha256 8b39f1ba5bf6…977e9f48，710 行）",
+  "_caveat": "两次评测不是同一批对局（各自独立生成的赛程与座位），两侧的「÷ 基准」是各除自己那场的基准。所以这张表能支持「同一份代码在自己那轮里的相对位置」，不能拿来断言 −256 与 −52.3 这 204 分的差全部来自策略。",
+  "sizes": [6, 8, 10, 13],
+  "turnBudgetMs": 50,
+  "cur": {
+    "label": "Coder390-Q4Lynn 加时终版",
+    "score": -256.2,
+    "scoreCi": [-291.17, -218.62],
+    "rank": "12/13",
+    "faults": 0,
+    "pickups": [8.39, 9.01, 9.88, 10.15],
+    "pickupsRatio": [0.73, 0.74, 0.8, 0.91],
+    "captures": [2.91, 2.66, 3.1, 2.44],
+    "capturesRatio": [0.44, 0.41, 0.67, 0.65],
+    "kills13": 14.3,
+    "killsBase13": 24.65,
+    "carrierKills13": 2.02,
+    "slowestTurnMs": [0.75, 5.98],
+    "budgetPct": [1.5, 12.0],
+    "gate": {
+      "line": "L221–L224",
+      "rule": "myRT <= enRT + 1",
+      "enRT": "场上全部存活敌人往返的最小值",
+      "fallback": "判据不过 → 该旗 v = 0；L262 只指派 v > 0 的目标，所以没有兜底",
+      "overtime": "加时只降权猎杀（L230）与换血（L254），这道门原封不动"
+    },
+    "carrier": {
+      "line": "L373",
+      "fact": "载旗者的动作写死 \" -\"，全文没有丢旗指令 \"X\"",
+      "homeCost": "L127 回家路径代价 = cost + 1 + 6×danger + 3×homeField，danger 对每个能威胁该格的敌人累加（L122–L126）"
+    },
+    "order": {
+      "move": "L272：猎杀目标优先级 0、旗优先级 1，猎杀单位先占 claimed（L330），旗单位在 L316 直接绕开",
+      "action": "L381–L382：同一格既有旗又可打目标时出刀"
+    },
+    "dead": {
+      "line": "L169–L185",
+      "fact": "每敌人 × 每面地旗 × 每敌人的三重嵌套算出 flagRace / flagRaceArr，两个数组在全文没有读取点"
+    }
+  },
+  "prev": {
+    "label": "Q5_K_XL 加时终版",
+    "score": -52.31,
+    "scoreCi": [-101.61, -14.56],
+    "rank": "10/13",
+    "faults": 8,
+    "pickups": [11.59, 11.4, 12.78, 11.93],
+    "pickupsRatio": [0.9, 0.93, 1.06, 1.06],
+    "captures": [5.74, 4.04, 3.85, 2.74],
+    "capturesRatio": [0.85, 0.63, 0.89, 0.55],
+    "kills13": 20.42,
+    "killsBase13": 25.45,
+    "carrierKills13": 6.92,
+    "carrierKillsBase13": 12.48,
+    "slowestTurnMs": [0.19, 3.13],
+    "budgetPct": [0.4, 6.3],
+    "gate": {
+      "line": "L462–L478",
+      "rule": "只比这一面旗的最近竞争者、且只算单程",
+      "overtime": "加时新增 SW 门（L380）把围剿 / 中心枪 / 驻扎 / 锚点压到 0 或负值；抢不过的旗权重 ×3（L473）；再加拦截（L297）与伏击（L342）两道 ≤ 8 近身门"
+    },
+    "carrier": {
+      "line": "L539",
+      "fact": "载旗只沿自家 BFS 梯度走，不累加全图危险",
+      "relay": "L609–L624：追兵本回合可被击杀 且 队友 2 步内时输出 X 丢旗接力"
+    },
+    "order": {
+      "move": "猎杀与旗按同一套距离代价排序，没有把旗让给猎杀的硬优先级",
+      "action": "L695–L697：同一格既有旗又可打目标时先捡旗"
+    }
+  }
+}

@@ -1,0 +1,172 @@
+{
+ "_说明": "剪辑表（单一数据源，沿用 llm-html2video/pipeline/cuts.json 约定）。当前【还没有任何实机录屏】，所以 clips 数组为空、只保留结构与字段说明；等 UP 主按 pipeline/README 录完屏，把每段的 源/入点/出点/用途 填进来，再交给 cut.mjs 裁剪、check.mjs 校验。in/out 单位秒；manual=true 表示手工裁出、只记时长不记入点。",
+ "_字段说明": {
+  "name": "成片文件名（展示页/录屏引用，勿随意改名）",
+  "src": "原始录像文件名，放在 rawDir 下",
+  "in": "入点（秒）",
+  "out": "出点（秒）",
+  "mark": "人读的时间段标记，如 0:52-0:58，与 in/out 对应",
+  "scene": "用途/画面说明：对应哪一页分镜、录的是哪一集哪个阶段",
+  "page": "对应 index.html 的页码（1 起），方便录展示页时对齐口播",
+  "dur": "仅 manual 段用：成片时长（秒）",
+  "manual": "true=手工裁出，无入点记录，只做存在性与时长校验",
+  "note": "备注（重裁记录、坑、待办）"
+ },
+ "rawDir": "raw",
+ "outDir": "clips",
+ "encode": [
+  "-c:v",
+  "hevc",
+  "-crf",
+  "20",
+  "-preset",
+  "medium",
+  "-s",
+  "2560x1440",
+  "-r",
+  "60",
+  "-c:a",
+  "aac",
+  "-b:a",
+  "192k"
+ ],
+ "clips": [],
+ "_待录屏后填入示例（务必删除本注释块或保留作模板均可，字段照此写）": [
+  {
+   "name": "land-run.mp4",
+   "src": "圈地_本机运行_YYYYMMDD.mp4",
+   "in": 0,
+   "out": 45,
+   "mark": "0:00-0:45",
+   "page": 4,
+   "scene": "圈地：发卷→卡点→改 read 破局 的终端实录（对应第4页时间轴）"
+  },
+  {
+   "name": "land-replay.mp4",
+   "src": "圈地_对局回放_YYYYMMDD.mp4",
+   "in": 0,
+   "out": 30,
+   "mark": "0:00-0:30",
+   "page": 5,
+   "scene": "圈地：裁判回放/面积增长画面（配第5页账单页做背景视频）"
+  },
+  {
+   "name": "bomb-run.mp4",
+   "src": "炸弹人_本机运行_YYYYMMDD.mp4",
+   "in": 0,
+   "out": 50,
+   "mark": "0:00-0:50",
+   "page": 6,
+   "scene": "炸弹人：编译长跑→oppActions bug→交卷 实录（第6页）"
+  },
+  {
+   "name": "bomb-replay.mp4",
+   "src": "炸弹人_对局回放_YYYYMMDD.mp4",
+   "in": 0,
+   "out": 25,
+   "mark": "0:00-0:25",
+   "page": 7,
+   "scene": "炸弹人：放弹/生存对局回放（第7页背景）"
+  },
+  {
+   "name": "ctf-run.mp4",
+   "src": "夺旗_本机运行_待比赛结束.mp4",
+   "in": 0,
+   "out": 0,
+   "mark": "待补",
+   "page": 8,
+   "scene": "夺旗：进行中，等比赛跑完再录，入出点待填",
+   "note": "待补：夺旗尚未结束，数据/录屏均占位"
+  },
+  {
+   "name": "scores-grid.mp4",
+   "src": "成绩页_展示页录屏_YYYYMMDD.mp4",
+   "in": 0,
+   "out": 40,
+   "mark": "0:00-0:40",
+   "page": 12,
+   "scene": "第12页成绩对比的展示页录屏（含两处口径警告）",
+   "manual": false
+  },
+  {
+   "name": "curtain.mp4",
+   "src": "落幕_拉绳录屏_YYYYMMDD.mp4",
+   "in": 0,
+   "out": 8,
+   "mark": "0:00-0:08",
+   "page": 15,
+   "scene": "第15页拉绳落幕动画（可后期叠黑）"
+  }
+ ],
+ "_九宫格与滚筒说明": "llm-html2video 的“总结页九宫格静音循环 / 滚筒页多路视频”机制，本工程已在 src/p_script.js 的 mountVideos 里预留挂载点（页面 [data-clip] 槽位）。等 raw/ 有对局回放后，把片段裁进 clips/ 并在上表登记，展示页会自动起播/离页暂停；当前无录像，页面显示“待录屏”占位条纹。",
+ "planned": [
+  {
+   "name": "land-main-vs-greedy",
+   "page": 7,
+   "src": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-gui2/dbg/replay/game_1_seed3_rot1.json",
+   "viewer": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/land/workspace/viewer/viewer.html",
+   "turns": [
+    0,
+    600
+   ],
+   "speed": 30,
+   "est_sec": 18,
+   "scene": "圈地 正赛版单挑被官方贪心基准打成 81 对 615（本机槽位 A:bot.cpp）",
+   "verified": "已核：names=['B:greedy.cpp','A:bot.cpp']，areas=[615,81]，文件 mtime 15:47 属正赛时段"
+  },
+  {
+   "name": "land-ot-loses-to-greedy",
+   "page": 8,
+   "src": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-gui2/dbg/trace4/game_0_seed1_rot0.json",
+   "viewer": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/land/workspace/viewer/viewer.html",
+   "turns": [
+    0,
+    600
+   ],
+   "speed": 30,
+   "est_sec": 18,
+   "scene": "圈地 加时：新版 f.cpp 218、旧版 a.cpp 362，两个贪心基准 889/754 全包场（配第 8 页「七版全负」）",
+   "verified": "已核：names 含 A:f.cpp/B:a.cpp/C:greedy/D:greedy，mtime 22:22 属加时"
+  },
+  {
+   "name": "bomb-blind-zone-death",
+   "page": 13,
+   "src": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/ctl-main-w7-105906/replays/01107.json",
+   "viewer": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/bomberman-gui1/replays/r11.html",
+   "turns": [
+    0,
+    60
+   ],
+   "speed": 5,
+   "est_sec": 12,
+   "scene": "炸弹人 正赛版十人档：第 26 回合死在 (13,19)=第 488 格，火焰数组被 memcpy 截断的那一半",
+   "verified": "已核：pipeline/bomb-blind-zone.py 扫 200 局十人档，本机 199 次被炸死里 158 次在盲区"
+  },
+  {
+   "name": "ctf-diag8-zero",
+   "page": 17,
+   "src": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-gui1/replays/replays/diag8.json",
+   "viewer": "//wsl.localhost/Ubuntu-22.04$HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-gui1/replays/replays/diag8.html",
+   "turns": [
+    101,
+    401
+   ],
+   "speed": 10,
+   "est_sec": 30,
+   "scene": "夺旗 八方局：八条线里只有本机一直是 0，抢过一次旗零次搬回本垒",
+   "verified": "已核：data/ctf-diag8-scores.json 终场 [0,16,11,4,7,3,10,7]"
+  }
+ ],
+ "_planned_说明": "planned = 已验过素材存在、但还没录的候选（第 25 页之前的录屏计划）。clips 仍然为空，等真录完再搬进 clips 并登记 in/out。src 是回放 JSON，viewer 是能播它的页面；播放器支持 #turn=N 定位与 2/5/10/20 回合每秒倍速，可用 CDP 驱动 seek/#next 自动录。",
+ "_选段判据_参照官方第3集": [
+  "每段录像必须精确点名回合号（原片写法如「第 37 回合 4:1」「第 390 回合打开了旗库」「第 41 回合交回四面」），只给统计量的一律不用",
+  "挑「看得见的一个荒诞动作」而不是「这局它输了」：原片用的是 原地 5 回合 / 只让一个角色动另外两个站着看 / 两个人挤进同一格 / 抢同一面旗堆同一个格子 / 传送带",
+  "比分贴脸的局优先（原片反复用 25:26、19:18、9:8），大比分没有悬念",
+  "「正面两人：最强一回合（慢切）」—— 只放一回合、把速度降到 2 回合每秒，是全片最强的一个手法",
+  "规则用真机小棋盘 + 三行大字讲清（捡起旗子 / 扛回自己家 +1 分 / 3×3 的格子 / 旗子出现在哪个点：随机），不用文字墙",
+  "按比赛时钟切「时间窗」横切各家进度（原片：时间窗五 第 42-68 分钟 冲刺，和一张报单）",
+  "先给反直觉结论再解释（原片：结论：不是 bug / 缓存价 = 输入价 / 写得最少的两位，并列第一）",
+  "给每家一个四字打法标签（原片：乱战之王 / 对攻型 / 抢速度 / 封旗 / 小局型），观众靠标签记住对手",
+  "机制本身当笑点用（原片：死亡其实很便宜，十回合后就满血复活）"
+ ]
+}

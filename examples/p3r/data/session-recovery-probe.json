@@ -1,0 +1,1318 @@
+{
+  "tool": "session-recovery-probe.mjs",
+  "generatedAt": "2026-10-04T07:04:16.330Z",
+  "dataRoot": "\\\\wsl.localhost\\Ubuntu-22.04\\home\\altair\\dsh-data\\.dsh\\sessions",
+  "tokens": [
+    "session_query",
+    "session_search",
+    "session_event_search",
+    "session_event_trace",
+    "session_event_read",
+    "session_trace"
+  ],
+  "perRun": {
+    "land": {
+      "label": "圈地 land-gui2",
+      "bucket": "--home-altair-deepseek-harness-workplace-meow-ai-arena-contestants-runs-land-gui2--",
+      "bucketError": null,
+      "files": [
+        {
+          "sessionId": "session-66ced872-dca7-4612-8b70-db2dad0ba736",
+          "file": "session.v4.jsonl.zstd",
+          "relPath": "wsl:\\home\\altair\\dsh-data\\.dsh\\sessions\\--home-altair-deepseek-harness-workplace-meow-ai-arena-contestants-runs-land-gui2--\\session-66ced872-dca7-4612-8b70-db2dad0ba736\\session.v4.jsonl.zstd",
+          "bytes": 1531491,
+          "mtime": "2026-10-03T14:41:34.448Z",
+          "decode": {
+            "framesOk": 492,
+            "frameTries": 492,
+            "lines": 1214,
+            "unparsed": 0,
+            "decodedBytes": 6535094
+          }
+        }
+      ],
+      "timeRange": {
+        "from": "2026-10-03T05:42:33.595Z",
+        "to": "2026-10-03T14:41:34.448Z"
+      },
+      "eventHistogram": {
+        "tool/ptc-dispatch-start": 186,
+        "tool/ptc-dispatch": 186,
+        "step/start": 143,
+        "step/end": 143,
+        "assistant/message": 141,
+        "tool/call": 136,
+        "tool/result": 136,
+        "agent/inbox/spliced": 50,
+        "user/message": 34,
+        "compaction/start": 9,
+        "compaction/summary": 9,
+        "compaction/end": 9,
+        "turn/start": 6,
+        "request/header": 6,
+        "turn/end": 6,
+        "workspace/changes": 4,
+        "assistant/attempt": 2,
+        "session": 1,
+        "permission/preset": 1,
+        "sandbox/mode": 1,
+        "approval/policy": 1,
+        "system/message": 1,
+        "request/context": 1,
+        "session/title": 1,
+        "session/title-llm-request": 1
+      },
+      "sessionQuery": {
+        "narrowByCallType": {},
+        "narrowSamples": [],
+        "literalSessionQueryRawOccurrences": 0,
+        "wideRawOccurrences": 66,
+        "wideEventsContaining": 32,
+        "wideByEventType": {
+          "compaction/summary": 18,
+          "user/message": 18,
+          "system/message": 17,
+          "tool/ptc-dispatch": 9,
+          "tool/result": 4
+        },
+        "wideByValuePath": {
+          "compaction/summary :: data/summary/0/text ~ session_event_search": 9,
+          "compaction/summary :: data/summary/0/text ~ session_event_read": 9,
+          "user/message :: data/content/1/text ~ session_event_search": 9,
+          "user/message :: data/content/1/text ~ session_event_read": 9,
+          "tool/ptc-dispatch :: data/content/0/text ~ session_event_read": 9,
+          "tool/result :: data/message/content/0/text ~ session_event_read": 4,
+          "system/message :: data/message/content/0/text ~ session_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_trace": 1,
+          "system/message :: data/message/content/0/text ~ session_event_read": 1,
+          "system/message :: data/message/content/0/text ~ session_trace": 1
+        },
+        "wideByKeyPath": {},
+        "wideInModelAuthoredFields": {},
+        "wideSamples": [
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_search",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_search",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_trace",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_trace",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/land-"
+          },
+          {
+            "seq": 78,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "Test: python3 engine/referee.py submission/bot.cpp anchors/greedy.cpp --games 10 (4 bots=melee). 33min used/120min hard stop. Rules: step opp trail→opp dies(trail cleared); own trail/wall/head-on→deat"
+          },
+          {
+            "seq": 78,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "Test: python3 engine/referee.py submission/bot.cpp anchors/greedy.cpp --games 10 (4 bots=melee). 33min used/120min hard stop. Rules: step opp trail→opp dies(trail cleared); own trail/wall/head-on→deat"
+          },
+          {
+            "seq": 79,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "Test: python3 engine/referee.py submission/bot.cpp anchors/greedy.cpp --games 10 (4 bots=melee). 33min used/120min hard stop. Rules: step opp trail→opp dies(trail cleared); own trail/wall/head-on→deat"
+          },
+          {
+            "seq": 79,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_read",
+            "snippet": "Test: python3 engine/referee.py submission/bot.cpp anchors/greedy.cpp --games 10 (4 bots=melee). 33min used/120min hard stop. Rules: step opp trail→opp dies(trail cleared); own trail/wall/head-on→deat"
+          },
+          {
+            "seq": 82,
+            "type": "tool/ptc-dispatch",
+            "path": "data/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 9-39 9 events, 5241 tokens folded, 503 chars of summary kept. End seq 39 was held at your to_seq. compactionId=f3c7d187-69a8-4705-bb84-6c2e97cbe563 - this receipt is the only proof the"
+          },
+          {
+            "seq": 83,
+            "type": "tool/result",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 9-39 9 events, 5241 tokens folded, 503 chars of summary kept. End seq 39 was held at your to_seq. compactionId=f3c7d187-69a8-4705-bb84-6c2e97cbe563 - this receipt is the only proof the"
+          },
+          {
+            "seq": 105,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "STATUS: submission/bot.cpp v2 WRITTEN + COMPILED (g++ -O2 -std=c++20, submission/bot_test exists). NOT YET TESTED. Next: run referee tests (see commands below), check max_ms <50, tune thresholds, fix "
+          },
+          {
+            "seq": 105,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "STATUS: submission/bot.cpp v2 WRITTEN + COMPILED (g++ -O2 -std=c++20, submission/bot_test exists). NOT YET TESTED. Next: run referee tests (see commands below), check max_ms <50, tune thresholds, fix "
+          },
+          {
+            "seq": 106,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "STATUS: submission/bot.cpp v2 WRITTEN + COMPILED (g++ -O2 -std=c++20, submission/bot_test exists). NOT YET TESTED. Next: run referee tests (see commands below), check max_ms <50, tune thresholds, fix "
+          },
+          {
+            "seq": 106,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_read",
+            "snippet": "STATUS: submission/bot.cpp v2 WRITTEN + COMPILED (g++ -O2 -std=c++20, submission/bot_test exists). NOT YET TESTED. Next: run referee tests (see commands below), check max_ms <50, tune thresholds, fix "
+          },
+          {
+            "seq": 109,
+            "type": "tool/ptc-dispatch",
+            "path": "data/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 42-79 5 events, 76112 tokens folded, 4115 chars of summary kept. End seq 53 was held at your to_seq. compactionId=0581458d-5d09-4a5b-abd9-fca689d88645 - this receipt is the only proof "
+          },
+          {
+            "seq": 110,
+            "type": "tool/result",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 42-79 5 events, 76112 tokens folded, 4115 chars of summary kept. End seq 53 was held at your to_seq. compactionId=0581458d-5d09-4a5b-abd9-fca689d88645 - this receipt is the only proof "
+          },
+          {
+            "seq": 535,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "DEBUG CLOSED: two fatal bugs found+FIXED in submission/bot.cpp: (1) glibc fread(buf,1,1MB,stdin) on a PIPE blocks until 1MB-or-EOF (referee feeds incremental pipe writes) -> bot never parsed. Fix in g"
+          },
+          {
+            "seq": 535,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "DEBUG CLOSED: two fatal bugs found+FIXED in submission/bot.cpp: (1) glibc fread(buf,1,1MB,stdin) on a PIPE blocks until 1MB-or-EOF (referee feeds incremental pipe writes) -> bot never parsed. Fix in g"
+          },
+          {
+            "seq": 536,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "DEBUG CLOSED: two fatal bugs found+FIXED in submission/bot.cpp: (1) glibc fread(buf,1,1MB,stdin) on a PIPE blocks until 1MB-or-EOF (referee feeds incremental pipe writes) -> bot never parsed. Fix in g"
+          }
+        ]
+      },
+      "recoveryToolFamily": {
+        "narrowCallLayer": {},
+        "wideRawByToken": {
+          "session_query": 0,
+          "session_search": 3,
+          "session_event_search": 22,
+          "session_event_trace": 3,
+          "session_event_read": 35,
+          "session_trace": 3
+        },
+        "wideByValuePath": {
+          "compaction/summary :: data/summary/0/text ~ session_event_search": 9,
+          "compaction/summary :: data/summary/0/text ~ session_event_read": 9,
+          "user/message :: data/content/1/text ~ session_event_search": 9,
+          "user/message :: data/content/1/text ~ session_event_read": 9,
+          "tool/ptc-dispatch :: data/content/0/text ~ session_event_read": 9,
+          "tool/result :: data/message/content/0/text ~ session_event_read": 4,
+          "system/message :: data/message/content/0/text ~ session_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_trace": 1,
+          "system/message :: data/message/content/0/text ~ session_event_read": 1,
+          "system/message :: data/message/content/0/text ~ session_trace": 1
+        },
+        "samples": []
+      },
+      "compactRegion": {
+        "ptcDispatch": 9,
+        "ptcDispatchStart": 9,
+        "toolCall": 0,
+        "assistantMessageBlocks": 0,
+        "byEventType": {
+          "tool/ptc-dispatch-start": 9,
+          "tool/ptc-dispatch": 9
+        },
+        "samples": [
+          {
+            "seq": 76,
+            "time": 1791009591155,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":76,\"time\":1791009591155,\"data\":{\"rootCallId\":\"Jeep6HxZODJiCentHFu2RgcgrepyfyPv\",\"parentCallId\":\"Jeep6HxZODJiCentHFu2RgcgrepyfyPv\",\"subCallId\":\"Jeep6HxZODJiCentH"
+          },
+          {
+            "seq": 82,
+            "time": 1791009591164,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":82,\"time\":1791009591164,\"data\":{\"rootCallId\":\"Jeep6HxZODJiCentHFu2RgcgrepyfyPv\",\"parentCallId\":\"Jeep6HxZODJiCentHFu2RgcgrepyfyPv\",\"subCallId\":\"Jeep6HxZODJiCentHFu2Rgc"
+          },
+          {
+            "seq": 103,
+            "time": 1791010065348,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":103,\"time\":1791010065348,\"data\":{\"rootCallId\":\"CJj3SaWryfNTFMfEl4uYDiMmGDM7XuV0\",\"parentCallId\":\"CJj3SaWryfNTFMfEl4uYDiMmGDM7XuV0\",\"subCallId\":\"CJj3SaWryfNTFMfE"
+          },
+          {
+            "seq": 109,
+            "time": 1791010065352,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":109,\"time\":1791010065352,\"data\":{\"rootCallId\":\"CJj3SaWryfNTFMfEl4uYDiMmGDM7XuV0\",\"parentCallId\":\"CJj3SaWryfNTFMfEl4uYDiMmGDM7XuV0\",\"subCallId\":\"CJj3SaWryfNTFMfEl4uYDi"
+          },
+          {
+            "seq": 533,
+            "time": 1791011738646,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":533,\"time\":1791011738646,\"data\":{\"rootCallId\":\"pu0TZWnHF8m7vFUkmk5vLoZlzUKzQpbf\",\"parentCallId\":\"pu0TZWnHF8m7vFUkmk5vLoZlzUKzQpbf\",\"subCallId\":\"pu0TZWnHF8m7vFUk"
+          },
+          {
+            "seq": 539,
+            "time": 1791011738652,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":539,\"time\":1791011738652,\"data\":{\"rootCallId\":\"pu0TZWnHF8m7vFUkmk5vLoZlzUKzQpbf\",\"parentCallId\":\"pu0TZWnHF8m7vFUkmk5vLoZlzUKzQpbf\",\"subCallId\":\"pu0TZWnHF8m7vFUkmk5vLo"
+          },
+          {
+            "seq": 765,
+            "time": 1791015805430,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":765,\"time\":1791015805430,\"data\":{\"rootCallId\":\"Dru7y5djRjFq171QeSFOLYEOQl2B3hEg\",\"parentCallId\":\"Dru7y5djRjFq171QeSFOLYEOQl2B3hEg\",\"subCallId\":\"Dru7y5djRjFq171Q"
+          },
+          {
+            "seq": 771,
+            "time": 1791015805436,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":771,\"time\":1791015805436,\"data\":{\"rootCallId\":\"Dru7y5djRjFq171QeSFOLYEOQl2B3hEg\",\"parentCallId\":\"Dru7y5djRjFq171QeSFOLYEOQl2B3hEg\",\"subCallId\":\"Dru7y5djRjFq171QeSFOLY"
+          },
+          {
+            "seq": 1124,
+            "time": 1791038164122,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":1124,\"time\":1791038164122,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54"
+          },
+          {
+            "seq": 1130,
+            "time": 1791038164132,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":1130,\"time\":1791038164132,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54f4XO8B"
+          },
+          {
+            "seq": 1131,
+            "time": 1791038164134,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":1131,\"time\":1791038164134,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54"
+          },
+          {
+            "seq": 1136,
+            "time": 1791038164136,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":1136,\"time\":1791038164136,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54f4XO8B"
+          },
+          {
+            "seq": 1137,
+            "time": 1791038164138,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":1137,\"time\":1791038164138,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54"
+          },
+          {
+            "seq": 1142,
+            "time": 1791038164141,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":1142,\"time\":1791038164141,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54f4XO8B"
+          },
+          {
+            "seq": 1143,
+            "time": 1791038164142,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":1143,\"time\":1791038164142,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54"
+          },
+          {
+            "seq": 1148,
+            "time": 1791038164144,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":1148,\"time\":1791038164144,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54f4XO8B"
+          },
+          {
+            "seq": 1149,
+            "time": 1791038164148,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":1149,\"time\":1791038164148,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54"
+          },
+          {
+            "seq": 1154,
+            "time": 1791038164151,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":1154,\"time\":1791038164151,\"data\":{\"rootCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"parentCallId\":\"gBk3eeNMzjhFz54f4XO8BotKtxQxDllI\",\"subCallId\":\"gBk3eeNMzjhFz54f4XO8B"
+          }
+        ]
+      },
+      "compactionEvents": {
+        "start": 9,
+        "summary": 9,
+        "summaryWithUsage": 0,
+        "summaryWithoutUsage": 9,
+        "end": 9,
+        "summaryTimes": [
+          {
+            "seq": 78,
+            "utc": "2026-10-03T06:39:51.160Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 105,
+            "utc": "2026-10-03T06:47:45.351Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 535,
+            "utc": "2026-10-03T07:15:38.650Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 767,
+            "utc": "2026-10-03T08:23:25.434Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1126,
+            "utc": "2026-10-03T14:36:04.128Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1133,
+            "utc": "2026-10-03T14:36:04.135Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1139,
+            "utc": "2026-10-03T14:36:04.140Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1145,
+            "utc": "2026-10-03T14:36:04.143Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1151,
+            "utc": "2026-10-03T14:36:04.149Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          }
+        ],
+        "usageTimes": []
+      },
+      "selfLogAccess": {
+        "total": 0,
+        "byToolAndSignal": {},
+        "samples": []
+      },
+      "recoveryNamedCalls": {
+        "total": 0,
+        "byName": {},
+        "samples": []
+      },
+      "toolInventory": {
+        "tool/call data/name=run_code": 136,
+        "tool/ptc-dispatch-start data/name=bash": 123,
+        "tool/ptc-dispatch data/name=bash": 123,
+        "tool/ptc-dispatch-start data/name=edit": 28,
+        "tool/ptc-dispatch data/name=edit": 28,
+        "tool/ptc-dispatch-start data/name=read": 18,
+        "tool/ptc-dispatch data/name=read": 18,
+        "tool/ptc-dispatch-start data/name=compact_region": 9,
+        "tool/ptc-dispatch data/name=compact_region": 9,
+        "tool/ptc-dispatch-start data/name=write": 7,
+        "tool/ptc-dispatch data/name=write": 7,
+        "tool/ptc-dispatch-start data/name=grep": 1,
+        "tool/ptc-dispatch data/name=grep": 1
+      },
+      "ptcCallSitesInCode": {
+        "bash": 414,
+        "edit": 87,
+        "read": 54,
+        "compact_region": 27,
+        "write": 24,
+        "grep": 3
+      },
+      "harnessExposure": {
+        "toolNamesInRequestHeader": {
+          "run_code (request/header)": 6
+        },
+        "sqTokensInSystemMessage": {
+          "data/message/content/0/text ~ session_search": 1,
+          "data/message/content/0/text ~ session_event_search": 1,
+          "data/message/content/0/text ~ session_event_trace": 1,
+          "data/message/content/0/text ~ session_event_read": 1,
+          "data/message/content/0/text ~ session_trace": 1
+        },
+        "sqTokensInRequestHeader": {}
+      }
+    },
+    "bomberman": {
+      "label": "炸弹人 bomberman-gui1",
+      "bucket": "--home-altair-deepseek-harness-workplace-meow-ai-arena-contestants-runs-bomberman-gui1--",
+      "bucketError": null,
+      "files": [
+        {
+          "sessionId": "session-815b0925-131a-4681-a5ca-82a2ef5dfff4",
+          "file": "session.v4.jsonl.zstd",
+          "relPath": "wsl:\\home\\altair\\dsh-data\\.dsh\\sessions\\--home-altair-deepseek-harness-workplace-meow-ai-arena-contestants-runs-bomberman-gui1--\\session-815b0925-131a-4681-a5ca-82a2ef5dfff4\\session.v4.jsonl.zstd",
+          "bytes": 1623847,
+          "mtime": "2026-10-03T15:32:32.818Z",
+          "decode": {
+            "framesOk": 694,
+            "frameTries": 694,
+            "lines": 1758,
+            "unparsed": 0,
+            "decodedBytes": 6328083
+          }
+        }
+      ],
+      "timeRange": {
+        "from": "2026-10-03T05:42:54.316Z",
+        "to": "2026-10-03T15:32:32.818Z"
+      },
+      "eventHistogram": {
+        "tool/ptc-dispatch-start": 278,
+        "tool/ptc-dispatch": 278,
+        "step/start": 205,
+        "step/end": 205,
+        "assistant/message": 203,
+        "tool/call": 201,
+        "tool/result": 201,
+        "agent/inbox/spliced": 92,
+        "user/message": 55,
+        "request/header": 5,
+        "turn/start": 4,
+        "compaction/start": 4,
+        "compaction/summary": 4,
+        "compaction/end": 4,
+        "turn/end": 4,
+        "workspace/changes": 4,
+        "assistant/attempt": 2,
+        "session": 1,
+        "permission/preset": 1,
+        "sandbox/mode": 1,
+        "approval/policy": 1,
+        "system/message": 1,
+        "request/context": 1,
+        "session/title": 1,
+        "session/title-llm-request": 1,
+        "session-log-deepseek/delivery-accepted": 1
+      },
+      "sessionQuery": {
+        "narrowByCallType": {},
+        "narrowSamples": [],
+        "literalSessionQueryRawOccurrences": 0,
+        "wideRawOccurrences": 28,
+        "wideEventsContaining": 8,
+        "wideByEventType": {
+          "system/message": 17,
+          "compaction/summary": 4,
+          "user/message": 4,
+          "tool/ptc-dispatch": 2,
+          "tool/result": 1
+        },
+        "wideByValuePath": {
+          "compaction/summary :: data/summary/0/text ~ session_event_search": 2,
+          "compaction/summary :: data/summary/0/text ~ session_event_read": 2,
+          "user/message :: data/content/1/text ~ session_event_search": 2,
+          "user/message :: data/content/1/text ~ session_event_read": 2,
+          "tool/ptc-dispatch :: data/content/0/text ~ session_event_read": 2,
+          "system/message :: data/message/content/0/text ~ session_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_trace": 1,
+          "system/message :: data/message/content/0/text ~ session_event_read": 1,
+          "system/message :: data/message/content/0/text ~ session_trace": 1,
+          "tool/result :: data/message/content/0/text ~ session_event_read": 1
+        },
+        "wideByKeyPath": {},
+        "wideInModelAuthoredFields": {},
+        "wideSamples": [
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_search",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/bombe"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_search",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/bombe"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_trace",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/bombe"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/bombe"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_trace",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/bombe"
+          },
+          {
+            "seq": 107,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "Bomberman AI contest (workspace = contestant package, 120min deadline, ~100min left at last clock check). Task: submit C++20 bot to submission/bot.cpp supporting 2-10 players; local tools/battles OK, "
+          },
+          {
+            "seq": 107,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "Bomberman AI contest (workspace = contestant package, 120min deadline, ~100min left at last clock check). Task: submit C++20 bot to submission/bot.cpp supporting 2-10 players; local tools/battles OK, "
+          },
+          {
+            "seq": 108,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "Bomberman AI contest (workspace = contestant package, 120min deadline, ~100min left at last clock check). Task: submit C++20 bot to submission/bot.cpp supporting 2-10 players; local tools/battles OK, "
+          },
+          {
+            "seq": 108,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_read",
+            "snippet": "Bomberman AI contest (workspace = contestant package, 120min deadline, ~100min left at last clock check). Task: submit C++20 bot to submission/bot.cpp supporting 2-10 players; local tools/battles OK, "
+          },
+          {
+            "seq": 110,
+            "type": "tool/ptc-dispatch",
+            "path": "data/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 9-69 17 events, 45384 tokens folded, 3362 chars of summary kept. End seq 69 was held at your to_seq. compactionId=c2aff11c-c4c4-4c86-9ed9-621efc2b7e89 - this receipt is the only proof "
+          },
+          {
+            "seq": 111,
+            "type": "tool/result",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 9-69 17 events, 45384 tokens folded, 3362 chars of summary kept. End seq 69 was held at your to_seq. compactionId=c2aff11c-c4c4-4c86-9ed9-621efc2b7e89 - this receipt is the only proof "
+          },
+          {
+            "seq": 505,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "Bot build+debug phase. STATUS: submission/bot.cpp now compiles clean to ./bot.exe (fixes applied: printf literal-newline bug, DSC[6], (uint8_t) narrowing casts, gNow0 decl order, extra-paren on line 6"
+          },
+          {
+            "seq": 505,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "Bot build+debug phase. STATUS: submission/bot.cpp now compiles clean to ./bot.exe (fixes applied: printf literal-newline bug, DSC[6], (uint8_t) narrowing casts, gNow0 decl order, extra-paren on line 6"
+          },
+          {
+            "seq": 506,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "Bot build+debug phase. STATUS: submission/bot.cpp now compiles clean to ./bot.exe (fixes applied: printf literal-newline bug, DSC[6], (uint8_t) narrowing casts, gNow0 decl order, extra-paren on line 6"
+          },
+          {
+            "seq": 506,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_read",
+            "snippet": "Bot build+debug phase. STATUS: submission/bot.cpp now compiles clean to ./bot.exe (fixes applied: printf literal-newline bug, DSC[6], (uint8_t) narrowing casts, gNow0 decl order, extra-paren on line 6"
+          },
+          {
+            "seq": 509,
+            "type": "tool/ptc-dispatch",
+            "path": "data/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 72-464 107 events, 69857 tokens folded, 2466 chars of summary kept. End seq 464 was held at your to_seq. compactionId=1404f42f-3f2d-451a-bfb8-c1cce0aba823 - this receipt is the only pr"
+          }
+        ]
+      },
+      "recoveryToolFamily": {
+        "narrowCallLayer": {},
+        "wideRawByToken": {
+          "session_query": 0,
+          "session_search": 3,
+          "session_event_search": 8,
+          "session_event_trace": 3,
+          "session_event_read": 11,
+          "session_trace": 3
+        },
+        "wideByValuePath": {
+          "compaction/summary :: data/summary/0/text ~ session_event_search": 2,
+          "compaction/summary :: data/summary/0/text ~ session_event_read": 2,
+          "user/message :: data/content/1/text ~ session_event_search": 2,
+          "user/message :: data/content/1/text ~ session_event_read": 2,
+          "tool/ptc-dispatch :: data/content/0/text ~ session_event_read": 2,
+          "system/message :: data/message/content/0/text ~ session_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_trace": 1,
+          "system/message :: data/message/content/0/text ~ session_event_read": 1,
+          "system/message :: data/message/content/0/text ~ session_trace": 1,
+          "tool/result :: data/message/content/0/text ~ session_event_read": 1
+        },
+        "samples": []
+      },
+      "compactRegion": {
+        "ptcDispatch": 2,
+        "ptcDispatchStart": 2,
+        "toolCall": 0,
+        "assistantMessageBlocks": 0,
+        "byEventType": {
+          "tool/ptc-dispatch-start": 2,
+          "tool/ptc-dispatch": 2
+        },
+        "samples": [
+          {
+            "seq": 105,
+            "time": 1791018378369,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":105,\"time\":1791018378369,\"data\":{\"rootCallId\":\"yeceFqEcvAYQUpMeTRIrJb9M2pRB5DCo\",\"parentCallId\":\"yeceFqEcvAYQUpMeTRIrJb9M2pRB5DCo\",\"subCallId\":\"yeceFqEcvAYQUpMe"
+          },
+          {
+            "seq": 110,
+            "time": 1791018378373,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":110,\"time\":1791018378373,\"data\":{\"rootCallId\":\"yeceFqEcvAYQUpMeTRIrJb9M2pRB5DCo\",\"parentCallId\":\"yeceFqEcvAYQUpMeTRIrJb9M2pRB5DCo\",\"subCallId\":\"yeceFqEcvAYQUpMeTRIrJb"
+          },
+          {
+            "seq": 503,
+            "time": 1791019787697,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":503,\"time\":1791019787697,\"data\":{\"rootCallId\":\"VQM9CzgeDYjrCQeWDdTdMW3WWUDGrooA\",\"parentCallId\":\"VQM9CzgeDYjrCQeWDdTdMW3WWUDGrooA\",\"subCallId\":\"VQM9CzgeDYjrCQeW"
+          },
+          {
+            "seq": 509,
+            "time": 1791019787701,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":509,\"time\":1791019787701,\"data\":{\"rootCallId\":\"VQM9CzgeDYjrCQeWDdTdMW3WWUDGrooA\",\"parentCallId\":\"VQM9CzgeDYjrCQeWDdTdMW3WWUDGrooA\",\"subCallId\":\"VQM9CzgeDYjrCQeWDdTdMW"
+          }
+        ]
+      },
+      "compactionEvents": {
+        "start": 4,
+        "summary": 4,
+        "summaryWithUsage": 2,
+        "summaryWithoutUsage": 2,
+        "end": 4,
+        "summaryTimes": [
+          {
+            "seq": 107,
+            "utc": "2026-10-03T09:06:18.372Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 505,
+            "utc": "2026-10-03T09:29:47.699Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1058,
+            "utc": "2026-10-03T10:16:37.844Z",
+            "hasUsage": true,
+            "keys": "compactionId,summary,rawOutput,llmStreamCall,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model,maxTokens,usage"
+          },
+          {
+            "seq": 1518,
+            "utc": "2026-10-03T15:15:05.019Z",
+            "hasUsage": true,
+            "keys": "compactionId,summary,rawOutput,llmStreamCall,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model,maxTokens,usage"
+          }
+        ],
+        "usageTimes": [
+          {
+            "seq": 1058,
+            "utc": "2026-10-03T10:16:37.844Z",
+            "keys": "compactionId,summary,rawOutput,llmStreamCall,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model,maxTokens,usage",
+            "usage": "{\"inputTokens\":9582,\"outputTokens\":7782,\"totalTokens\":113861,\"cacheReadTokens\":96497}"
+          },
+          {
+            "seq": 1518,
+            "utc": "2026-10-03T15:15:05.019Z",
+            "keys": "compactionId,summary,rawOutput,llmStreamCall,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model,maxTokens,usage",
+            "usage": "{\"inputTokens\":106533,\"outputTokens\":3345,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"totalTokens\":109878}"
+          }
+        ]
+      },
+      "selfLogAccess": {
+        "total": 0,
+        "byToolAndSignal": {},
+        "samples": []
+      },
+      "recoveryNamedCalls": {
+        "total": 0,
+        "byName": {},
+        "samples": []
+      },
+      "toolInventory": {
+        "tool/call data/name=run_code": 201,
+        "tool/ptc-dispatch-start data/name=bash": 141,
+        "tool/ptc-dispatch data/name=bash": 141,
+        "tool/ptc-dispatch-start data/name=write": 41,
+        "tool/ptc-dispatch data/name=write": 41,
+        "tool/ptc-dispatch-start data/name=read": 38,
+        "tool/ptc-dispatch data/name=read": 38,
+        "tool/ptc-dispatch-start data/name=edit": 36,
+        "tool/ptc-dispatch data/name=edit": 36,
+        "tool/ptc-dispatch-start data/name=grep": 14,
+        "tool/ptc-dispatch data/name=grep": 14,
+        "tool/ptc-dispatch-start data/name=glob": 3,
+        "tool/ptc-dispatch data/name=glob": 3,
+        "tool/ptc-dispatch-start data/name=compact_region": 2,
+        "tool/ptc-dispatch data/name=compact_region": 2,
+        "tool/ptc-dispatch-start data/name=job_output": 2,
+        "tool/ptc-dispatch data/name=job_output": 2,
+        "tool/ptc-dispatch-start data/name=job_kill": 1,
+        "tool/ptc-dispatch data/name=job_kill": 1
+      },
+      "ptcCallSitesInCode": {
+        "bash": 462,
+        "write": 125,
+        "read": 120,
+        "edit": 114,
+        "grep": 51,
+        "glob": 9,
+        "compact_region": 6,
+        "job_output": 6,
+        "job_list": 6,
+        "job_kill": 3
+      },
+      "harnessExposure": {
+        "toolNamesInRequestHeader": {
+          "run_code (request/header)": 5
+        },
+        "sqTokensInSystemMessage": {
+          "data/message/content/0/text ~ session_search": 1,
+          "data/message/content/0/text ~ session_event_search": 1,
+          "data/message/content/0/text ~ session_event_trace": 1,
+          "data/message/content/0/text ~ session_event_read": 1,
+          "data/message/content/0/text ~ session_trace": 1
+        },
+        "sqTokensInRequestHeader": {}
+      }
+    },
+    "ctf": {
+      "label": "夺旗 ctf-gui1",
+      "bucket": "--home-altair-deepseek-harness-workplace-meow-ai-arena-contestants-runs-ctf-gui1--",
+      "bucketError": null,
+      "files": [
+        {
+          "sessionId": "session-ca533663-6ce1-4c4b-942b-d7da49a7a41f",
+          "file": "session.v4.jsonl.zstd",
+          "relPath": "wsl:\\home\\altair\\dsh-data\\.dsh\\sessions\\--home-altair-deepseek-harness-workplace-meow-ai-arena-contestants-runs-ctf-gui1--\\session-ca533663-6ce1-4c4b-942b-d7da49a7a41f\\session.v4.jsonl.zstd",
+          "bytes": 1458541,
+          "mtime": "2026-10-03T13:40:18.253Z",
+          "decode": {
+            "framesOk": 453,
+            "frameTries": 453,
+            "lines": 1225,
+            "unparsed": 0,
+            "decodedBytes": 6195054
+          }
+        }
+      ],
+      "timeRange": {
+        "from": "2026-10-03T05:43:14.599Z",
+        "to": "2026-10-03T13:40:18.253Z"
+      },
+      "eventHistogram": {
+        "tool/ptc-dispatch-start": 264,
+        "tool/ptc-dispatch": 264,
+        "step/start": 124,
+        "assistant/message": 124,
+        "step/end": 124,
+        "tool/call": 121,
+        "tool/result": 121,
+        "agent/inbox/spliced": 22,
+        "user/message": 19,
+        "request/header": 7,
+        "compaction/start": 5,
+        "compaction/summary": 5,
+        "compaction/end": 5,
+        "turn/start": 3,
+        "turn/end": 3,
+        "workspace/changes": 2,
+        "command/run": 2,
+        "command/done": 2,
+        "session": 1,
+        "permission/preset": 1,
+        "sandbox/mode": 1,
+        "approval/policy": 1,
+        "system/message": 1,
+        "request/context": 1,
+        "session/title": 1,
+        "session/title-llm-request": 1
+      },
+      "sessionQuery": {
+        "narrowByCallType": {},
+        "narrowSamples": [],
+        "literalSessionQueryRawOccurrences": 0,
+        "wideRawOccurrences": 47,
+        "wideEventsContaining": 21,
+        "wideByEventType": {
+          "system/message": 17,
+          "compaction/summary": 10,
+          "user/message": 10,
+          "tool/ptc-dispatch": 5,
+          "tool/result": 5
+        },
+        "wideByValuePath": {
+          "compaction/summary :: data/summary/0/text ~ session_event_search": 5,
+          "compaction/summary :: data/summary/0/text ~ session_event_read": 5,
+          "user/message :: data/content/1/text ~ session_event_search": 5,
+          "user/message :: data/content/1/text ~ session_event_read": 5,
+          "tool/ptc-dispatch :: data/content/0/text ~ session_event_read": 5,
+          "tool/result :: data/message/content/0/text ~ session_event_read": 5,
+          "system/message :: data/message/content/0/text ~ session_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_trace": 1,
+          "system/message :: data/message/content/0/text ~ session_event_read": 1,
+          "system/message :: data/message/content/0/text ~ session_trace": 1
+        },
+        "wideByKeyPath": {},
+        "wideInModelAuthoredFields": {},
+        "wideSamples": [
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_search",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-g"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_search",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-g"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_trace",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-g"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-g"
+          },
+          {
+            "seq": 7,
+            "type": "system/message",
+            "path": "data/message/content/0/text",
+            "token": "session_trace",
+            "snippet": "You are an AI agent powered by DeepSeek Harness. You are a coding agent powered by the 27b model. Your working directory is $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-g"
+          },
+          {
+            "seq": 177,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "任务: 夺旗竞技场 bot, 交付 submission/bot.cpp (C++20 单文件, g++ -O2), 目录 $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-gui1。90分钟目标/120强制交卷, 检查用 `sh run.sh clock.py` (压缩时约已用35分钟)。 关键文"
+          },
+          {
+            "seq": 177,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "任务: 夺旗竞技场 bot, 交付 submission/bot.cpp (C++20 单文件, g++ -O2), 目录 $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-gui1。90分钟目标/120强制交卷, 检查用 `sh run.sh clock.py` (压缩时约已用35分钟)。 关键文"
+          },
+          {
+            "seq": 178,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "任务: 夺旗竞技场 bot, 交付 submission/bot.cpp (C++20 单文件, g++ -O2), 目录 $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-gui1。90分钟目标/120强制交卷, 检查用 `sh run.sh clock.py` (压缩时约已用35分钟)。 关键文"
+          },
+          {
+            "seq": 178,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_read",
+            "snippet": "任务: 夺旗竞技场 bot, 交付 submission/bot.cpp (C++20 单文件, g++ -O2), 目录 $HOME/deepseek-harness/workplace/meow-ai-arena/contestants/runs/ctf-gui1。90分钟目标/120强制交卷, 检查用 `sh run.sh clock.py` (压缩时约已用35分钟)。 关键文"
+          },
+          {
+            "seq": 181,
+            "type": "tool/ptc-dispatch",
+            "path": "data/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 9-128 30 events, 68756 tokens folded, 1896 chars of summary kept. End seq 128 was held at your to_seq. compactionId=2198a4d2-e246-4fa3-a1e2-8c3af603ba51 - this receipt is the only proo"
+          },
+          {
+            "seq": 182,
+            "type": "tool/result",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 9-128 30 events, 68756 tokens folded, 1896 chars of summary kept. End seq 128 was held at your to_seq. compactionId=2198a4d2-e246-4fa3-a1e2-8c3af603ba51 - this receipt is the only proo"
+          },
+          {
+            "seq": 285,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "CTF bot 任务进行中。现状: submission/bot.cpp = v3 (对 baseline 18:39 s7 / 20:36 s42, 仍输但大幅进步)。v4 补丁已设计好但上次 run_code 因 JS 解析错误未执行(多行双引号字符串, 必须用反引号模板字面量)。 engine.py step() 结算顺序(已验证): 1 旗回位+重生(respawn_at<=turn, 按"
+          },
+          {
+            "seq": 285,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "CTF bot 任务进行中。现状: submission/bot.cpp = v3 (对 baseline 18:39 s7 / 20:36 s42, 仍输但大幅进步)。v4 补丁已设计好但上次 run_code 因 JS 解析错误未执行(多行双引号字符串, 必须用反引号模板字面量)。 engine.py step() 结算顺序(已验证): 1 旗回位+重生(respawn_at<=turn, 按"
+          },
+          {
+            "seq": 286,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "CTF bot 任务进行中。现状: submission/bot.cpp = v3 (对 baseline 18:39 s7 / 20:36 s42, 仍输但大幅进步)。v4 补丁已设计好但上次 run_code 因 JS 解析错误未执行(多行双引号字符串, 必须用反引号模板字面量)。 engine.py step() 结算顺序(已验证): 1 旗回位+重生(respawn_at<=turn, 按"
+          },
+          {
+            "seq": 286,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_read",
+            "snippet": "CTF bot 任务进行中。现状: submission/bot.cpp = v3 (对 baseline 18:39 s7 / 20:36 s42, 仍输但大幅进步)。v4 补丁已设计好但上次 run_code 因 JS 解析错误未执行(多行双引号字符串, 必须用反引号模板字面量)。 engine.py step() 结算顺序(已验证): 1 旗回位+重生(respawn_at<=turn, 按"
+          },
+          {
+            "seq": 289,
+            "type": "tool/ptc-dispatch",
+            "path": "data/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 131-248 29 events, 58661 tokens folded, 1992 chars of summary kept. End seq 248 was held at your to_seq. compactionId=ada93d1d-7756-43e2-8b42-a451ca63dd2a - this receipt is the only pr"
+          },
+          {
+            "seq": 290,
+            "type": "tool/result",
+            "path": "data/message/content/0/text",
+            "token": "session_event_read",
+            "snippet": "✅ Compacted seq 131-248 29 events, 58661 tokens folded, 1992 chars of summary kept. End seq 248 was held at your to_seq. compactionId=ada93d1d-7756-43e2-8b42-a451ca63dd2a - this receipt is the only pr"
+          },
+          {
+            "seq": 525,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_search",
+            "snippet": "CTF v4-v7 迭代结果(全部 vs baseline, 5 种子 s7/s42/s1/s2/s3 总分: 我方:敌方)。 结果排名: **v5 = 102:117 (净 -15, 最优, 当前需恢复)**; v4 = 115:140 (净 -25); v6(单枪围剿) = 109:134 (净 -25); v7(v5+被围撤退 tw+5) = 94:119 (净 -25, s7 打出 21:"
+          },
+          {
+            "seq": 525,
+            "type": "compaction/summary",
+            "path": "data/summary/0/text",
+            "token": "session_event_read",
+            "snippet": "CTF v4-v7 迭代结果(全部 vs baseline, 5 种子 s7/s42/s1/s2/s3 总分: 我方:敌方)。 结果排名: **v5 = 102:117 (净 -15, 最优, 当前需恢复)**; v4 = 115:140 (净 -25); v6(单枪围剿) = 109:134 (净 -25); v7(v5+被围撤退 tw+5) = 94:119 (净 -25, s7 打出 21:"
+          },
+          {
+            "seq": 526,
+            "type": "user/message",
+            "path": "data/content/1/text",
+            "token": "session_event_search",
+            "snippet": "CTF v4-v7 迭代结果(全部 vs baseline, 5 种子 s7/s42/s1/s2/s3 总分: 我方:敌方)。 结果排名: **v5 = 102:117 (净 -15, 最优, 当前需恢复)**; v4 = 115:140 (净 -25); v6(单枪围剿) = 109:134 (净 -25); v7(v5+被围撤退 tw+5) = 94:119 (净 -25, s7 打出 21:"
+          }
+        ]
+      },
+      "recoveryToolFamily": {
+        "narrowCallLayer": {},
+        "wideRawByToken": {
+          "session_query": 0,
+          "session_search": 3,
+          "session_event_search": 14,
+          "session_event_trace": 3,
+          "session_event_read": 24,
+          "session_trace": 3
+        },
+        "wideByValuePath": {
+          "compaction/summary :: data/summary/0/text ~ session_event_search": 5,
+          "compaction/summary :: data/summary/0/text ~ session_event_read": 5,
+          "user/message :: data/content/1/text ~ session_event_search": 5,
+          "user/message :: data/content/1/text ~ session_event_read": 5,
+          "tool/ptc-dispatch :: data/content/0/text ~ session_event_read": 5,
+          "tool/result :: data/message/content/0/text ~ session_event_read": 5,
+          "system/message :: data/message/content/0/text ~ session_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_search": 1,
+          "system/message :: data/message/content/0/text ~ session_event_trace": 1,
+          "system/message :: data/message/content/0/text ~ session_event_read": 1,
+          "system/message :: data/message/content/0/text ~ session_trace": 1
+        },
+        "samples": []
+      },
+      "compactRegion": {
+        "ptcDispatch": 5,
+        "ptcDispatchStart": 5,
+        "toolCall": 0,
+        "assistantMessageBlocks": 0,
+        "byEventType": {
+          "tool/ptc-dispatch-start": 5,
+          "tool/ptc-dispatch": 5
+        },
+        "samples": [
+          {
+            "seq": 175,
+            "time": 1791026560853,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":175,\"time\":1791026560853,\"data\":{\"rootCallId\":\"Vub5n1t705XiYbqGA4OOdTVCZQkU8yx9\",\"parentCallId\":\"Vub5n1t705XiYbqGA4OOdTVCZQkU8yx9\",\"subCallId\":\"Vub5n1t705XiYbqG"
+          },
+          {
+            "seq": 181,
+            "time": 1791026560862,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":181,\"time\":1791026560862,\"data\":{\"rootCallId\":\"Vub5n1t705XiYbqGA4OOdTVCZQkU8yx9\",\"parentCallId\":\"Vub5n1t705XiYbqGA4OOdTVCZQkU8yx9\",\"subCallId\":\"Vub5n1t705XiYbqGA4OOdT"
+          },
+          {
+            "seq": 283,
+            "time": 1791028341453,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":283,\"time\":1791028341453,\"data\":{\"rootCallId\":\"oRCvFc2SRLxkY6B1voxueaukfFm4Xr93\",\"parentCallId\":\"oRCvFc2SRLxkY6B1voxueaukfFm4Xr93\",\"subCallId\":\"oRCvFc2SRLxkY6B1"
+          },
+          {
+            "seq": 289,
+            "time": 1791028341458,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":289,\"time\":1791028341458,\"data\":{\"rootCallId\":\"oRCvFc2SRLxkY6B1voxueaukfFm4Xr93\",\"parentCallId\":\"oRCvFc2SRLxkY6B1voxueaukfFm4Xr93\",\"subCallId\":\"oRCvFc2SRLxkY6B1voxuea"
+          },
+          {
+            "seq": 523,
+            "time": 1791029825158,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":523,\"time\":1791029825158,\"data\":{\"rootCallId\":\"BuuwJjGoWbdaeyHQxCryReEoeftTq90g\",\"parentCallId\":\"BuuwJjGoWbdaeyHQxCryReEoeftTq90g\",\"subCallId\":\"BuuwJjGoWbdaeyHQ"
+          },
+          {
+            "seq": 529,
+            "time": 1791029825163,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":529,\"time\":1791029825163,\"data\":{\"rootCallId\":\"BuuwJjGoWbdaeyHQxCryReEoeftTq90g\",\"parentCallId\":\"BuuwJjGoWbdaeyHQxCryReEoeftTq90g\",\"subCallId\":\"BuuwJjGoWbdaeyHQxCryRe"
+          },
+          {
+            "seq": 1017,
+            "time": 1791034095188,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":1017,\"time\":1791034095188,\"data\":{\"rootCallId\":\"urW6pcoMceqZmb6BqQ0b4IMm3a55rkGL\",\"parentCallId\":\"urW6pcoMceqZmb6BqQ0b4IMm3a55rkGL\",\"subCallId\":\"urW6pcoMceqZmb6"
+          },
+          {
+            "seq": 1022,
+            "time": 1791034095194,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":1022,\"time\":1791034095194,\"data\":{\"rootCallId\":\"urW6pcoMceqZmb6BqQ0b4IMm3a55rkGL\",\"parentCallId\":\"urW6pcoMceqZmb6BqQ0b4IMm3a55rkGL\",\"subCallId\":\"urW6pcoMceqZmb6BqQ0b4"
+          },
+          {
+            "seq": 1030,
+            "time": 1791034171396,
+            "type": "tool/ptc-dispatch-start",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch-start\",\"seq\":1030,\"time\":1791034171396,\"data\":{\"rootCallId\":\"JPvRyN6ECx2hyvvaBunbI28nragRmXWc\",\"parentCallId\":\"JPvRyN6ECx2hyvvaBunbI28nragRmXWc\",\"subCallId\":\"JPvRyN6ECx2hyvv"
+          },
+          {
+            "seq": 1035,
+            "time": 1791034171399,
+            "type": "tool/ptc-dispatch",
+            "path": "data/name",
+            "snippet": "{\"type\":\"tool/ptc-dispatch\",\"seq\":1035,\"time\":1791034171399,\"data\":{\"rootCallId\":\"JPvRyN6ECx2hyvvaBunbI28nragRmXWc\",\"parentCallId\":\"JPvRyN6ECx2hyvvaBunbI28nragRmXWc\",\"subCallId\":\"JPvRyN6ECx2hyvvaBunbI"
+          }
+        ]
+      },
+      "compactionEvents": {
+        "start": 5,
+        "summary": 5,
+        "summaryWithUsage": 0,
+        "summaryWithoutUsage": 5,
+        "end": 5,
+        "summaryTimes": [
+          {
+            "seq": 177,
+            "utc": "2026-10-03T11:22:40.859Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 285,
+            "utc": "2026-10-03T11:52:21.456Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 525,
+            "utc": "2026-10-03T12:17:05.162Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1019,
+            "utc": "2026-10-03T13:28:15.192Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          },
+          {
+            "seq": 1032,
+            "utc": "2026-10-03T13:29:31.397Z",
+            "hasUsage": false,
+            "keys": "compactionId,summary,shadowedRange,shadowedSeqs,shadowedTokenCount,provider,model"
+          }
+        ],
+        "usageTimes": []
+      },
+      "selfLogAccess": {
+        "total": 0,
+        "byToolAndSignal": {},
+        "samples": []
+      },
+      "recoveryNamedCalls": {
+        "total": 0,
+        "byName": {},
+        "samples": []
+      },
+      "toolInventory": {
+        "tool/ptc-dispatch-start data/name=bash": 153,
+        "tool/ptc-dispatch data/name=bash": 153,
+        "tool/call data/name=run_code": 121,
+        "tool/ptc-dispatch-start data/name=edit": 50,
+        "tool/ptc-dispatch data/name=edit": 50,
+        "tool/ptc-dispatch-start data/name=read": 35,
+        "tool/ptc-dispatch data/name=read": 35,
+        "tool/ptc-dispatch-start data/name=grep": 13,
+        "tool/ptc-dispatch data/name=grep": 13,
+        "tool/ptc-dispatch-start data/name=write": 8,
+        "tool/ptc-dispatch data/name=write": 8,
+        "tool/ptc-dispatch-start data/name=compact_region": 5,
+        "tool/ptc-dispatch data/name=compact_region": 5
+      },
+      "ptcCallSitesInCode": {
+        "grep": 3,
+        "bash": 2
+      },
+      "harnessExposure": {
+        "toolNamesInRequestHeader": {
+          "run_code (request/header)": 7
+        },
+        "sqTokensInSystemMessage": {
+          "data/message/content/0/text ~ session_search": 1,
+          "data/message/content/0/text ~ session_event_search": 1,
+          "data/message/content/0/text ~ session_event_trace": 1,
+          "data/message/content/0/text ~ session_event_read": 1,
+          "data/message/content/0/text ~ session_trace": 1
+        },
+        "sqTokensInRequestHeader": {}
+      }
+    }
+  },
+  "totals": {
+    "sq_narrow_toolCall": 0,
+    "sq_narrow_ptcDispatch": 0,
+    "sq_narrow_anyCallType": 0,
+    "sq_wide_raw": 141,
+    "sq_wide_events": 61,
+    "family_narrow_anyCallType": 0,
+    "family_wide_raw": 141,
+    "compact_dispatch": 16,
+    "compact_dispatchStart": 16,
+    "compact_toolCall": 0,
+    "compact_messageBlock": 0,
+    "compactionSummary": 18,
+    "compactionSummaryWithUsage": 2,
+    "compactionStart": 18,
+    "compactionEnd": 18,
+    "selflogReads": 0,
+    "recoveryNamedCalls": 0,
+    "sqNamedAnyPath": 0
+  },
+  "notes": {
+    "toolNaming": "模型可调用的是 5 个只读工具 session_search / session_event_search / session_trace / session_event_trace / session_event_read（packages/session-query/tool-session-query/src/index.ts:66-115）；\"session_query\" 是 ctx.sessionQuery 这个代码侧 seam 的名字，从未作为工具名暴露。窄口径按字面 session_query 与这 5 个真名各数一次。",
+    "harnessExposureSources": [
+      "$HOME/dsh-data/workplace/dsh-compact-region/src/rules.ts:93-98 —— 系统提示「必须回读原文的情况，先读再答」段，逐字给出 session_event_read(seq_from=…, seq_to=…, surfaces=[\"shadowed\",\"log-only\"]) 与 session_event_search(...) 两种用法",
+      "$HOME/dsh-data/workplace/dsh-compact-region/src/index.ts:1050 —— 每次折叠回执里的 session_event_read 逐字指针",
+      "$HOME/dsh-data/.dsh/profiles/web/cordis.patch.yml:62-82 —— 该部署确实挂载：替换 session-query-sqlite 的 config（path=$HOME/dsh-data/.dsh/session-query/search.sqlite、openAt=first-search、WAL）并 insert tool-session-query（maxSearchResults 20 / searchTimeoutMs 15000）"
+    ],
+    "decodeIntegrity": "三场各 1 个 session.v4.jsonl.zstd；magic 扫描逐帧 zstdDecompressSync，framesOk == frameTries，unparsed=0，事件数与行号统计一致",
+    "crossCheck18": "compaction/summary 三场合计 18（9+4+5）与已发布总数自洽；但拆分为模型自写 16 + 引擎另发一次 LLM 请求 2（两次都在炸弹人：seq1058 本地18:16:37、seq1518 本地23:15:05，payload 键含 usage/maxTokens/llmStreamCall/rawOutput）。已发布口径「17 主动 + 1 引擎」以及「炸弹人 compact_region 3 次」与原始日志不符：炸弹人 compact_region 派发为 2 次，且 2 次带 usage 的 summary 都没有对应的 compact_region 派发（16 派发 == 16 无 usage 的 summary）。"
+  }
+}

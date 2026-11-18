@@ -1,0 +1,17 @@
+{
+ "_src": "land/challenge-runs/<run>/results.jsonl 的 duel 局逐局 areas 平均；pipeline/areas.mjs 生成。",
+ "main": {
+  "run": "20261004-050654",
+  "games": 144,
+  "mine": 457,
+  "greedy": 498,
+  "winRate": 31.9
+ },
+ "ot": {
+  "run": "20261004-044226",
+  "games": 144,
+  "mine": 454,
+  "greedy": 497,
+  "winRate": 31.9
+ }
+}

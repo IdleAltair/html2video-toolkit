@@ -1,0 +1,259 @@
+{
+ "runs": {
+  "bomberman-gui1": [
+   {
+    "t": "16:41:20",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "Elapsed: 6.6 min",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "23:16:48",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 21.4 min",
+    "cmd": "sha256sum submission/bot.cpp tools/new_v3.cpp | cut -c1-12,66-; g++ -O2 -fsyntax-only su"
+   },
+   {
+    "t": "23:32:12",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 36.8 min",
+    "cmd": "sha256sum submission/bot.cpp tools/new_v4.cpp | cut -c1-12,66-; g++ -O2 -fsyntax-only su"
+   }
+  ],
+  "ctf-gui1": [
+   {
+    "t": "18:57:33",
+    "phase": "main",
+    "standalone": false,
+    "via": "wrapper",
+    "printed": "已用 15.8 分钟",
+    "cmd": "sh run.sh clock.py && which g++ && g++ --version | head -1"
+   },
+   {
+    "t": "19:36:53",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 55.1 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:12:55",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 91.1 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:15:19",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 93.5 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:15:47",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 94.0 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:18:15",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 96.5 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:19:51",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 98.1 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:21:00",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 99.2 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:22:08",
+    "phase": "main",
+    "standalone": false,
+    "via": "wrapper",
+    "printed": "已用 100.3 分钟",
+    "cmd": "ls -la submission/ && head -3 submission/bot.cpp && sh run.sh clock.py"
+   },
+   {
+    "t": "20:23:10",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 101.4 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:23:22",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 101.6 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:23:53",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 102.1 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:24:07",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 102.3 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:24:59",
+    "phase": "main",
+    "standalone": true,
+    "via": "wrapper",
+    "printed": "已用 103.2 分钟",
+    "cmd": "sh run.sh clock.py"
+   },
+   {
+    "t": "20:26:00",
+    "phase": "main",
+    "standalone": false,
+    "via": "wrapper",
+    "printed": "已用 104.2 分钟",
+    "cmd": "ls -la submission/ && head -5 submission/README.md && g++ -O2 -std=c++17 -fsyntax-only s"
+   },
+   {
+    "t": "20:30:56",
+    "phase": "main",
+    "standalone": false,
+    "via": "wrapper",
+    "printed": "已用 109.2 分钟",
+    "cmd": "sh run.sh clock.py && mkdir -p tmp && cp submission/bot.cpp tmp/v5.cpp && sed -i 's/33\\."
+   },
+   {
+    "t": "21:12:06",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "已用 1.8 分钟",
+    "cmd": "ls *.py *.md && python3 arena.py --help 2>&1 | head -40; echo ----; python3 clock.py"
+   },
+   {
+    "t": "21:37:46",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "已用 27.5 分钟",
+    "cmd": "python3 clock.py 2>&1 | head -5"
+   },
+   {
+    "t": "21:38:35",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "已用 28.3 分钟",
+    "cmd": "cp v13.cpp submission/bot.cpp && python3 clock.py | head -2"
+   },
+   {
+    "t": "21:39:52",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "已用 29.6 分钟",
+    "cmd": "python3 clock.py | head -2"
+   }
+  ],
+  "land-gui2": [
+   {
+    "t": "14:29:15",
+    "phase": "main",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 33.4 min",
+    "cmd": "cat anchors/random.cpp && python3 clock.py && g++ --version | head -1 && nproc"
+   },
+   {
+    "t": "16:22:26",
+    "phase": "main",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 137.2 min",
+    "cmd": "python3 clock.py; timeout 400 python3 engine/referee.py submission/bot.cpp anchors/greed"
+   },
+   {
+    "t": "21:59:45",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 4.5 min",
+    "cmd": "python3 clock.py; echo ===; ls tools/ engine/ anchors/; echo ===; cat tools/selfplay.sh;"
+   },
+   {
+    "t": "22:01:41",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 6.3 min",
+    "cmd": "python3 clock.py | head -3"
+   },
+   {
+    "t": "22:28:58",
+    "phase": "overtime",
+    "standalone": true,
+    "via": "direct",
+    "printed": "Elapsed: 24.0 min",
+    "cmd": "python3 clock.py"
+   },
+   {
+    "t": "22:32:44",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 27.5 min",
+    "cmd": "diff -q tools/a.cpp submission/bot.cpp && echo SUBMISSION_INTACT; python3 clock.py | hea"
+   },
+   {
+    "t": "22:41:28",
+    "phase": "overtime",
+    "standalone": false,
+    "via": "direct",
+    "printed": "Elapsed: 35.7 min",
+    "cmd": "diff -q tools/g.cpp submission/bot.cpp && echo MATCH; python3 clock.py | head -2"
+   }
+  ]
+ },
+ "totals": {
+  "n": 30,
+  "main": 19,
+  "over": 11,
+  "solo": 14,
+  "ride": 16,
+  "wrap": 17,
+  "direct": 13
+ }
+}

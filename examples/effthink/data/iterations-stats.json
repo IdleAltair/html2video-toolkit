@@ -1,0 +1,60 @@
+{
+ "csvColumns": [
+  "ep",
+  "window",
+  "round",
+  "kind",
+  "change",
+  "params",
+  "selfplay_reading",
+  "verdict",
+  "verdict_basis",
+  "version_files",
+  "files_saved",
+  "note"
+ ],
+ "totalRows": 25,
+ "raggedRows": [],
+ "kinds": {
+  "改动": 18,
+  "验证": 2,
+  "自检": 2,
+  "结论": 1,
+  "成绩": 2
+ },
+ "attempts": 18,
+ "keep": 5,
+ "rollback": 13,
+ "verdictsSeen": [
+  "KEEP",
+  "N/A",
+  "ROLL BACK"
+ ],
+ "byEp": {
+  "bomberman": {
+   "attempts": 8,
+   "keep": 1,
+   "rollback": 7,
+   "filesSaved": 7
+  },
+  "ctf": {
+   "attempts": 4,
+   "keep": 2,
+   "rollback": 2,
+   "filesSaved": 1
+  },
+  "land": {
+   "attempts": 6,
+   "keep": 2,
+   "rollback": 4,
+   "filesSaved": 1
+  }
+ },
+ "windows": [
+  "r1 加时（组织方提示词含因果引导）",
+  "r1 加时",
+  "r2 加时（提示词严格照抄上一轮结构）",
+  "r2 加时",
+  "加时"
+ ]
+}

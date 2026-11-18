@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qwen3.8-27B · 不同量化效果直观对比</title>
+<style>
+:root{
+  --bg:#f4efe3; --ink:#141210; --red:#d93a12;
+  --p1:#2b4a9e; --p2:#0e6e68; --p3:#b97a10;
+  --mut:#4a4238; --card:#fbf7ec; --faint:rgba(20,18,16,.22);
+  --sans:"Segoe UI","Microsoft YaHei","PingFang SC","Noto Sans CJK SC","Helvetica Neue",Arial,sans-serif;
+  --mono:"Cascadia Mono","JetBrains Mono",Consolas,"Courier New",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans)}
+#stage{position:fixed;inset:0}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;padding:2.8vh 3.2vw 5.8vh}
+.slide.on{display:flex}
+.slide[data-p="1"]{--p:var(--p1)} .slide[data-p="2"]{--p:var(--p2)} .slide[data-p="3"]{--p:var(--p3)}
+.slide[data-p="0"]{--p:var(--red)}
+.fx{opacity:0;transform:translateY(16px);transition:opacity .55s ease,transform .55s cubic-bezier(.22,.9,.24,1)}
+.fx.on{opacity:1;transform:none}
+.plate{display:inline-flex;align-items:center;gap:.7vw;background:var(--ink);color:var(--bg);
+  font-family:var(--mono);font-size:1.7vh;letter-spacing:2px;padding:1vh 1.1vw;width:max-content;
+  box-shadow:.55vw .6vh 0 var(--p)}
+.plate i{width:1.2vh;height:1.2vh;background:var(--red);flex:none}
+.plate.sm{font-size:1.4vh;padding:.7vh .9vw}
+.ghost{position:absolute;font-family:var(--mono);font-weight:700;font-size:27vh;line-height:1;color:transparent;
+  -webkit-text-stroke:2.5px var(--p);opacity:.5;user-select:none;z-index:0;pointer-events:none}
+.xm{position:absolute;width:1.6vh;height:1.6vh;z-index:5;pointer-events:none}
+.xm::before,.xm::after{content:"";position:absolute;background:rgba(20,18,16,.4)}
+.xm::before{left:50%;top:0;width:2px;height:100%;margin-left:-1px}
+.xm::after{top:50%;left:0;height:2px;width:100%;margin-top:-1px}
+.xm.tl{top:1.6vh;left:1.6vw}.xm.tr{top:1.6vh;right:1.6vw}.xm.bl{bottom:5.2vh;left:1.6vw}.xm.br{bottom:5.2vh;right:1.6vw}
+.dots{position:absolute;width:15vw;height:13vh;background-image:radial-gradient(circle,var(--p) 1.8px,transparent 1.9px);
+  background-size:1.15vh 1.15vh;-webkit-mask-image:linear-gradient(215deg,#000 25%,transparent 78%);
+  mask-image:linear-gradient(215deg,#000 25%,transparent 78%);opacity:.55;pointer-events:none;z-index:0}
+.ring{position:absolute;width:15vh;height:15vh;border:.6vh solid var(--red);border-radius:50%;z-index:0}
+.chip{display:inline-block;border:2.5px solid var(--ink);padding:.45vh .8vw;font-family:var(--mono);font-size:1.4vh;
+  letter-spacing:1px;background:var(--card);box-shadow:.35vw .4vh 0 var(--p);font-weight:600}
+.qb{height:1.1vh;border:2px solid var(--ink);position:relative;background:var(--bg);margin:1vh 0 .6vh}
+.qb i{position:absolute;left:0;top:0;bottom:0;background:var(--p)}
+.qb-l{display:flex;justify-content:space-between;font-size:1.3vh;color:var(--mut);font-family:var(--mono)}
+.qb-l b{color:var(--ink);font-size:1.5vh}
+.qc{border:2.5px solid var(--ink);background:var(--card);box-shadow:.6vw .65vh 0 var(--p);padding:1.3vh 1.1vw}
+.qc.mid{border-color:var(--red);box-shadow:.6vw .65vh 0 var(--red)}
+.qc-h{display:flex;align-items:baseline;gap:.6vw;border-bottom:2.5px solid var(--ink);padding-bottom:.7vh}
+.qc-h b{font-size:2.1vh;letter-spacing:.5px}
+.qc-h span{margin-left:auto;font-family:var(--mono);font-size:1.2vh;color:var(--mut)}
+.qtag-sq{width:1.3vh;height:1.3vh;background:var(--red);flex:none;align-self:center}
+.qr{display:grid;grid-template-columns:auto 1fr;gap:.5vh .8vw;font-size:1.65vh;margin-top:.7vh}
+.qr i{color:var(--mut);font-style:normal;font-size:1.3vh}
+.qr b{text-align:right;font-weight:700}
+.qr b.rd{color:var(--red)}
+
+/* ===== 擦除式转场（色块扫过，杜绝残影） ===== */
+#wipe{position:fixed;inset:0;z-index:40;background:var(--ink);transform:translateX(-102%);will-change:transform;pointer-events:none}
+#wipe::before,#wipe::after{content:"";position:absolute;top:0;bottom:0;width:1.6vw;background:var(--red)}
+#wipe::before{left:-1.6vw}#wipe::after{right:-1.6vw}
+@keyframes wipeIn{from{transform:translateX(-102%)}to{transform:translateX(0)}}
+@keyframes wipeOut{from{transform:translateX(0)}to{transform:translateX(102%)}}
+@keyframes wipeInR{from{transform:translateX(102%)}to{transform:translateX(0)}}
+@keyframes wipeOutR{from{transform:translateX(0)}to{transform:translateX(-102%)}}
+
+/* ===== 封面 ===== */
+.cv{flex-direction:row;gap:2.2vw}
+.cv-l{flex:0 0 55%;position:relative;z-index:1;display:flex;flex-direction:column}
+.cv-r{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2.4vh;z-index:1;min-width:0}
+.cv h1{font-size:11vh;line-height:1.02;font-weight:900;letter-spacing:-.3vw;margin:2.4vh 0 1.2vh}
+.cv h1 .tred{display:inline-block;width:1.7vw;height:3.4vh;background:var(--red);margin-left:1vw;vertical-align:baseline}
+.cv-sub{font-size:4.6vh;font-weight:900;letter-spacing:.1vw}
+.cv-en{font-family:var(--mono);font-size:1.4vh;letter-spacing:2.5px;color:var(--mut);margin-top:1.2vh}
+.cv-env{border-top:3.5px solid var(--ink);margin-top:2.4vh;padding-top:1.4vh;display:grid;grid-template-columns:1fr 1fr;gap:1.1vh 1.6vw}
+.cv-env div{display:flex;gap:.6vw;font-size:1.6vh;align-items:baseline}
+.cv-env i{color:var(--mut);font-style:normal;font-size:1.25vh;letter-spacing:1px;flex:none}
+.cv-env b{font-weight:700}
+.cv-bot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:2vw;padding-top:2vh}
+.mx-t{font-size:1.5vh;margin-bottom:.9vh}
+.mx-t b{font-weight:800}
+.mx-t span{display:block;font-family:var(--mono);font-size:1.2vh;color:var(--mut);letter-spacing:1px;margin-top:.4vh}
+.mx{display:grid;grid-template-columns:repeat(3,3.6vh);gap:.9vh}
+.mx i{width:3.6vh;height:3.6vh;border:2.5px solid var(--ink)}
+.mx-legend{margin-top:1vh;font-size:1.25vh;display:flex;gap:1.1vw}
+.mx-legend em{font-style:normal;color:var(--mut);letter-spacing:.5px;font-weight:600}
+.mx-legend em::before{content:"";display:inline-block;width:1vh;height:1vh;background:var(--c);border:2px solid var(--ink);margin-right:.4vw;vertical-align:-.15vh}
+.cv-r2{display:flex;flex-direction:column;align-items:flex-end;gap:0}
+.cv-go{font-size:2vh;font-weight:800;letter-spacing:1px;text-align:right}
+.cv-go b{color:var(--red);font-size:2.6vh}
+.cv-go .goarr{display:inline-block;color:var(--red);font-size:2.8vh;animation:nudge 1.4s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(.5vw)}}
+.cv-bgm{margin-top:1.6vh;display:inline-flex;align-items:center;gap:.6vw;border:2.5px solid var(--ink);background:var(--card);
+  box-shadow:.4vw .45vh 0 var(--red);padding:.7vh 1vw;font-family:var(--mono);font-size:1.4vh;letter-spacing:1px;cursor:pointer}
+.cv-bgm i{width:1.3vh;height:1.3vh;background:var(--red);flex:none}
+.cv-bgm b{font-weight:700}
+.cv-bgm .st{color:var(--mut);font-size:1.2vh}
+.cv-art{position:absolute;top:5vh;right:0;width:46vw;height:34vh;z-index:0;pointer-events:none}
+.blk{position:absolute;width:31vw;height:10vh;background:var(--ink);transform:rotate(-4deg);right:1.5vw;top:2vh}
+.blk2{position:absolute;width:5vh;height:5vh;background:var(--ink);right:4.5vw;top:16.5vh;transform:rotate(8deg)}
+.ring.rt{right:9.5vw;top:0}
+.diag{position:absolute;top:63%;left:-6vw;width:112vw;height:3.5px;background:var(--red);transform:rotate(-13deg);z-index:0;pointer-events:none}
+.cv-dots{left:33vw;bottom:8vh}
+
+/* ===== 项目设定页 ===== */
+.hd-top{display:flex;align-items:center;gap:1.2vw;z-index:1}
+.chips{display:flex;gap:.7vw}
+.hd-ghost{right:2vw;top:.5vh}
+.hd-main{flex:1;display:flex;gap:1.8vw;min-height:0;margin-top:1vh}
+.hd-l{flex:0 0 51%;display:flex;flex-direction:column;min-height:0;position:relative;z-index:1}
+.hd-title{display:flex;align-items:baseline;gap:1vw}
+.hd-title b{font-size:7.4vh;line-height:1;font-weight:900}
+.hd-title span{font-family:var(--mono);font-size:1.9vh;letter-spacing:4px;color:var(--mut)}
+.hd-sub{font-size:1.8vh;color:var(--mut);margin:.6vh 0 .7vh;letter-spacing:1px;font-weight:600}
+.mot-wrap{margin:.2vh 0 .9vh}
+.mot{width:11vw;height:2.9vh;display:block}
+.pb{flex:1;display:flex;flex-direction:column;border:3px solid var(--ink);background:var(--card);
+  box-shadow:.75vw .85vh 0 var(--p);min-height:0}
+.pb-t{background:var(--p);color:#fff;font-family:var(--mono);font-size:1.6vh;letter-spacing:3px;padding:.8vh 1.1vw;font-weight:600}
+.pb-b{flex:1;overflow:hidden;padding:1.6vh 1.4vw;font-size:1.55vh;line-height:1.58;white-space:pre-wrap;font-weight:500}
+.hd-r{flex:1;display:flex;flex-direction:column;gap:1.5vh;min-height:0;position:relative;z-index:1}
+.hd-r .qc{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.hd-rec{border:2.5px solid var(--ink);background:var(--card);box-shadow:.6vw .65vh 0 var(--p);padding:1.1vh 1.1vw;margin-top:auto}
+.hd-rec .hr-t{font-family:var(--mono);font-size:1.3vh;letter-spacing:2px;color:var(--mut);border-bottom:2.5px solid var(--ink);padding-bottom:.6vh;margin-bottom:.6vh;font-weight:700}
+.hr{display:flex;align-items:baseline;gap:.7vw;font-size:1.55vh;padding:.32vh 0}
+.hr i{width:1.1vh;height:1.1vh;background:var(--red);flex:none;align-self:center}
+.hr b{font-family:var(--mono);font-weight:700;font-size:1.55vh}
+.hr span{margin-left:auto;font-family:var(--mono);font-size:1.25vh;color:var(--mut)}
+.hd-note{display:flex;align-items:center;gap:.8vw;font-size:1.7vh;letter-spacing:.5px;z-index:1;font-weight:600;margin-top:.8vh;flex:none}
+.hd-note i{width:.55vw;height:2.3vh;background:var(--red);flex:none}
+.hd-note b{color:var(--red)}
+
+/* ===== 录像页 ===== */
+.vt-top{display:flex;justify-content:space-between;align-items:flex-start;z-index:1}
+.vt-tr{display:flex;align-items:center;gap:1.1vw}
+.vt-tr .mot{width:5.5vw;height:1.8vh}
+.qtag{background:var(--red);color:#fff;padding:1.1vh 1.3vw;box-shadow:.6vw .65vh 0 var(--p);text-align:right}
+.qtag b{font-size:2.6vh;letter-spacing:1px;display:block;font-weight:800}
+.qtag span{font-family:var(--mono);font-size:1.3vh;opacity:.95}
+.tc{font-family:var(--mono);font-size:1.5vh;color:var(--ink);letter-spacing:1px;margin-top:1.6vh;z-index:1;font-weight:600}
+.tc .dim{color:var(--mut)}
+.tc b{color:var(--ink);font-weight:700}
+.tc .rd{color:var(--red)}
+.film{position:relative;width:75vw;aspect-ratio:16/9;margin:1.5vh auto 0;background:#0d0b09;border:3.5px solid var(--ink);
+  box-shadow:1.1vw 1.2vh 0 var(--p);z-index:1;overflow:hidden}
+.film::before,.film::after{content:"";position:absolute;left:0;right:0;height:1.2vh;z-index:3;
+  background:repeating-linear-gradient(90deg,transparent 0 1.1vw,var(--bg) 1.1vw 1.9vw)}
+.film::before{top:.6vh}.film::after{bottom:.6vh}
+.film video{position:absolute;left:0;right:0;top:2.4vh;bottom:2.4vh;width:100%;height:calc(100% - 4.8vh);
+  object-fit:cover;background:#000}
+.vbtn{position:absolute;right:1.7vw;bottom:2.1vh;z-index:4;display:flex;align-items:center;gap:.55vw;
+  background:var(--ink);color:var(--bg);font-family:var(--mono);font-size:1.55vh;letter-spacing:1px;font-weight:700;
+  padding:.9vh 1.1vw;border:2.5px solid var(--bg);box-shadow:.4vw .45vh 0 var(--red);cursor:pointer}
+.vbtn::before{content:"";width:1.4vh;height:1.4vh;background:var(--red);clip-path:polygon(0 0,100% 50%,0 100%)}
+.film.novideo .vbtn{display:none}
+.vph{position:absolute;inset:0;z-index:2;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.3vh;
+  background:repeating-linear-gradient(45deg,#14110d 0 14px,#1d1914 14px 28px)}
+.film.novideo .vph{display:flex}
+.film.novideo video{display:none}
+.vph-t{font-size:5.5vh;font-weight:900;letter-spacing:10px;color:transparent;-webkit-text-stroke:2.5px var(--red)}
+.vph-p{font-family:var(--mono);font-size:1.55vh;border:2.5px dashed rgba(244,239,227,.65);padding:.8vh 1.1vw;color:#f4efe3}
+.vph-h{font-size:1.35vh;color:rgba(244,239,227,.7);letter-spacing:1px}
+.vnum{position:absolute;left:1.4vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:1.3vh;z-index:0;pointer-events:none}
+.vnum b{font-family:var(--mono);font-weight:700;font-size:10.5vh;line-height:1}
+.vnum .n1{color:var(--p)}
+.vnum .n2{color:transparent;-webkit-text-stroke:2.5px var(--p)}
+.vnum .bar{width:.45vw;height:4.5vh;background:var(--red)}
+.vt-dots{right:2.5vw;bottom:7vh}
+.stats{display:flex;align-items:stretch;margin-top:auto;padding-top:1.4vh;border-top:3px solid var(--ink);z-index:1}
+.st{display:flex;align-items:baseline;gap:.6vw;padding:0 1.25vw}
+.st:first-child{padding-left:0}
+.st + .st{border-left:2.5px solid var(--faint)}
+.st i{color:var(--mut);font-style:normal;font-size:1.4vh;letter-spacing:1px;font-weight:600}
+.st b{font-size:2.2vh;font-weight:800}
+.st.rec b{color:var(--red);font-size:2.7vh}
+
+/* ===== 总结页 ===== */
+.sm-top{display:flex;align-items:center;gap:1.4vw;z-index:1}
+.sm-top h2{font-size:5.4vh;font-weight:900;letter-spacing:.1vw}
+.sm-deco{position:absolute;top:1.5vh;right:2vw;width:16vw;height:15vh;z-index:0;pointer-events:none}
+.sm-grid{flex:1;display:grid;grid-template-columns:11vw repeat(3,1fr);grid-template-rows:auto repeat(3,1fr) auto;
+  gap:1.3vh .9vw;margin-top:1.5vh;min-height:0;z-index:1}
+.sm-h{border-bottom:3.5px solid var(--ink);padding-bottom:.8vh;display:flex;flex-direction:column;gap:.4vh}
+.sm-h b{font-size:2.5vh;font-weight:800}
+.sm-h span{font-family:var(--mono);font-size:1.25vh;color:var(--mut)}
+.sm-h .qb{margin:.6vh 0 0}
+.sm-rowlab{display:flex;flex-direction:column;justify-content:center;gap:.6vh}
+.sm-rowlab .rl{display:flex;align-items:center;gap:.55vw}
+.sm-rowlab .sq{width:1.9vh;height:1.9vh;border:2.5px solid var(--ink);flex:none}
+.sm-rowlab b{font-size:2vh;font-weight:800}
+.sm-rowlab span{font-family:var(--mono);font-size:1.25vh;color:var(--mut);margin-left:.55vw}
+.sm-c{display:flex;flex-direction:column;border:2.5px solid var(--ink);background:var(--card);
+  box-shadow:.45vw .55vh 0 var(--rc);min-height:0;overflow:hidden}
+.sm-c img{width:100%;flex:1;min-height:0;object-fit:cover;display:block;background:#111}
+.sm-c .strip{display:flex;align-items:baseline;justify-content:space-between;gap:.6vw;border-top:2.5px solid var(--ink);
+  padding:.55vh .8vw;background:var(--card)}
+.sm-c .strip b{font-size:1.9vh;font-weight:800}
+.sm-c .strip b.rd{color:var(--red)}
+.sm-c .strip span{font-family:var(--mono);font-size:1.35vh;color:var(--mut);font-weight:600}
+.sm-tc{display:flex;align-items:center;gap:1vw;border:2.5px solid var(--ink);background:var(--card);
+  box-shadow:.4vw .5vh 0 var(--red);padding:.7vh 1vw;font-size:1.45vh}
+.sm-tc i{font-style:normal;color:var(--mut);font-size:1.3vh;letter-spacing:1px;font-weight:600}
+.sm-tc b{font-size:2.1vh;font-weight:800;margin-left:auto}
+.sm-tc b.rd{color:var(--red)}
+.sm-note{display:flex;gap:.8vw;align-items:flex-start;margin-top:1.3vh;border-left:.6vw solid var(--red);
+  padding-left:1vw;font-size:1.55vh;line-height:1.5;z-index:1;font-weight:500}
+.sm-note b{color:var(--red)}
+
+/* ===== 其他作品 · 滚筒 ===== */
+.ox-top{display:flex;align-items:center;gap:1.4vw;z-index:1}
+.ox h2{font-size:5.4vh;font-weight:900}
+.ox-sub{font-family:var(--mono);font-size:1.4vh;color:var(--mut);letter-spacing:2px;font-weight:600}
+.ox-deco{margin-left:auto;display:flex;align-items:center;gap:1.2vw}
+.dr{width:4vh;height:4vh;border:2.5px solid var(--ink);transform:rotate(45deg)}
+.dr.f{background:var(--red)}
+.drum-stage{flex:1;display:flex;align-items:center;justify-content:center;perspective:135vw;min-height:0;margin-top:1vh;z-index:1}
+.drum{position:relative;width:42vw;height:56vh;transform-style:preserve-3d;animation:oxspin 30s linear infinite}
+.drum-stage:hover .drum{animation-play-state:paused}
+@keyframes oxspin{from{transform:rotateY(0)}to{transform:rotateY(-360deg)}}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face-frame{position:relative;width:100%;height:100%;background:#0d0b09;border:3.5px solid var(--ink);
+  box-shadow:1vw 1.1vh 0 var(--red);overflow:hidden}
+.face-frame video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.face-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh;
+  background:repeating-linear-gradient(45deg,#14110d 0 16px,#1d1914 16px 32px)}
+.face-frame.ok .face-ph{display:none}
+.face-ph .fn{font-family:var(--mono);font-weight:700;font-size:13vh;line-height:1;color:transparent;-webkit-text-stroke:2.5px var(--red)}
+.face-ph .ft{font-size:3vh;font-weight:800;letter-spacing:4px;color:var(--bg)}
+.face-ph .fp{font-family:var(--mono);font-size:1.55vh;border:2.5px dashed rgba(244,239,227,.65);padding:.8vh 1.1vw;color:#f4efe3}
+.face-ph .fh{font-size:1.35vh;color:rgba(244,239,227,.7);letter-spacing:2px}
+.face-plate{position:absolute;left:0;right:0;bottom:0;z-index:3;background:var(--ink);color:var(--bg);
+  font-family:var(--mono);font-size:1.5vh;letter-spacing:2px;padding:.7vh 1vw;display:flex;justify-content:space-between;font-weight:600}
+.face-plate i{width:1.2vh;height:1.2vh;background:var(--red);display:inline-block;margin-right:.6vw;vertical-align:-.15vh}
+.ox-hint{display:flex;gap:1.2vw;align-items:center;font-size:1.55vh;color:var(--mut);z-index:1;font-weight:600}
+.ox-hint i{width:.5vw;height:2.2vh;background:var(--red);flex:none}
+.ox-hint b{color:var(--ink)}
+
+/* ===== 结束页 ===== */
+.fin{flex-direction:row;align-items:stretch;gap:3vw}
+.fin-l{flex:0 0 34%;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:2.6vh}
+.fin-block{position:relative;width:30vh;height:30vh;background:var(--red);box-shadow:1.3vw 1.4vh 0 var(--ink);
+  display:flex;align-items:center;justify-content:center}
+.fin-block b{color:var(--bg);font-size:15vh;font-weight:900;line-height:1}
+.fin-plate{align-self:flex-start}
+.fin-line{width:22vw;height:.6vh;background:var(--ink)}
+.fin-tag{font-family:var(--mono);font-size:1.5vh;letter-spacing:3px;color:var(--mut);font-weight:600}
+.fin-r{flex:1;position:relative;z-index:1;display:flex;flex-direction:column;justify-content:center;gap:1.9vh;min-width:0}
+.cr{display:flex;align-items:baseline;gap:1.3vw;border-bottom:2.5px solid var(--faint);padding-bottom:1.15vh}
+.cr i{font-family:var(--mono);font-size:1.7vh;color:var(--mut);letter-spacing:4px;width:13vw;flex:none;font-weight:700}
+.cr b{font-size:2.9vh;font-weight:800;letter-spacing:.5px}
+.cr.big i{color:var(--ink)}
+.cr.big b{font-size:4vh;color:var(--red)}
+.cr .en{font-family:var(--mono);font-size:1.4vh;color:var(--mut);margin-left:auto;font-weight:600}
+.fin-deco{position:absolute;right:-4vw;top:8vh;width:34vw;height:12vh;background:var(--ink);transform:rotate(-14deg);z-index:0;opacity:.9}
+.fin-deco2{position:absolute;right:6vw;bottom:10vh;width:11vh;height:11vh;border:.6vh solid var(--red);border-radius:50%;z-index:0}
+.fin-dots{right:14vw;top:6vh}
+.fin-foot{position:absolute;left:3.2vw;bottom:6.4vh;display:flex;gap:1.4vw;align-items:center;
+  font-family:var(--mono);font-size:1.4vh;color:var(--mut);letter-spacing:1px;z-index:1;font-weight:600}
+.fin-foot b{color:var(--ink)}
+
+/* ===== HUD ===== */
+#hud{position:fixed;left:0;right:0;bottom:0;height:4.2vh;display:flex;align-items:center;gap:1.5vw;
+  padding:0 2.4vw;border-top:2.5px solid var(--ink);background:var(--bg);z-index:50;font-family:var(--mono)}
+#mbtn{width:2.4vw;height:2.4vw;border:2.5px solid var(--ink);background:var(--card);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:1.6vh;color:var(--ink);font-weight:700;flex:none}
+#mbtn.on{background:var(--red);color:var(--bg)}
+#hudl{display:flex;align-items:center;gap:.9vw}
+#idx{font-size:1.7vh;font-weight:800;letter-spacing:1px}
+#prog{width:15vw;height:.9vh;border:2.5px solid var(--ink)}
+#prog i{display:block;height:100%;background:var(--red);width:6.25%}
+#hudc{flex:1;text-align:center;font-size:1.6vh;color:var(--ink);letter-spacing:2px;font-weight:700}
+#hudr{display:flex;align-items:center;gap:1.3vw}
+#track{display:flex;gap:.45vw}
+#track i{width:1.4vw;height:1.4vw;border:2.5px solid #999;color:currentColor}
+#track i.hit{background:currentColor}
+#keys{font-size:1.25vh;color:var(--mut);letter-spacing:.5px;font-weight:600}
+</style>
+</head>
+<body>
+<div id="hud">
+  <button id="mbtn" title="音乐 开/关（M）">♪</button>
+  <div id="hudl"><b id="idx">01 / 16</b><div id="prog"><i></i></div></div>
+  <div id="hudc">封面 · 主题与配置</div>
+  <div id="hudr"><div id="track"></div><span id="keys">→ / 空格 下一页 · ← 上一页 · 1-9 跳录像 · 0 其他作品 · Home/End 首尾 · F 全屏 · M 音乐</span></div>
+</div>
+<div id="wipe"></div>
+<div id="stage"></div>
+<audio id="bgm" loop preload="auto" src="assets/music-loop.wav"></audio>
+<script type="text/plain" id="prompt-1">请实现一个单文件 HTML 网页，使用纯 Canvas 2D（不依赖任何库），模拟风暴黄昏海面。
+
+视觉要求：
+1. 5层不同深度的海浪，前景波浪更狂暴、颜色更浅、更透明；后景波浪更深沉、颜色更暗、更有深渊感。
+2. 波峰有白色泡沫，海面波浪碎裂成粒子，粒子有飞溅、重力、衰减。
+3. 黄昏黄色太阳透过浓重云层，在水面照出模糊的光晕，太阳在地平线附近模糊显现。
+4. 天空从蓝色渐变到黑色，太阳附近的乌云被晕染出渐变黄色。
+5. 无缝循环动画，电影感，可加入暗角、颗粒、动态模糊等后期效果。
+
+技术约束：
+- 纯 Canvas 2D，禁止使用任何外部库或资源。
+- 动画必须自动运行，无需用户交互。
+
+输出要求：
+- 保存为html文件给出说明
+- 请调用你所有的能力，生成你当前能实现的最高水准作品。</script>
+<script type="text/plain" id="prompt-2">生成一个单文件HTML网页，要求呈现出极其震撼的3D海上龙卷风/风暴视觉奇观。技术栈不限，可以使用任何你认为能发挥到极致的Web技术（WebGL、Three.js、原生GLSL等均可），但所有代码和资源必须完全包含在该HTML文件内（可引用CDN的Three.js等库，但所有自定义脚本、着色器、材质、粒子系统必须内联）。
+
+视觉与美术要求：
+- 龙卷风本体：需体现从云层延伸至海面的漏斗状涡旋，内部有旋转的粒子、水汽、碎片，可见空气涡旋的层次与体积感，光影和色彩必须真实而富有表现力。
+- 风暴海面：巨大的海浪汹涌澎湃，波峰有白色泡沫，海面有飞溅的浪花和反射，需呈现风暴中的动荡与力量。
+- 云层与天空：厚重的积雨云暗沉旋转，云层内部有周期性闪电闪烁，照亮云层和海面，营造出风暴的压抑与戏剧性。
+- 粒子效果：包含雨幕、水雾、被卷起的海水粒子、碎片等动态粒子，增强风暴的混乱感。
+- 前端界面：一个简洁美观、与风暴主题高度统一的UI，可包含风速、气压、粒子数等数据展示，整体设计符合科幻暗黑美学。
+- 所有美术效果请毫无保留地拉满，力求达到电影级/艺术馆级别的观赏性。
+
+交互要求：
+- 页面需支持基本的视角操控（鼠标拖拽旋转、滚轮缩放），可加入自动缓慢旋转。
+- 包含适当的动画或动态效果（龙卷风旋转、海浪动画、粒子运动、闪电周期性出现）。
+
+技术约束：
+- 单文件 HTML，所有代码内联，可引用 CDN 的 Three.js 等库，但自定义着色器必须内联。
+- 允许近似模拟（如龙卷风用粒子螺旋，海面用噪声波形），鼓励视觉效果优先。
+
+输出要求：
+- 请调用你所有的能力，生成你当前能实现的最高水准作品。</script>
+<script type="text/plain" id="prompt-3">你是一名资深 Three.js/WebGL/GLSL 图形工程师，请从零生成一个完整的实时雷暴海面场景（可多文件，也可单文件，但不限制代码行数）。使用原生 HTML/CSS/JavaScript（ES Modules），可通过 CDN 引入 Three.js，不依赖任何构建工具或框架。所有自定义着色器、程序化生成逻辑必须自己实现，禁止使用外部纹理、模型、字体等资源（星空、云层、水面、雨滴、闪电等必须程序化生成）。
+
+视觉与美术要求：
+- 场景主体：无限或大面积海面，上方是厚重旋转的雷暴云层。
+- 海面：动态波浪，有明显起伏；受风力影响，浪花与泡沫；雨滴撞击水面产生涟漪和轻微飞溅。
+- 雨：大量雨滴粒子，带重力，受风影响产生倾斜；粒子数量根据性能动态调整。
+- 风：可通过雨滴倾斜、海浪加剧、云层旋转来体现，不需要单独粒子。
+- 闪电：周期性出现，至少两种表现：云层内部闪烁（体积光感）和劈向海面的枝状闪电（可用线段或粒子模拟）。闪电瞬间照亮整个场景，包括云层内部、海面反射、雨滴高光。
+- 体积光：当闪电发生时，云层内部要有光线穿透的发光效果（可用后处理 bloom + 云层内部自发光近似，或简单 ray marching 体积采样），营造震撼的光影。
+- 天空与氛围：整体黑暗压抑，云层暗沉厚重，闪电时云层边缘被照亮，海面反射暖白/蓝白强光。可加入暗角、胶片颗粒、色差等后期效果增强电影感。
+- 前端界面：显示虚拟风速、雨量、雷电频率、气压等数据；可有一个按钮手动触发闪电。
+
+交互要求：
+- 鼠标拖拽旋转视角，滚轮缩放（可固定在海面高度，允许俯视或平视）。
+- 自动缓慢镜头环绕可选，默认开启或快捷键切换。
+- 闪电自动周期性发生，也允许用户按键触发（如按 L 键）。
+
+技术约束：
+- 必须使用原生 HTML/CSS/JavaScript + ES Modules + Three.js（CDN 或本地 vendor），无需构建步骤。
+- 所有视觉元素必须程序化生成，禁止使用外部纹理、模型、视频或图片。
+- 水面波浪和反射需使用自定义着色器（例如 Gerstner 波叠加 + 菲涅尔反射），不能用简单平面加贴图。
+- 雨滴粒子使用 GPU 友好的 BufferGeometry 或自定义 shader，粒子数量根据质量档位调整。
+- 闪电枝状结构可程序化生成（例如递归分段或 L-system 风格），不能用静态纹理。
+- 云层内部体积光允许使用后处理 bloom 加强，但如果用 ray marching 或体积采样更好，不做强制，但必须视觉可信。
+- 提供 Standard / High / Cinematic 三档质量预设，默认 High 在 1440×900 分辨率下达到 ≥30 FPS（桌面端）。
+- 代码结构清晰，可输出多文件（如 index.html, js/main.js, js/shaders.js, js/lightning.js, js/rain.js, css/style.css 等），也可单文件但不压缩。
+- 请附上启动命令（如 python3 -m http.server 8123）和简短 README。
+
+输出要求：
+- 请输出完整的项目目录和文件内容，并附上启动命令。
+- 请调用你所有能力，生成当前能实现的最高水准作品。</script>
+<script>
+(function () {
+  var NL = String.fromCharCode(10);
+  var stage = document.getElementById("stage");
+  var wipe = document.getElementById("wipe");
+  var hud = document.getElementById("hud");
+  if (/clean=1/.test(location.search)) hud.style.display = "none";
+
+  var VID_ROOT = "../../../../shotcut/";
+  var INK = "#141210";
+  var QUANTS = {
+    q4:    { tag: "Q4",    label: "量化 A", name: "Q4_K_XL",          model: "Qwen3.8-27B-UD-Q4_K_XL",          sizeGB: 16.6, v: "Q4",    tin: "20.7M", tout: "460K",  tcomp: 1 },
+    nvfp4: { tag: "NVFP4", label: "量化 B", name: "NVFP4-MTP-Q8attn", model: "Qwen3.8-27B-NVFP4-MTP-Q8attn", sizeGB: 17.8, v: "nvfp4", tin: "35.0M", tout: "485.7K", tcomp: 3 },
+    q5:    { tag: "Q5",    label: "量化 C", name: "Q5_K_XL",          model: "Qwen3.8-27B-UD-Q5_K_XL",          sizeGB: 18.8, v: "Q5",    tin: "14.8M", tout: "397K",  tcomp: 2 }
+  };
+  var QORDER = ["q4", "nvfp4", "q5"];
+  var PHUE = ["#2b4a9e", "#0e6e68", "#b97a10"];
+  var PNUM = ["01", "02", "03"];
+  var PROJECTS = [
+    { n: 1, id: "storm-dusk-sea", zh: "海上风暴", en: "STORM DUSK SEA", sub: "黄昏海面 · 5层波浪 · 粒子飞溅 · 太阳光晕 · 无缝循环",
+      tech: "Canvas 2D", form: "单文件", dep: "无依赖",
+      data: {
+        q4:    { in: "5.2M",  out: "138K",  kv: "q8 164K/185K", comp: 1, src: "Q4-storm-dusk-sea.html",     cut: "0:52-0:58",  dur: 6.0 },
+        nvfp4: { in: "2M",    out: "89.7K", kv: "q8 160K/170K", comp: 0, src: "nvfp4-storm-dusk.html",      cut: "0:25-0:31",  dur: 6.0 },
+        q5:    { in: "3M",    out: "128K",  kv: "q8 152K/160K", comp: 1, src: "Q5-storm-dusk-sea.html",     cut: "0:06-0:12",  dur: 6.0 }
+      } },
+    { n: 2, id: "ocean-vortex", zh: "海龙卷", en: "OCEAN VORTEX", sub: "3D 海上龙卷 · 粒子涡旋 · 风暴海面 · 闪电云层 · 科幻UI",
+      tech: "WebGL / Three.js", form: "单文件", dep: "CDN Three.js",
+      data: {
+        q4:    { in: "10.2M", out: "174K", kv: "q8 160K/170K", comp: 0, src: "Q4-sea-tornado.html",        cut: "1:17-1:27",  dur: 10.0 },
+        nvfp4: { in: "3.1M",  out: "132K", kv: "q8 164K/185K", comp: 1, src: "nvfp4-ocean-tornado.html",   cut: "1:38-2:03",  dur: 25.0 },
+        q5:    { in: "937K",  out: "99K",  kv: "q8 152K/160K", comp: 0, src: "Q5-ocean-vortex.html",       cut: "2:24-2:27",  dur: 3.0 }
+      } },
+    { n: 3, id: "thunderstrom", zh: "雷暴", en: "THUNDERSTORM", sub: "ES Modules 多文件 · 程序化海面 · 体积光 · 枝状闪电 · bloom",
+      tech: "Three.js + ES Modules", form: "多文件", dep: "本地 vendor",
+      data: {
+        q4:    { in: "5.3M",  out: "148K", kv: "q4 208K/220K", comp: 0, src: "Q4-thunderstorm-sea/",       cut: "5:01-5:17",  dur: 16.0 },
+        nvfp4: { in: "29.9M", out: "264K", kv: "q4 208K/220K", comp: 2, src: "nvfp4-thunderstorm-ocean/",  cut: "6:24-6:54",  dur: 30.0 },
+        q5:    { in: "10.9M", out: "170K", kv: "q4 208K/220K", comp: 1, src: "Q5-thunderstorm-ocean/",     cut: "7:30-7:50",  dur: 20.0 }
+      } }
+  ];
+  var ENV = [
+    ["生成后端", "DeepSeek Harness · PTC 优化版"],
+    ["上下文压缩", "Mimo 2.5 high"],
+    ["思考强度", "默认 xhigh"],
+    ["GPU", "2× RTX 5060 Ti"],
+    ["实机录像", "9 段 · 总时长 122s"],
+    ["展示形式", "单文件 HTML · 16 页"]
+  ];
+  var OTHER = [
+    { t: "其他作品 01", file: "other-1.mp4" },
+    { t: "其他作品 02", file: "other-2.mp4" },
+    { t: "其他作品 03", file: "other-3.mp4" },
+    { t: "其他作品 04", file: "other-4.mp4" }
+  ];
+
+  function barw(qk) { return Math.round(QUANTS[qk].sizeGB / 18.8 * 100) + "%"; }
+  function qfile(p, qk) { return QUANTS[qk].v + "-test" + p.n + ".mp4"; }
+  function qpath(p, qk) { return VID_ROOT + qfile(p, qk); }
+  function qposter(p, qk) { return "assets/shot-" + p.id + "-" + QUANTS[qk].v + ".png"; }
+  function xmarks() { return '<span class="xm tl"></span><span class="xm tr"></span><span class="xm bl"></span><span class="xm br"></span>'; }
+  function mot(p) {
+    if (p.n === 1) return '<svg class="mot" viewBox="0 0 120 18" preserveAspectRatio="none"><path d="M0 9 Q7.5 1 15 9 T30 9 T45 9 T60 9 T75 9 T90 9 T105 9 T120 9" fill="none" stroke="var(--p)" stroke-width="2.4"/></svg>';
+    if (p.n === 2) return '<svg class="mot" viewBox="0 0 120 18"><circle cx="60" cy="9" r="6.5" fill="none" stroke="var(--p)" stroke-width="2.2"/><circle cx="60" cy="9" r="2.8" fill="var(--p)"/><path d="M6 9 H46 M74 9 H114" stroke="var(--p)" stroke-width="2.2"/></svg>';
+    return '<svg class="mot" viewBox="0 0 120 18"><path d="M66 1 L48 10 H60 L52 17 L84 6 H68 Z" fill="none" stroke="var(--p)" stroke-width="2.2" stroke-linejoin="round"/><path d="M4 9 H36 M86 9 H116" stroke="var(--p)" stroke-width="2.2"/></svg>';
+  }
+
+  function coverHTML() {
+    var env = ENV.map(function (e) { return '<div class="fx"><i>' + e[0] + '</i><b>' + e[1] + '</b></div>'; }).join(NL);
+    var qcards = QORDER.map(function (qk) {
+      var Q = QUANTS[qk];
+      return '<div class="qc cv-qc fx"><div class="qc-h"><i class="qtag-sq"></i><b>' + Q.label + ' · ' + Q.name + '</b><span>' + Q.model + '</span></div>' +
+        '<div class="qb"><i style="width:' + barw(qk) + '"></i></div>' +
+        '<div class="qb-l"><span>显存占用 VRAM</span><b>' + Q.sizeGB.toFixed(1) + 'GB</b></div></div>';
+    }).join(NL);
+    var mx = "";
+    for (var r = 1; r <= 3; r++) for (var c = 0; c < 3; c++) mx += '<i style="background:' + PHUE[r - 1] + ';border-color:' + PHUE[r - 1] + '"></i>';
+    var legend = ["01 海上风暴", "02 海龙卷", "03 雷暴"].map(function (t, i) { return '<em style="--c:' + PHUE[i] + '">' + t + '</em>'; }).join("");
+    return '<section class="slide cv" data-p="0">' +
+      '<div class="cv-art"><div class="blk fx"></div><div class="ring rt fx"></div><div class="blk2 fx"></div></div><div class="diag"></div><div class="dots cv-dots"></div>' +
+      '<div class="cv-l">' +
+        '<div class="plate fx"><i></i>LLM × HTML → VIDEO · 动态网页测试</div>' +
+        '<h1 class="fx">Qwen3.8-27B<i class="tred"></i></h1>' +
+        '<div class="cv-sub fx">不同量化效果 · 直观展示对比</div>' +
+        '<div class="cv-en fx">3 QUANTIZATIONS × 3 SCENES = 9 LIVE HTML WORLDS · 本地模型单轮生成 · 实机录屏</div>' +
+        '<div class="cv-env">' + env + '</div>' +
+        '<div class="cv-bot">' +
+          '<div class="cv-mx fx"><div class="mx-t"><b>3 项目 × 3 量化 = 9 个动态场景</b><span>列 = 量化 A/B/C · 行 = 测试项目 01/02/03</span></div><div class="mx">' + mx + '</div><div class="mx-legend">' + legend + '</div></div>' +
+          '<div class="cv-r2">' +
+            '<div class="cv-go fx">按 <b>→</b> 进入 测试项目01 · 海上风暴 <span class="goarr">→</span></div>' +
+            '<div class="cv-bgm fx" id="bgmchip" title="音乐 开/关（M）"><i></i>BGM · 循环构成主义配乐 <span class="st" id="bgmst">自动待开始</span></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cv-r">' + qcards + '</div>' +
+      xmarks() +
+      '</section>';
+  }
+
+  function headHTML(p) {
+    var pi = p.n - 1;
+    var chips = [p.tech, p.form, p.dep].map(function (t) { return '<span class="chip">' + t + '</span>'; }).join(NL);
+    var cards = QORDER.map(function (qk, qi) {
+      var Q = QUANTS[qk], d = p.data[qk];
+      return '<div class="qc fx' + (qi === 1 ? " mid" : "") + '">' +
+        '<div class="qc-h"><i class="qtag-sq"></i><b>' + Q.name + '</b><span>' + Q.model + ' · ' + Q.sizeGB.toFixed(1) + 'GB</span></div>' +
+        '<div class="qb"><i style="width:' + barw(qk) + '"></i></div>' +
+        '<div class="qr"><i>输入</i><b>' + d.in + '</b><i>输出</i><b>' + d.out + '</b><i>KV Cache</i><b>' + d.kv + '</b><i>压缩次数</i><b class="' + (d.comp > 0 ? "rd" : "") + '">' + d.comp + ' 次</b></div>' +
+        '</div>';
+    }).join(NL);
+    var durs = QORDER.map(function (qk) { return QUANTS[qk].tag + " " + p.data[qk].dur + "s"; }).join(" · ");
+    var total = 0; QORDER.forEach(function (qk) { total += p.data[qk].dur; });
+    return '<section class="slide hd" data-p="' + p.n + '">' +
+      xmarks() +
+      '<div class="ghost hd-ghost">' + PNUM[pi] + '</div>' +
+      '<div class="hd-top"><div class="plate fx"><i></i>测试项目 ' + PNUM[pi] + ' · test0' + p.n + '</div><div class="chips fx">' + chips + '</div></div>' +
+      '<div class="hd-main">' +
+        '<div class="hd-l">' +
+          '<div class="hd-title fx"><b>' + p.zh + '</b><span>' + p.en + '</span></div>' +
+          '<div class="hd-sub fx">' + p.sub + '</div>' +
+          '<div class="mot-wrap fx">' + mot(p) + '</div>' +
+          '<div class="pb fx"><div class="pb-t">完整 PROMPT · 原样发送</div><div class="pb-b" data-prompt="' + p.n + '"></div></div>' +
+        '</div>' +
+        '<div class="hd-r"><div class="plate sm fx"><i></i>生成数据 DATA</div>' + cards +
+          '<div class="hd-rec fx"><div class="hr-t">本段录像 · NEXT</div>' + QORDER.map(function (qk) { return '<div class="hr"><i></i><b>' + qfile(p, qk) + '</b><span>' + p.data[qk].dur + 's · 截取 ' + p.data[qk].cut + '</span></div>'; }).join(NL) + '</div></div>' +
+      '</div>' +
+      '<div class="hd-note fx"><i></i>下一节 · 三个量化各一段实机录像：<b>' + durs + '</b>（共 ' + total + 's）— 按 → 进入</div>' +
+      '</section>';
+  }
+
+  function variantHTML(p, qk) {
+    var pi = p.n - 1, Q = QUANTS[qk], d = p.data[qk];
+    return '<section class="slide vt" data-p="' + p.n + '">' +
+      xmarks() +
+      '<div class="vnum"><b class="n1">' + PNUM[pi].charAt(0) + '</b><b class="n2">' + PNUM[pi].charAt(1) + '</b><span class="bar"></span></div><div class="dots vt-dots"></div>' +
+      '<div class="vt-top"><div class="plate fx"><i></i>项目 ' + PNUM[pi] + ' · ' + p.zh + '</div>' +
+        '<div class="vt-tr fx">' + mot(p) + '<div class="qtag"><b>' + Q.name + '</b><span>' + Q.model + ' · ' + Q.sizeGB.toFixed(1) + 'GB</span></div></div></div>' +
+      '<div class="tc fx"><span class="rd">REC</span> <span class="dim">·</span> <b>' + qfile(p, qk) + '</b> <span class="dim">·</span> 1280×720 <span class="dim">·</span> H.264 <span class="dim">·</span> 截取 ' + d.cut + ' <span class="dim">·</span> 源 <b>' + d.src + '</b></div>' +
+      '<div class="film fx" data-vid>' +
+        '<video preload="auto" poster="' + qposter(p, qk) + '" src="' + qpath(p, qk) + '"></video>' +
+        '<div class="vph"><div class="vph-t">待 录 制</div><div class="vph-p">' + qpath(p, qk) + '</div><div class="vph-h">将录像放到该路径（VID_ROOT 可改）后刷新页面</div></div>' +
+        '<div class="vbtn">全屏播放</div>' +
+      '</div>' +
+      '<div class="stats fx">' +
+        '<div class="st"><i>输入</i><b>' + d.in + '</b></div>' +
+        '<div class="st"><i>输出</i><b>' + d.out + '</b></div>' +
+        '<div class="st"><i>KV CACHE</i><b>' + d.kv + '</b></div>' +
+        '<div class="st"><i>压缩</i><b>' + d.comp + ' 次</b></div>' +
+        '<div class="st rec"><i>片长</i><b>' + d.dur + 's</b></div>' +
+        '<div class="st"><i>源文件</i><b>' + d.src + '</b></div>' +
+      '</div>' +
+      '</section>';
+  }
+
+  function summaryHTML() {
+    var heads = QORDER.map(function (qk) {
+      var Q = QUANTS[qk];
+      return '<div class="sm-h"><b>' + Q.name + '</b><span>' + Q.model + ' · ' + Q.sizeGB.toFixed(1) + 'GB</span><div class="qb"><i style="width:' + barw(qk) + '"></i></div></div>';
+    }).join(NL);
+    var body = "";
+    PROJECTS.forEach(function (p, pi) {
+      body += '<div class="sm-rowlab"><div class="rl"><i class="sq" style="background:' + PHUE[pi] + ';border-color:' + PHUE[pi] + '"></i><b>test0' + p.n + '</b></div><span>' + p.tech + ' · ' + p.form + '</span></div>';
+      QORDER.forEach(function (qk) {
+        var d = p.data[qk];
+        body += '<div class="sm-c" style="--rc:' + PHUE[pi] + '"><img src="' + qposter(p, qk) + '" alt=""><div class="strip"><b class="' + (d.comp > 0 ? "rd" : "") + '">压缩 ' + d.comp + ' 次</b><span>in ' + d.in + ' / out ' + d.out + ' · ' + d.dur + 's</span></div></div>';
+      });
+    });
+    var tot = '<div></div>' + QORDER.map(function (qk) {
+      var Q = QUANTS[qk];
+      return '<div class="sm-tc"><i>' + Q.name + ' 合计</i><span>输入</span><b>' + Q.tin + '</b><span>输出</span><b class="rd">' + Q.tout + '</b><span>压缩</span><b>' + Q.tcomp + ' 次</b></div>';
+    }).join(NL);
+    return '<section class="slide sm" data-p="0">' +
+      xmarks() +
+      '<div class="sm-deco"><div class="dots" style="position:static;width:100%;height:100%"></div><div class="ring" style="position:absolute;right:-1vw;top:-2vh;width:9vh;height:9vh"></div></div>' +
+      '<div class="sm-top"><div class="plate fx"><i></i>总结对比 SUMMARY</div><h2 class="fx">三项目 × 三量化</h2></div>' +
+      '<div class="sm-grid"><div></div>' + heads + body + tot + '</div>' +
+      '<div class="sm-note fx"><span>观察：<b>NVFP4</b> 总输出最高（485.7K）且压缩 3 次仍稳定；<b>Q5</b> 总输入最低（14.8M）；<b>Q4</b> 在 test2 消耗最大（10.2M）。量化档位与场景复杂度共同决定生成行为与压缩触发，完整数据见 $OUTPUT_DIR/规划.txt。</span></div>' +
+      '</section>';
+  }
+
+  function drumHTML() {
+    var faces = OTHER.map(function (o, i) {
+      return '<div class="face" style="transform:rotateY(' + (i * 90) + 'deg) translateZ(21vw)">' +
+        '<div class="face-frame" data-ox>' +
+          '<video muted loop autoplay preload="metadata" src="' + VID_ROOT + o.file + '"></video>' +
+          '<div class="face-ph"><div class="fn">0' + (i + 1) + '</div><div class="ft">' + o.t + '</div><div class="fp">' + o.file + '</div><div class="fh">待录制 · 放入同名文件即自动显示</div></div>' +
+          '<div class="face-plate"><span><i></i>' + o.t + '</span><span>' + o.file + '</span></div>' +
+        '</div></div>';
+    }).join(NL);
+    return '<section class="slide ox" data-p="0">' +
+      xmarks() +
+      '<div class="dots" style="left:2vw;bottom:8vh"></div>' +
+      '<div class="ox-top"><div class="plate fx"><i></i>其他作品 · OTHER</div><h2 class="fx">滚筒轮播</h2><span class="ox-sub fx">4 PROJECTS · 3D BARREL · LOOP</span>' +
+        '<div class="ox-deco fx"><span class="dr f"></span><span class="dr"></span><span class="dr"></span></div></div>' +
+      '<div class="drum-stage fx"><div class="drum" id="drum">' + faces + '</div></div>' +
+      '<div class="ox-hint fx"><i></i>悬停暂停旋转 · 点击空白翻页 · 视频待录制：把 4 个 mp4 放到 <b>$OUTPUT_DIR/</b> 命名为 other-1..4.mp4，或改脚本顶部 OTHER 数组</div>' +
+      '</section>';
+  }
+
+  function endHTML() {
+    var CREDITS = [
+      ["参 演", "Q5_K_XL · Q4_K_XL · NVFP4-MTP-Q8attn", "CAST", true],
+      ["网页制作", "Qwen3.8-27B-UD-Q5_K_XL", "WEB BUILD", false],
+      ["音 乐", "Qwen3.8-27B-UD-Q5_K_XL", "MUSIC", false],
+      ["数据分析 · 技术支持", "Qwen3.8-27B-UD-Q5_K_XL", "DATA & TECH", false],
+      ["视频录制", "我", "REC", false],
+      ["总体规划", "我", "PLAN", false]
+    ];
+    var rows = CREDITS.map(function (c) {
+      return '<div class="cr fx' + (c[3] ? " big" : "") + '"><i>' + c[0] + '</i><b>' + c[1] + '</b><span class="en">' + c[2] + '</span></div>';
+    }).join(NL);
+    return '<section class="slide fin" data-p="0">' +
+      xmarks() +
+      '<div class="fin-deco"></div><div class="fin-deco2"></div><div class="dots fin-dots"></div>' +
+      '<div class="fin-l">' +
+        '<div class="fin-block fx"><b>完</b></div>' +
+        '<div class="fin-plate plate fx"><i></i>THE END · 完</div>' +
+        '<div class="fin-line fx"></div>' +
+        '<div class="fin-tag fx">QWEN3.8-27B · QUANTIZATION SHOWCASE · 2026</div>' +
+      '</div>' +
+      '<div class="fin-r">' + rows + '</div>' +
+      '<div class="fin-foot fx"><span>按 <b>Home</b> 回到封面</span><span>·</span><span><b>F</b> 全屏</span></div>' +
+      '</section>';
+  }
+
+  var SLIDES = [];
+  function addSlide(html, label, kind) {
+    var el = document.createElement("div");
+    el.innerHTML = html;
+    var s = el.firstElementChild;
+    stage.appendChild(s);
+    SLIDES.push({ el: s, label: label, kind: kind || "" });
+  }
+  addSlide(coverHTML(), "封面 · 主题与配置");
+  PROJECTS.forEach(function (p, pi) {
+    addSlide(headHTML(p), "测试项目" + PNUM[pi] + " · 设定");
+    QORDER.forEach(function (qk) {
+      addSlide(variantHTML(p, qk), "测试项目" + PNUM[pi] + " · " + QUANTS[qk].name + " 录像");
+    });
+  });
+  addSlide(summaryHTML(), "总结对比");
+  addSlide(drumHTML(), "其他作品 · 滚筒轮播", "drum");
+  addSlide(endHTML(), "结束 · 鸣谢");
+
+  SLIDES.forEach(function (s) {
+    var ph = s.el.querySelector("[data-prompt]");
+    if (ph) ph.textContent = document.getElementById("prompt-" + ph.getAttribute("data-prompt")).textContent.trim();
+  });
+
+  var idx = 0, busy = false;
+  var hudc = document.getElementById("hudc"), idxEl = document.getElementById("idx"),
+      prog = document.getElementById("prog").firstElementChild, track = document.getElementById("track");
+  for (var t = 0; t < 10; t++) {
+    var cell = document.createElement("i");
+    cell.style.borderColor = (t < 9) ? PHUE[Math.floor(t / 3)] : "#d93a12";
+    cell.style.color = (t < 9) ? PHUE[Math.floor(t / 3)] : "#d93a12";
+    track.appendChild(cell);
+  }
+  var cells = track.children;
+  function trackSlide(i) { return i < 9 ? (2 + Math.floor(i / 3) * 4 + (i % 3)) : 14; }
+
+  function showFx(s) {
+    var fx = s.el.querySelectorAll(".fx");
+    for (var i = 0; i < fx.length; i++) {
+      (function (f, i) { setTimeout(function () { f.classList.add("on"); }, 90 + i * 60); })(fx[i], i);
+    }
+  }
+  function hideFx(s) {
+    var fx = s.el.querySelectorAll(".fx.on");
+    for (var i = 0; i < fx.length; i++) fx[i].classList.remove("on");
+  }
+  function paint() {
+    idxEl.textContent = ("0" + (idx + 1)).slice(-2) + " / 16";
+    prog.style.width = ((idx + 1) / 16 * 100) + "%";
+    hudc.textContent = SLIDES[idx].label;
+    for (var i = 0; i < 10; i++) cells[i].classList.toggle("hit", trackSlide(i) <= idx);
+  }
+
+  function slideVideos(s) { return s.el.querySelectorAll("video"); }
+  function pauseSlideVideos(s) { var vs = slideVideos(s); for (var i = 0; i < vs.length; i++) vs[i].pause(); }
+  function playSlideVideos(s) { var vs = slideVideos(s); for (var i = 0; i < vs.length; i++) vs[i].play().catch(function () {}); }
+  function seekVideo(s) {
+    if (s.kind === "drum") return;
+    var v = s.el.querySelector("video");
+    if (v) { try { v.currentTime = 0; } catch (e) {} }
+  }
+
+  function slideColor(el) {
+    var p = parseInt(el.getAttribute("data-p"), 10);
+    return p >= 1 && p <= 3 ? PHUE[p - 1] : INK;
+  }
+  function go(n) {
+    if (busy || n === idx || n < 0 || n >= SLIDES.length) return;
+    busy = true;
+    var back = n < idx;
+    var cur = SLIDES[idx], nxt = SLIDES[n];
+    wipe.style.background = slideColor(nxt.el);
+    wipe.style.animation = "none";
+    void wipe.offsetWidth;
+    wipe.style.animation = (back ? "wipeInR " : "wipeIn ") + "0.24s cubic-bezier(.85,0,.15,1) forwards";
+    setTimeout(function () {
+      pauseSlideVideos(cur);
+      hideFx(cur);
+      cur.el.classList.remove("on");
+      nxt.el.classList.add("on");
+      idx = n;
+      showFx(nxt);
+      paint();
+      if (nxt.kind === "drum") playSlideVideos(nxt);
+      else seekVideo(nxt);
+      wipe.style.animation = (back ? "wipeOutR " : "wipeOut ") + "0.28s cubic-bezier(.85,0,.15,1) forwards";
+      setTimeout(function () {
+        wipe.style.animation = "none";
+        wipe.style.transform = "translateX(-102%)";
+        busy = false;
+      }, 300);
+    }, 250);
+  }
+
+  SLIDES.forEach(function (s) {
+    var film = s.el.querySelector(".film");
+    if (film) {
+      var v = film.querySelector("video");
+      v.addEventListener("error", function () { film.classList.add("novideo"); });
+      film.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        if (film.classList.contains("novideo")) return;
+        if (film.requestFullscreen) film.requestFullscreen();
+        v.play().catch(function () {});
+      });
+      v.addEventListener("ended", function () { if (document.fullscreenElement) document.exitFullscreen(); });
+    }
+    var ox = s.el.querySelector("[data-ox]");
+    if (ox) {
+      var ov = ox.querySelector("video");
+      ov.addEventListener("canplay", function () { ox.classList.add("ok"); });
+    }
+  });
+
+  // ===== 音乐 =====
+  var bgm = document.getElementById("bgm");
+  var mbtn = document.getElementById("mbtn");
+  var bgmst = document.getElementById("bgmst");
+  var mstate = "auto";
+  function paintMusic() {
+    mbtn.classList.toggle("on", mstate === "on");
+    if (bgmst) bgmst.textContent = mstate === "on" ? "播放中" : (mstate === "off" ? "已关 · M 开启" : "自动 · 任意键开始");
+  }
+  function setMusic(on) {
+    mstate = on ? "on" : "off";
+    if (on) bgm.play().catch(function () { mstate = "off"; });
+    else bgm.pause();
+    paintMusic();
+  }
+  bgm.addEventListener("play", function () { mstate = "on"; paintMusic(); });
+  bgm.addEventListener("pause", function () { if (mstate !== "auto") { mstate = "off"; paintMusic(); } });
+  mbtn.addEventListener("click", function (ev) { ev.stopPropagation(); setMusic(mstate !== "on"); });
+  var chip = document.getElementById("bgmchip");
+  if (chip) chip.addEventListener("click", function (ev) { ev.stopPropagation(); setMusic(mstate !== "on"); });
+  paintMusic();
+  function firstTouch() { if (mstate === "auto") setMusic(true); }
+  document.addEventListener("keydown", firstTouch, true);
+  document.addEventListener("pointerdown", firstTouch, true);
+
+  stage.addEventListener("click", function (ev) {
+    if (ev.target.closest(".film") || ev.target.closest("#mbtn") || ev.target.closest("#bgmchip")) return;
+    go(idx + 1);
+  });
+
+  function toggleFS() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  }
+
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "ArrowRight" || ev.key === " " || ev.key === "PageDown") { ev.preventDefault(); go(idx + 1); }
+    else if (ev.key === "ArrowLeft" || ev.key === "PageUp") { ev.preventDefault(); go(idx - 1); }
+    else if (ev.key === "Home") { ev.preventDefault(); go(0); }
+    else if (ev.key === "End") { ev.preventDefault(); go(SLIDES.length - 1); }
+    else if (ev.key === "f" || ev.key === "F") { ev.preventDefault(); toggleFS(); }
+    else if (ev.key === "m" || ev.key === "M") { ev.preventDefault(); setMusic(mstate !== "on"); }
+    else if (ev.key === "0") { ev.preventDefault(); go(14); }
+    else if (ev.key >= "1" && ev.key <= "9") {
+      var k = parseInt(ev.key, 10) - 1;
+      go(2 + Math.floor(k / 3) * 4 + (k % 3));
+    }
+  });
+
+  window.__dsh_go = go;
+  window.__dsh_idx = function () { return idx; };
+  SLIDES[0].el.classList.add("on");
+  showFx(SLIDES[0]);
+  paint();
+})();
+</script>
+</body>
+</html>

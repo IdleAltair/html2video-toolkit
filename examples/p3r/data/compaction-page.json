@@ -1,0 +1,168 @@
+{
+ "generatedBy": "pipeline/compaction-page.mjs",
+ "note": "全部字段从 data/compaction-evidence.json 筛出；evidence 又是逐条解析 data/trace-*.md 得来的，页面不手抄数字。",
+ "screening": {
+  "readVerbRegex": "/\\b(read|re-read|dump|cat|grep|scan|view|check|locate|show|inspect|head|list)\\b/i",
+  "writeReject": "/^(run_code:\\s*)?(write|create|patch|build|rewrite|set|save|update)\\b/i",
+  "droppedPairs": 4,
+  "evidenceAcrossFold": 10
+ },
+ "probe1": {
+  "definition": "搜动作列+思考列两列；session_query 为恢复工具名精确匹配（大小写敏感）；历史读取用 /session_query|session log|jsonl|history message|previous (message|conversation)|look back|recall earlier|回看|历史/i；跨场只看动作列出现「非本场」run 目录名",
+  "toolNames": [
+   "session_event_read",
+   "session_event_search",
+   "session_search",
+   "session_trace",
+   "session_event_trace"
+  ],
+  "sessionQuery": 0,
+  "historyRead": 1,
+  "crossSession": 0,
+  "traceOnlyCaveat": "三份 md 的思考摘要列被截断（实测上限 170 字符），任何「列里没写到」都只能得出「本文档中无证据」，不能得出「模型没做过」。C 探针的 0 命中属于这种情况；要坐实「从未调用 session_query / 从未回捞历史」必须查 DSH 原始 session 日志里的工具调用序列。",
+  "rawLog": {
+   "recoveryCalls": 0,
+   "selfLogReads": 0,
+   "wideMentions": 141,
+   "compactDispatch": 16,
+   "summaries": 18,
+   "engineSummaries": 2,
+   "harnessToldIt": 3,
+   "perRun": {
+    "圈地 land-gui2": null,
+    "炸弹人 bomberman-gui1": null,
+    "夺旗 ctf-gui1": null
+   }
+  }
+ },
+ "probe2": {
+  "rerereadAcrossFold": [
+   {
+    "game": "圈地",
+    "file": "TASK.md",
+    "from": "1.1@13:54",
+    "to": "1.72@15:16",
+    "gapSteps": 71,
+    "gapMinutes": 82,
+    "folds": 3,
+    "fromAction": "run_code: Explore workspace and read TASK.md",
+    "toAction": "run_code: Read TASK.md rules"
+   },
+   {
+    "game": "圈地",
+    "file": "greedy",
+    "from": "1.5@13:54",
+    "to": "1.75@15:18",
+    "gapSteps": 70,
+    "gapMinutes": 84,
+    "folds": 3,
+    "fromAction": "run_code: Read referee and greedy anchor",
+    "toAction": "run_code: Read greedy anchor bot"
+   },
+   {
+    "game": "圈地",
+    "file": "game.py",
+    "from": "1.17@14:49",
+    "to": "1.73@15:16",
+    "gapSteps": 56,
+    "gapMinutes": 27,
+    "folds": 1,
+    "fromAction": "run_code: Read game.py around prompt builder",
+    "toAction": "run_code: Read engine/game.py rules"
+   },
+   {
+    "game": "夺旗",
+    "file": "anchor",
+    "from": "1.44@20:07",
+    "to": "3.21@21:22",
+    "gapSteps": 54,
+    "gapMinutes": 75,
+    "folds": 1,
+    "fromAction": "run_code: Read escort/flag/spot/anchor/greedy code",
+    "toAction": "run_code: Read anchor job block"
+   },
+   {
+    "game": "圈地",
+    "file": "greedy",
+    "from": "1.75@15:18",
+    "to": "3.5@22:01",
+    "gapSteps": 27,
+    "gapMinutes": 403,
+    "folds": 1,
+    "fromAction": "run_code: Read greedy anchor bot",
+    "toAction": "run_code: Read greedy anchor strategy"
+   },
+   {
+    "game": "夺旗",
+    "file": "bot.cpp",
+    "from": "1.43@20:07",
+    "to": "1.54@20:17",
+    "gapSteps": 11,
+    "gapMinutes": 10,
+    "folds": 1,
+    "fromAction": "run_code: Locate job section in bot.cpp",
+    "toAction": "run_code: Locate siege block in bot.cpp"
+   }
+  ],
+  "mistakeAcrossFold": [
+   {
+    "game": "圈地",
+    "family": "printf 里 \\n 被工具层吞掉",
+    "why": "14:37 写第一版时 printf 的 \\n 被工具层吞掉，15:29 改写整份策略时同一处又吞了一次",
+    "from": "1.8@14:37",
+    "to": "1.78@15:29",
+    "sameTurn": true,
+    "gapSteps": 70,
+    "gapMinutes": 52,
+    "foldsBetween": 3,
+    "fromAction": "run_code: Rewrite bot.cpp and compile",
+    "toAction": "run_code: Fix printf newline and recompile",
+    "rawA": "| 1.8 | 14:37 | 1.6m | 610/3867/121858 | run_code: Rewrite bot.cpp and compile | I need to investigate this further. Let me check the details. There are several problems: 1. The `printf(\"%d %c\\n\", ...)` line got broken — it seems the `\\n` inside the t |",
+    "rawB": "| 1.78 | 15:29 | 6s | 250/247/73236 | run_code: Fix printf newline and recompile | The `\\n` in my printf format string got interpreted as an actual newline when the content was written (the `\\n` in my JSON template literal became a literal newline). I n |"
+   },
+   {
+    "game": "炸弹人",
+    "family": "printf 里 \\n 被工具层吞掉",
+    "why": "17:05 刚把 \\n 修好、17:06 折叠了一次，17:24 用 python heredoc 打补丁时又写坏一次",
+    "from": "1.12@17:05",
+    "to": "1.58@17:24",
+    "sameTurn": true,
+    "gapSteps": 46,
+    "gapMinutes": 19,
+    "foldsBetween": 1,
+    "fromAction": "run_code: Fix broken printf newline escape",
+    "toAction": "run_code: Fix C string escape, rebuild",
+    "rawA": "| 1.12 | 17:05 | 9s | 943/321/90514 | run_code: Fix broken printf newline escape | Line 578: `printf(\"%d %c %d` — the `\\n` in my source content got interpreted! I wrote `printf(\"%d %c %d\\n\",T,DSC[d],p);` in the write tool's content, but the JSON string' |",
+    "rawB": "| 1.58 | 17:24 | 14s | 843/399/103591 | run_code: Fix C string escape, rebuild | The `\\n` inside the Python heredoc patch: I wrote `fprintf(stderr, \"gc fread=%zu\\n\", inlen);` inside a Python string enclosed in single quotes within the heredoc, but Pyt |"
+   }
+  ],
+  "redoSameEditStrict": 0
+ },
+ "tax": {
+  "events": 18,
+  "headerEvents": 18,
+  "foldSteps": 13,
+  "perSession": {
+   "圈地": 5,
+   "炸弹人": 3,
+   "夺旗": 5
+  },
+  "noteMinSec": 32,
+  "noteMaxSec": 198,
+  "noteMedianSec": 84,
+  "cacheMaxBefore": 138714,
+  "afterMin": 10055,
+  "afterMax": 10653,
+  "replayMinTok": 9013,
+  "replayMaxTok": 113294,
+  "anchors": 13,
+  "selfInitiated": 16,
+  "engineTaken": 2,
+  "rawAnchors": 18,
+  "familyHits": {
+   "printf 里 \\n 被工具层吞掉": 14,
+   "heredoc 静默失败": 14,
+   "fread 阻塞": 27
+  }
+ }
+}

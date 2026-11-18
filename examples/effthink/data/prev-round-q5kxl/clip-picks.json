@@ -1,0 +1,872 @@
+{
+ "bomb_solo": [
+  {
+   "match": 7,
+   "opp": "Kimi K3",
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/00007.json",
+   "turns": 71
+  },
+  {
+   "match": 12,
+   "opp": "DeepSeek V4.1 Flash",
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/00012.json",
+   "turns": 171
+  },
+  {
+   "match": 16,
+   "opp": "Qwen 3.8 Max",
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/00016.json",
+   "turns": 62
+  },
+  {
+   "match": 17,
+   "opp": "MiMo V2.6 Pro",
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/00017.json",
+   "turns": 151
+  },
+  {
+   "match": 19,
+   "opp": "Base",
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/00019.json",
+   "turns": 81
+  }
+ ],
+ "bomb_melee": [
+  {
+   "match": 1122,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01122.json"
+  },
+  {
+   "match": 1138,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01138.json"
+  },
+  {
+   "match": 1141,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01141.json"
+  },
+  {
+   "match": 1149,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01149.json"
+  },
+  {
+   "match": 1165,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01165.json"
+  },
+  {
+   "match": 1178,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01178.json"
+  },
+  {
+   "match": 1198,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01198.json"
+  },
+  {
+   "match": 1202,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01202.json"
+  },
+  {
+   "match": 1218,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01218.json"
+  },
+  {
+   "match": 1222,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01222.json"
+  },
+  {
+   "match": 1258,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01258.json"
+  },
+  {
+   "match": 1278,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01278.json"
+  },
+  {
+   "match": 1282,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01282.json"
+  },
+  {
+   "match": 1295,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01295.json"
+  },
+  {
+   "match": 1182,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01182.json"
+  },
+  {
+   "match": 1262,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01262.json"
+  },
+  {
+   "match": 1242,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01242.json"
+  },
+  {
+   "match": 1102,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01102.json"
+  },
+  {
+   "match": 1238,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01238.json"
+  },
+  {
+   "match": 1142,
+   "size": 10,
+   "rank": 10,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01142.json"
+  }
+ ],
+ "bomb_blind": [
+  {
+   "match": 1220,
+   "cell": 563,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01220.json"
+  },
+  {
+   "match": 1297,
+   "cell": 537,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01297.json"
+  },
+  {
+   "match": 1195,
+   "cell": 501,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01195.json"
+  },
+  {
+   "match": 1149,
+   "cell": 491,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01149.json"
+  },
+  {
+   "match": 1145,
+   "cell": 489,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01145.json"
+  },
+  {
+   "match": 1239,
+   "cell": 485,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01239.json"
+  },
+  {
+   "match": 1215,
+   "cell": 478,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01215.json"
+  },
+  {
+   "match": 1152,
+   "cell": 463,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01152.json"
+  },
+  {
+   "match": 1192,
+   "cell": 442,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01192.json"
+  },
+  {
+   "match": 1208,
+   "cell": 440,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01208.json"
+  },
+  {
+   "match": 1186,
+   "cell": 439,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01186.json"
+  },
+  {
+   "match": 1204,
+   "cell": 437,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01204.json"
+  },
+  {
+   "match": 1229,
+   "cell": 436,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01229.json"
+  },
+  {
+   "match": 1117,
+   "cell": 421,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01117.json"
+  },
+  {
+   "match": 1216,
+   "cell": 419,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01216.json"
+  },
+  {
+   "match": 1132,
+   "cell": 409,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01132.json"
+  },
+  {
+   "match": 1207,
+   "cell": 407,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01207.json"
+  },
+  {
+   "match": 1227,
+   "cell": 407,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01227.json"
+  },
+  {
+   "match": 1131,
+   "cell": 394,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01131.json"
+  },
+  {
+   "match": 1110,
+   "cell": 392,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01110.json"
+  }
+ ],
+ "ctf_zero": [
+  {
+   "id": "13-000-00-00922",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-000-00-00923",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-002-00-00940",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-002-00-00939",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-002-00-00942",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-002-00-00946",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-002-00-00947",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-003-00-00953",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-003-00-00960",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-004-00-00968",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-004-00-00976",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-005-00-00986",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-005-00-00990",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-006-00-00994",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-006-00-00995",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-006-00-00998",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-007-00-01010",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-007-00-01016",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "id": "13-000-00-00924",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "id": "13-000-00-00925",
+   "size": 13,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  }
+ ],
+ "bomb_ot_gain": [
+  {
+   "match": 1191,
+   "size": 10,
+   "delta": 8.5,
+   "main_pts": 1.0,
+   "ot_pts": 9.5,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01191.json"
+  },
+  {
+   "match": 1106,
+   "size": 10,
+   "delta": 8.0,
+   "main_pts": 0.0,
+   "ot_pts": 8.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01106.json"
+  },
+  {
+   "match": 1159,
+   "size": 10,
+   "delta": 8.0,
+   "main_pts": 0.0,
+   "ot_pts": 8.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01159.json"
+  },
+  {
+   "match": 1228,
+   "size": 10,
+   "delta": 8.0,
+   "main_pts": 0.0,
+   "ot_pts": 8.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01228.json"
+  },
+  {
+   "match": 1270,
+   "size": 10,
+   "delta": 8.0,
+   "main_pts": 1.0,
+   "ot_pts": 9.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01270.json"
+  },
+  {
+   "match": 1298,
+   "size": 10,
+   "delta": 8.0,
+   "main_pts": 0.0,
+   "ot_pts": 8.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01298.json"
+  },
+  {
+   "match": 1126,
+   "size": 10,
+   "delta": 7.5,
+   "main_pts": 0.0,
+   "ot_pts": 7.5,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01126.json"
+  },
+  {
+   "match": 1188,
+   "size": 10,
+   "delta": 7.0,
+   "main_pts": 2.0,
+   "ot_pts": 9.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01188.json"
+  },
+  {
+   "match": 1195,
+   "size": 10,
+   "delta": 7.0,
+   "main_pts": 0.0,
+   "ot_pts": 7.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01195.json"
+  },
+  {
+   "match": 1246,
+   "size": 10,
+   "delta": 7.0,
+   "main_pts": 1.0,
+   "ot_pts": 8.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01246.json"
+  },
+  {
+   "match": 1249,
+   "size": 10,
+   "delta": 7.0,
+   "main_pts": 0.0,
+   "ot_pts": 7.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01249.json"
+  },
+  {
+   "match": 1275,
+   "size": 10,
+   "delta": 7.0,
+   "main_pts": 0.0,
+   "ot_pts": 7.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01275.json"
+  },
+  {
+   "match": 1290,
+   "size": 10,
+   "delta": 7.0,
+   "main_pts": 0.0,
+   "ot_pts": 7.0,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01290.json"
+  },
+  {
+   "match": 1166,
+   "size": 10,
+   "delta": 6.75,
+   "main_pts": 0.0,
+   "ot_pts": 6.75,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01166.json"
+  },
+  {
+   "match": 1209,
+   "size": 10,
+   "delta": 6.75,
+   "main_pts": 0.0,
+   "ot_pts": 6.75,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01209.json"
+  },
+  {
+   "match": 1109,
+   "size": 10,
+   "delta": 6.5,
+   "main_pts": 0.0,
+   "ot_pts": 6.5,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01109.json"
+  },
+  {
+   "match": 1151,
+   "size": 10,
+   "delta": 6.5,
+   "main_pts": 1.0,
+   "ot_pts": 7.5,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01151.json"
+  },
+  {
+   "match": 1215,
+   "size": 10,
+   "delta": 6.5,
+   "main_pts": 0.0,
+   "ot_pts": 6.5,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01215.json"
+  },
+  {
+   "match": 1219,
+   "size": 10,
+   "delta": 6.5,
+   "main_pts": 0.0,
+   "ot_pts": 6.5,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01219.json"
+  },
+  {
+   "match": 1231,
+   "size": 10,
+   "delta": 6.5,
+   "main_pts": 1.0,
+   "ot_pts": 7.5,
+   "replay": "$HOME/deepseek-harness/workplace/meow-ai-arena/bomberman/challenge-runs/rerun-ot-w2-1005-103544/replays/01231.json"
+  }
+ ],
+ "land_duel_win": [
+  {
+   "ver": "main",
+   "seed": 1002,
+   "score": 859,
+   "opp": "gpt-6-sol@codex#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1002,
+   "score": 1160,
+   "opp": "sonnet-5@claude-code#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "seed": 1002,
+   "score": 859,
+   "opp": "gpt-6-sol@codex#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-ot-j2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "seed": 1002,
+   "score": 1160,
+   "opp": "sonnet-5@claude-code#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-ot-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1001,
+   "score": 1036,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1002,
+   "score": 874,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1002,
+   "score": 989,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1003,
+   "score": 678,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "seed": 1001,
+   "score": 1036,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-ot-j2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "seed": 1002,
+   "score": 874,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-ot-j2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "seed": 1002,
+   "score": 989,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-ot-j2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "seed": 1003,
+   "score": 678,
+   "opp": "kimi-k3@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-ot-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1000,
+   "score": 851,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1000,
+   "score": 851,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1001,
+   "score": 666,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1003,
+   "score": 190,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1003,
+   "score": 488,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1004,
+   "score": 805,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1005,
+   "score": 560,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 1005,
+   "score": 238,
+   "opp": "deepseek-4.1f@workbuddy#1",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  }
+ ],
+ "land_melee_last": [
+  {
+   "ver": "main",
+   "seed": 6000,
+   "score": 23,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6000,
+   "score": 27,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6000,
+   "score": 25,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6001,
+   "score": 9,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6001,
+   "score": 23,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6001,
+   "score": 416,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6002,
+   "score": 25,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6002,
+   "score": 9,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6002,
+   "score": 24,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6002,
+   "score": 104,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6002,
+   "score": 25,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6002,
+   "score": 25,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6002,
+   "score": 372,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6003,
+   "score": 96,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6003,
+   "score": 130,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6003,
+   "score": 113,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6003,
+   "score": 271,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6003,
+   "score": 25,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6003,
+   "score": 9,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "seed": 6005,
+   "score": 20,
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/land/challenge-runs/rerun-main-j2-1005-010034"
+  }
+ ],
+ "ctf_duel_win": [
+  {
+   "ver": "ot",
+   "score": 26,
+   "opp": "Qwen 3.8 Max",
+   "id": "02-003-03-00050",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 24,
+   "opp": "MiMo V2.6 Pro",
+   "id": "02-002-00-00029",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 22,
+   "opp": "基准",
+   "id": "02-007-06-00111",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 27,
+   "opp": "基准",
+   "id": "02-007-06-00112",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 24,
+   "opp": "Kimi K3",
+   "id": "02-005-01-00074",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "score": 27,
+   "opp": "GLM 5.3",
+   "id": "02-002-02-00033",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 27,
+   "opp": "GLM 5.3",
+   "id": "02-006-06-00097",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 24,
+   "opp": "GLM 5.3",
+   "id": "02-006-06-00098",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "score": 41,
+   "opp": "豆包 Seed 2.1 Turbo",
+   "id": "02-001-03-00021",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "ver": "main",
+   "score": 42,
+   "opp": "豆包 Seed 2.1 Turbo",
+   "id": "02-001-03-00022",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-main-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 2,
+   "opp": "豆包 Seed 2.1 Turbo",
+   "id": "02-006-03-00091",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  },
+  {
+   "ver": "ot",
+   "score": 33,
+   "opp": "豆包 Seed 2.1 Turbo",
+   "id": "02-006-03-00092",
+   "run": "$HOME/deepseek-harness/workplace/meow-ai-arena/ctf/challenge-runs/rerun-ot-w2-1005-010034"
+  }
+ ]
+}

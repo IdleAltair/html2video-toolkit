@@ -1,0 +1,28 @@
+{
+ "main": {
+  "run": "rerun-main-w2-1005-100059",
+  "games10p": 200,
+  "blastDeathsMine": 199,
+  "blind": 161,
+  "seen": 38,
+  "blindShare": 80.9,
+  "occupancyBlindShare": 27.7,
+  "peersBlastDeaths": 1381,
+  "peersBlindShare": 50.9,
+  "boardCells": 625,
+  "blindCells": 313
+ },
+ "ot": {
+  "run": "rerun-ot-w2-1005-103544",
+  "games10p": 200,
+  "blastDeathsMine": 195,
+  "blind": 81,
+  "seen": 114,
+  "blindShare": 41.5,
+  "occupancyBlindShare": 42.8,
+  "peersBlastDeaths": 1399,
+  "peersBlindShare": 49.9,
+  "boardCells": 625,
+  "blindCells": 313
+ }
+}

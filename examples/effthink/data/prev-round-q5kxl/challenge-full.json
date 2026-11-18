@@ -1,0 +1,304 @@
+{
+ "_src": "challenge.py --full 大样本复核。run 目录见 runs 字段；原始表拷在 data/full-src/。main=正赛交卷版，ot=加时终版。",
+ "runs": {},
+ "games": {
+  "land": 1128,
+  "ctf": 1016,
+  "bomb": 1320
+ },
+ "land": {
+  "main": {
+   "score": 6.1,
+   "rank": 8,
+   "field": 10,
+   "duel": {
+    "score": 12.2,
+    "elo": 90.0
+   },
+   "melee": {
+    "score": 0.0,
+    "elo": -314.0
+   },
+   "randomAnchorElo": -487.0,
+   "randomAnchorMelee": 0.0,
+   "ci95": "1.5–10.8",
+   "ratings": {
+    "Sonnet 5": 100.0,
+    "GPT-6 Astra": 81.2,
+    "Opus 5.5": 66.3,
+    "GPT-6 Sol": 53.5,
+    "MiMo V2.6 Pro": 34.2,
+    "Kimi K3": 16.2,
+    "GLM 5.3": 12.3,
+    "本地 27B": 6.1,
+    "DeepSeek V4.1 Flash": 2.6,
+    "神秘模型": 0.0
+   },
+   "anchors": {
+    "陪练锚点": 93.1,
+    "贪心基准": 0.0,
+    "随机锚点": 0.0
+   }
+  },
+  "ot": {
+   "score": 6.8,
+   "rank": 8,
+   "field": 10,
+   "duel": {
+    "score": 12.3,
+    "elo": 90.0
+   },
+   "melee": {
+    "score": 0.0,
+    "elo": -259.0
+   },
+   "randomAnchorElo": -488.0,
+   "randomAnchorMelee": 0.0,
+   "ci95": "1.2–11.1",
+   "ratings": {
+    "Sonnet 5": 100.0,
+    "GPT-6 Astra": 96.9,
+    "Opus 5.5": 75.6,
+    "GPT-6 Sol": 57.3,
+    "MiMo V2.6 Pro": 41.8,
+    "Kimi K3": 24.6,
+    "GLM 5.3": 13.7,
+    "本地 27B": 6.8,
+    "DeepSeek V4.1 Flash": 2.9,
+    "神秘模型": 0.0
+   },
+   "anchors": {
+    "陪练锚点": 104.2,
+    "贪心基准": 0.0,
+    "随机锚点": 0.0
+   }
+  },
+  "selftest": {
+   "area": 851,
+   "baseline": 606,
+   "games": 10,
+   "opponent": "greedy"
+  }
+ },
+ "ctf": {
+  "main": {
+   "bt": -346,
+   "rank": 12,
+   "field": 12,
+   "ci95": "-394 ~ -302",
+   "bySize": {
+    "2": -124,
+    "3": -205,
+    "4": -210,
+    "5": -173,
+    "6": -209,
+    "8": -210,
+    "10": -203,
+    "13": -94
+   },
+   "faults": 14,
+   "games": 1016,
+   "ratings": {
+    "DeepSeek V4.1 Flash": 114,
+    "Fable 5.1": 180,
+    "GLM 5.3": -112,
+    "GPT-6 Astra": 243,
+    "GPT-6.1 Sol": 239,
+    "Kimi K3": -23,
+    "MiMo V2.6 Pro": 11,
+    "Opus 5.5": 181,
+    "Qwen 3.8 Max": 16,
+    "Sonnet 5.5": 164,
+    "本地 27B": -346,
+    "豆包 Seed 2.1 Turbo": -289
+   }
+  },
+  "ot": {
+   "bt": -52,
+   "rank": 9,
+   "field": 12,
+   "ci95": "-102 ~ -15",
+   "bySize": {
+    "2": 74,
+    "3": -16,
+    "4": -50,
+    "5": -13,
+    "6": -56,
+    "8": -93,
+    "10": -19,
+    "13": -80
+   },
+   "faults": 8,
+   "games": 1016,
+   "ratings": {
+    "DeepSeek V4.1 Flash": 117,
+    "Fable 5.1": 127,
+    "GLM 5.3": -126,
+    "GPT-6 Astra": 212,
+    "GPT-6.1 Sol": 202,
+    "Kimi K3": -62,
+    "MiMo V2.6 Pro": -5,
+    "Opus 5.5": 202,
+    "Qwen 3.8 Max": -34,
+    "Sonnet 5.5": 216,
+    "本地 27B": -52,
+    "豆包 Seed 2.1 Turbo": -313
+   }
+  }
+ },
+ "bomb": {
+  "ctlSeed": 20261004,
+  "ctl_ctlmain": {
+   "bt": 63.62,
+   "rank": 10,
+   "field": 10,
+   "bySize": {
+    "2": {
+     "mine": 0.5,
+     "games": 20,
+     "live": 0.425,
+     "kill": 0.075,
+     "faults": 0,
+     "base": 0.35,
+     "baseFaults": 0
+    },
+    "3": {
+     "mine": 1.091,
+     "games": 270,
+     "live": 0.883,
+     "kill": 0.207,
+     "faults": 0,
+     "base": 0.704,
+     "baseFaults": 0
+    },
+    "10": {
+     "mine": 1.649,
+     "games": 200,
+     "live": 1.532,
+     "kill": 0.116,
+     "faults": 1,
+     "base": 2.447,
+     "baseFaults": 0
+    }
+   },
+   "ratings": {
+    "本地 27B": 63.62,
+    "GPT-6 Astra": 439.14,
+    "GPT-6 Sol": 263.11,
+    "Opus 5.5": 301.86,
+    "Kimi K3": 222.66,
+    "GLM 5.3": 154.07,
+    "DeepSeek V4.1 Flash": 214.43,
+    "豆包 Seed 2.1": 80.1,
+    "Qwen 3.8 Max": 147.76,
+    "MiMo V2.6 Pro": 73.19,
+    "Base": 0.0
+   },
+   "anchors": {
+    "Base": 0.0
+   },
+   "games": 490
+  },
+  "ctl_ctlot": {
+   "bt": 116.38,
+   "rank": 8,
+   "field": 10,
+   "bySize": {
+    "2": {
+     "mine": 0.475,
+     "games": 20,
+     "live": 0.4,
+     "kill": 0.075,
+     "faults": 0,
+     "base": 0.35,
+     "baseFaults": 0
+    },
+    "3": {
+     "mine": 1.093,
+     "games": 270,
+     "live": 0.87,
+     "kill": 0.222,
+     "faults": 0,
+     "base": 0.7,
+     "baseFaults": 0
+    },
+    "10": {
+     "mine": 3.681,
+     "games": 200,
+     "live": 3.34,
+     "kill": 0.341,
+     "faults": 0,
+     "base": 2.304,
+     "baseFaults": 0
+    }
+   },
+   "ratings": {
+    "本地 27B": 116.38,
+    "GPT-6 Astra": 433.74,
+    "GPT-6 Sol": 249.96,
+    "Opus 5.5": 305.59,
+    "Kimi K3": 225.96,
+    "GLM 5.3": 146.72,
+    "DeepSeek V4.1 Flash": 218.78,
+    "豆包 Seed 2.1": 79.87,
+    "Qwen 3.8 Max": 152.33,
+    "MiMo V2.6 Pro": 70.63,
+    "Base": 0.0
+   },
+   "anchors": {
+    "Base": 0.0
+   },
+   "games": 490
+  },
+  "ctlDelta": {
+   "bt": 52.76,
+   "from": 10,
+   "to": 8,
+   "field": 10,
+   "held": "同一套 1320 局赛程（--seed 20261004）· 受控并发 w2"
+  },
+  "noise": {
+   "concurrency": {
+    "avgW1": 3.385,
+    "avgW2": 3.5,
+    "diff": -0.115,
+    "games": 24,
+    "held": "十人档 24 局、同赛程同座位，只换并发 2→1（配对参照，不是成绩）"
+   }
+  },
+  "ctl_ctlotw1": {
+   "bt": -28.21,
+   "rank": 8,
+   "field": 10,
+   "bySize": {
+    "10": {
+     "mine": 3.385,
+     "games": 24,
+     "live": 2.938,
+     "kill": 0.448,
+     "faults": 0,
+     "base": 3.25,
+     "baseFaults": 0
+    }
+   },
+   "ratings": {
+    "本地 27B": -28.21,
+    "GPT-6 Astra": 77.38,
+    "GPT-6 Sol": -0.93,
+    "Opus 5.5": 12.91,
+    "Kimi K3": 2.89,
+    "GLM 5.3": -28.69,
+    "DeepSeek V4.1 Flash": 42.63,
+    "豆包 Seed 2.1": -31.58,
+    "Qwen 3.8 Max": 25.81,
+    "MiMo V2.6 Pro": -26.94,
+    "Base": 0.0
+   },
+   "anchors": {
+    "Base": 0.0
+   },
+   "games": 24,
+   "note": "十人档 24 局配对参照：同赛程同座位、只换并发 2→1；切片样本，BT 值不可与全量成绩横比"
+  }
+ }
+}
