@@ -1,0 +1,741 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>合成波 SYNTHWAVE · 模板样例 · llm-html2video</title>
+<!--
+  设计语言 05 合成波 · 单文件模板
+  规范源: ../docs/design-language-synthwave.md   v1.0 2026-10-14
+  立意:   落日 × 铬字 × 地平网格;一切都在向地平线运动,落日是锚,网格是速度。
+  用法:   synthwave.html              正常播放(2560x1440 自适应缩放)
+          ?noanim          降级:冲入与换轨 1 帧直切、光轨直显终值、点亮直显全亮、网格/星点/微浮静止
+          ?clean=1         录屏:隐藏鼠标与左下角键位提示条(等价按 F)
+          ?slide=3         直接定位到第 4 页
+  键位:   → / Space / PageDown 下页   ← / PageUp 上页   Home / End   F 纯净屏   A 切换 ?noanim
+  鼠标:   滚轮累计过 40px 阈值才翻一次;点屏幕左右两侧 28% 翻页,中间 44% 安全区;转场期间加锁。
+  分工:   品红 = 过去/基准/他者(恒左),青 = 当前/本机/结论(恒右),全片不换;落日橙只属于太阳;铬字不带辉光。
+-->
+<style>
+/* ---- 色板 token · 规范 §2.1,逐字实现 ---- */
+:root{
+  --dusk:   #0D0418;  /* 暮空黑紫 */
+  --sky:    linear-gradient(#0D0418, #2B0F4C 55%, #FF2E88 100%); /* 落日天:全方案唯一大渐变 */
+  --chrome: #E8F4FF;  /* 铬白:标题 */
+  --pink:   #FF2E88;  /* 品红霓虹 */
+  --cyan:   #2EE6FF;  /* 青霓虹 */
+  --sun:    #FFB02E;  /* 落日橙:仅落日本体 */
+  --grid:   #FF2E88;  /* 地平网格同品红,透明度 40% */
+}
+/* 由 token 派生的透明度写法(不引入第三霓虹色,§2.2) */
+:root{
+  --grid-a: rgba(255,46,136,.4);   /* --grid @ 40%,§2.1 注释规定 */
+  --pka:    rgba(255,46,136,.55);  /* --pink 用于描边与阴影 */
+  --pks:    rgba(255,46,136,.28);
+  --cka:    rgba(46,230,255,.55);
+  --cks:    rgba(46,230,255,.26);
+  --chr:    #FFFFFF;               /* 铬面渐变的两端(白→浅蓝→白,§3.1) */
+  --chrb:   #9FD8FF;               /* 浅蓝中段 */
+  --dust:   rgba(232,244,255,.72); /* 铬白弱化:标签与注释,非新色 */
+  --scrim:  0 2px 10px rgba(13,4,24,.92),0 0 2px rgba(13,4,24,.9); /* 压暮色分离影,非辉光 */
+  --dusk78: rgba(13,4,24,.78);
+  --fmono:  "Cascadia Code","JetBrains Mono",Consolas,monospace;
+  --fsans:  "Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
+  /* Orbitron/Outfit 取不到:栈内取最接近的几何窄体,并用 letter-spacing 补偿字宽(报告已注明) */
+  --ftitle: "Outfit","Orbitron","Bahnschrift SemiBold Condensed","Bahnschrift","Franklin Gothic Medium",var(--fsans);
+}
+
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+html.clean,html.clean *{cursor:none!important}
+html.clean #hintbar{display:none}
+#stage{position:fixed;left:50%;top:50%;width:2560px;height:1440px;
+  transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:center center;
+  background:var(--dusk);overflow:hidden;font-family:var(--fsans);color:var(--chrome)}
+
+/* ---- 背景层 1:落日天(§2.1 唯一大渐变,只作天空;地平线固定在画面下 1/3 线 §4.1) ---- */
+#sky{position:absolute;left:0;right:0;top:0;height:960px;background:var(--sky);z-index:1}
+/* 退场第 2 步:天空一路压暗 粉→紫→暮黑,1s(§7.5)。z-index 2:压住天/落日/网格,不遮内容 */
+#dim{position:absolute;left:0;right:0;top:0;height:1440px;z-index:2;opacity:0;pointer-events:none;
+  background:linear-gradient(180deg,var(--dusk) 0,var(--dusk) 60%,var(--dusk78) 100%);
+  transition:opacity 1s linear}
+
+/* ---- 背景层 2:暮空星点(§4.3 母题 4,1–2px 铬白;3 颗错峰 4s 闪 §7.6) ---- */
+#stars{position:absolute;inset:0;z-index:1;pointer-events:none}
+#stars b{position:absolute;width:2px;height:2px;background:var(--chrome);opacity:.3}
+#stars i{position:absolute;width:2px;height:2px;background:var(--chrome);
+  animation:twinkle 4s ease-in-out infinite}
+@keyframes twinkle{0%,72%,100%{opacity:.18}84%{opacity:.95}}
+
+/* ---- 背景层 3:条纹落日(§4.3 母题 1:正圆 + 5 条水平缝,悬于地平线正中) ---- */
+#sun{position:absolute;left:1070px;top:620px;width:420px;height:420px;z-index:1;
+  transition:transform 1s cubic-bezier(.42,0,.58,1)}   /* 退场沉降 1s(§7.5 第 2 步) */
+#sun .disc{position:absolute;inset:0;border-radius:50%;   /* 圆角只出现在落日与铬框(§4.3) */
+  background:linear-gradient(180deg,#FFF6DE 0,var(--sun) 26%,var(--pink) 76%,#FF6FA6 100%);
+  box-shadow:0 0 90px 18px var(--pks),0 0 220px 60px rgba(255,46,136,.16);
+  -webkit-mask-image:linear-gradient(180deg,#000 0 38%,transparent 38% 41%,#000 41% 53%,
+    transparent 53% 57%,#000 57% 68%,transparent 68% 73.5%,#000 73.5% 83%,
+    transparent 83% 90%,#000 90% 96%,transparent 96% 100%);
+          mask-image:linear-gradient(180deg,#000 0 38%,transparent 38% 41%,#000 41% 53%,
+    transparent 53% 57%,#000 57% 68%,transparent 68% 73.5%,#000 73.5% 83%,
+    transparent 83% 90%,#000 90% 96%,transparent 96% 100%);
+  animation:sunfloat 8s ease-in-out infinite}            /* 落日微浮 ±6px / 8s(§7.6) */
+@keyframes sunfloat{0%,100%{transform:translateY(-6px)}50%{transform:translateY(6px)}}
+/* 段落切换:落日一次"落半格再升起"(§7.3 第 2 项) */
+#sun.dip{animation:sundip 600ms cubic-bezier(.1,.8,.3,1) 1}
+@keyframes sundip{0%{transform:translateY(0)}42%{transform:translateY(96px)}100%{transform:translateY(0)}}
+
+/* ---- 背景层 4:透视地平网格(§4.3 母题 2:品红 40%,向消失点收束,恒速向观众流动) ---- */
+#ground{position:absolute;left:0;right:0;top:960px;height:480px;z-index:1;
+  background:linear-gradient(180deg,var(--dusk) 0,var(--dusk) 20%,rgba(13,4,24,.78) 58%,rgba(13,4,24,.5) 100%)}
+#gridwrap{position:absolute;left:0;right:0;top:960px;height:480px;overflow:hidden;z-index:2;
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.45),#000 12%,#000 100%);
+          mask-image:linear-gradient(180deg,rgba(0,0,0,.45),#000 12%,#000 100%)}
+#gridtilt{position:absolute;left:50%;top:0;width:3200px;height:900px;margin-left:-1600px;
+  transform-origin:50% 0;transform:perspective(420px) rotateX(64deg)}
+#gridplane{position:absolute;left:0;top:-160px;width:3200px;height:1120px;will-change:transform;
+  background-image:
+    repeating-linear-gradient(90deg,var(--grid-a) 0 2px,transparent 2px 160px),
+    repeating-linear-gradient(180deg,var(--grid-a) 0 2px,transparent 2px 160px)}
+
+/* ---- 地平线 = 霓虹 0 基线(§5:一切图表立在地平线上) ---- */
+#hline{position:absolute;left:0;right:0;top:959px;height:2px;background:var(--pink);z-index:2;
+  box-shadow:0 0 12px var(--pka),0 0 34px var(--pks)}
+#hline.blink{animation:blinkonce 400ms steps(1,end) 2}
+@keyframes blinkonce{0%,49%{opacity:.12}50%,100%{opacity:1}}
+#hline.last{z-index:41;transition:opacity 400ms linear}  /* 全黑前留一条品红地平线,渐隐 400ms(§7.5) */
+
+/* ---- 页容器:换轨只在透视轴上运动(§7.3 禁止横向滑动) ---- */
+#slides{position:absolute;inset:0;z-index:3}
+.slide{position:absolute;inset:96px;opacity:0;visibility:hidden;will-change:transform,opacity}
+.slide.cur{opacity:1;visibility:visible}
+
+/* ---- 排版阶梯(§3.2;正文 ≥28px、注释 ≥24px 是硬下限 §1.5) ---- */
+.band{position:absolute;left:0;right:0;text-align:center;white-space:normal}
+.kicker{font:400 28px/1 var(--fmono);letter-spacing:.34em;color:var(--dust);text-shadow:var(--scrim)}
+.tilt{display:inline-block;transform:rotate(-6deg) skewX(-9deg)}  /* 6° 斜置 + 斜体感(§3.1) */
+/* 1px 暮紫描边(§3.1):本体只画暮紫字 + 8 向 1px 暮紫投影当描边层,
+   ::before 用同一字形覆一层铬面渐变(白→浅蓝→白)。
+   不用 -webkit-text-stroke(无头渲染下 CJK 出现线框重影);
+   描边层不能用 z-index:-1(标题带 transform,会形成层叠上下文把描边顶到渐变之上);
+   铬字全程不加 filter —— filter 会打穿这层层级。 */
+.chrome{position:relative;font-family:var(--ftitle);font-weight:800;letter-spacing:.055em;
+  font-size:96px;line-height:1.14;                   /* 铬字大标题基准(§3.2:96–140) */
+  color:var(--dusk);-webkit-text-fill-color:var(--dusk);
+  text-shadow:-1px 0 0 var(--dusk),1px 0 0 var(--dusk),0 -1px 0 var(--dusk),0 1px 0 var(--dusk),
+    -1px -1px 0 var(--dusk),1px -1px 0 var(--dusk),-1px 1px 0 var(--dusk),1px 1px 0 var(--dusk)}
+.chrome::before{content:attr(data-t);position:absolute;left:0;right:0;top:0;text-shadow:none;
+  color:transparent;-webkit-text-fill-color:transparent;
+  background:linear-gradient(180deg,var(--chr) 0,var(--chr) 14%,var(--chrb) 46%,
+    var(--chrome) 56%,var(--chr) 72%,var(--chrome) 100%);
+  -webkit-background-clip:text;background-clip:text}
+.tcover{font-size:132px}
+.tdiv{font-size:140px}
+.lede{font:400 32px/1.6 var(--fsans);color:var(--chrome);text-shadow:var(--scrim)}
+.note{font:400 28px/1.7 var(--fsans);color:var(--dust);text-shadow:var(--scrim)}
+.mono{font-family:var(--fmono);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.num{font:400 44px/1 var(--fmono);color:var(--chrome);font-variant-numeric:tabular-nums;
+  text-shadow:var(--scrim)}
+.num.p{color:var(--pink);text-shadow:0 0 12px var(--pka),0 0 30px var(--pks)}
+.num.c{color:var(--cyan);text-shadow:0 0 12px var(--cka),0 0 30px var(--cks)}
+.hero{position:relative;font:400 156px/1 var(--fmono);letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;color:var(--cyan);text-shadow:0 0 18px var(--cka),0 0 54px var(--cks)}
+.hero .unit{font:400 34px/1 var(--fmono);letter-spacing:.18em;color:var(--dust);margin-left:16px;
+  text-shadow:var(--scrim)}
+.compare{display:inline-block;font:400 64px/1 var(--fmono);font-variant-numeric:tabular-nums}
+.compare .num{font-size:64px}
+.compare .arrow{font:400 30px/1 var(--fsans);color:var(--dust);margin:0 22px;letter-spacing:.2em;
+  text-shadow:var(--scrim)}
+
+/* ---- 铬框面板:1px 铬渐变边框 + 2px 圆角(§4.3 母题 3,全方案唯一圆角) ---- */
+.frame{position:relative;border-radius:2px;padding:34px 38px;
+  background:linear-gradient(var(--dusk78),var(--dusk78)) padding-box,
+    linear-gradient(150deg,var(--chrome),rgba(159,216,255,.22) 42%,var(--chrb) 68%,var(--chrome)) border-box;
+  border:1px solid transparent}
+
+/* 档案表(metric 页的次要文字,非图表数据点) */
+.frame table{border-collapse:collapse;width:100%}
+.frame th{font:400 26px/1 var(--fmono);letter-spacing:.14em;color:var(--dust);text-align:right;padding:0 0 12px}
+.frame th:first-child{text-align:left}
+.frame td{font:400 30px/1 var(--fmono);color:var(--chrome);text-align:right;padding:18px 0;
+  border-top:1px solid rgba(232,244,255,.14);font-variant-numeric:tabular-nums;position:relative}
+.frame td:first-child{text-align:left;font-family:var(--fsans);font-size:28px;color:var(--dust)}
+.frame td:first-child::before{content:"";position:absolute;left:-20px;top:29px;width:9px;height:9px;
+  background:var(--pink)}                                   /* 过去/基准 = 品红(§2.2) */
+.frame tr.now td:first-child::before{background:var(--cyan)} /* 当前/本机 = 青(§2.2) */
+.frame tr.now td:last-child{color:var(--cyan);text-shadow:0 0 10px var(--cka)}
+
+/* 实录面板(transcript 页):sys = 他者/环境 → 品红标记,out = 本机 → 青 */
+.log{position:absolute;width:940px}
+.logline{display:flex;gap:22px;align-items:flex-start;font:400 28px/1.62 var(--fmono);
+  color:var(--chrome);padding:7px 0 7px 20px;border-left:2px solid var(--pink)}
+.logline t{flex:none;color:var(--pink);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.logline.me{border-left-color:var(--cyan)}
+.logline.me t{color:var(--cyan)}
+.logline.me span{color:var(--cyan)}
+
+/* ---- 透视光柱(§5:柱 = 立于地平线向天生长;数值铬白等宽挂光柱顶) ---- */
+.col{position:absolute;width:0}
+.beam{position:absolute;left:0;bottom:0;width:88px;margin-left:-44px;
+  background:linear-gradient(0deg,rgba(46,230,255,.06) 0,rgba(46,230,255,.5) 22%,
+    rgba(46,230,255,.9) 82%,#EAFDFF 100%);
+  box-shadow:0 0 18px var(--cks),0 0 46px rgba(46,230,255,.14);transition:height 600ms cubic-bezier(.1,.8,.3,1)}
+.beam.p{background:linear-gradient(0deg,rgba(255,46,136,.06) 0,rgba(255,46,136,.5) 22%,
+  rgba(255,46,136,.9) 82%,#FFD6EA 100%);box-shadow:0 0 18px var(--pks),0 0 46px rgba(255,46,136,.16)}
+.beam.neg{top:0;bottom:auto}                          /* 负值:从 0 基线向网格地生长(§5) */
+.beam .head{position:absolute;left:-13px;right:-13px;top:-2px;height:4px;background:var(--cyan);
+  box-shadow:0 0 20px 5px var(--cka),0 0 54px 14px var(--cks)}
+.beam.p .head{background:var(--pink);box-shadow:0 0 20px 5px var(--pka),0 0 54px 14px var(--pks)}
+.beam .trail{position:absolute;left:14%;right:14%;height:110px;top:-110px;opacity:.6;
+  background:linear-gradient(180deg,rgba(46,230,255,0),rgba(46,230,255,.5))}
+.beam.p .trail{background:linear-gradient(180deg,rgba(255,46,136,0),rgba(255,46,136,.5))}
+.beam .foot{position:absolute;left:-60px;right:-60px;bottom:-14px;height:30px;opacity:.55;
+  background:radial-gradient(ellipse at center,rgba(46,230,255,.6),rgba(46,230,255,0) 70%)}
+.beam.p .foot{background:radial-gradient(ellipse at center,rgba(255,46,136,.6),rgba(255,46,136,0) 70%)}
+.vlab{position:absolute;left:0;width:280px;margin-left:-140px;text-align:center;
+  font:400 34px/1 var(--fmono);color:var(--chrome);font-variant-numeric:tabular-nums;
+  text-shadow:var(--scrim)}
+.nlab{position:absolute;left:0;width:300px;margin-left:-150px;text-align:center;
+  font:400 28px/1.3 var(--fsans);color:var(--dust);text-shadow:var(--scrim)}
+.nlab.local{color:var(--cyan);text-shadow:0 0 12px var(--cks)}
+
+/* ---- 霓虹点亮:暮紫描边 → 全亮 300ms,含 1 次 100ms 电压不稳闪烁(§7.4) ---- */
+.ig{display:inline-block}
+.ig.lit{animation:ignite 300ms linear 1}
+.chrome.ig.lit{animation-name:ignite-dim}             /* 铬字点亮:只走透明度,不走 filter */
+@keyframes ignite-dim{0%{opacity:.15}33%{opacity:1}50%{opacity:.18}66%{opacity:1}100%{opacity:1}}
+@keyframes ignite{
+  0%{opacity:.14;filter:brightness(.3) saturate(.12)}
+  33%{opacity:1;filter:brightness(1.22) saturate(1.12)}
+  50%{opacity:.16;filter:brightness(.34) saturate(.1)}
+  66%{opacity:1;filter:brightness(1.1) saturate(1.05)}
+  100%{opacity:1;filter:none}}
+
+/* ---- 退场第 3 步:铬字与霓虹电压不稳闪 2 次后熄灭(§7.5) ---- */
+.off{animation:voltage 520ms linear 1 forwards}
+@keyframes voltage{
+  0%{opacity:1}14%{opacity:.08}26%{opacity:1}44%{opacity:.1}56%{opacity:.95}
+  100%{opacity:0}}
+
+/* ---- 遥测角标(右上常驻:场号 + 走时 + 道数,§5 时间轴 = 网格道数) ---- */
+#telemetry{position:absolute;right:96px;top:96px;z-index:6;display:flex;align-items:center;gap:22px;
+  font:400 26px/1 var(--fmono);letter-spacing:.16em;color:var(--dust)}
+#telemetry .mid{color:var(--chrome)}
+#telemetry .chip{width:11px;height:11px;background:var(--cyan);flex:none;box-shadow:0 0 12px var(--cka)}
+#telemetry .clk{color:var(--chrome);font-variant-numeric:tabular-nums}
+#telemetry .lane b{color:var(--cyan)}
+
+/* ---- 键位提示条(?clean 隐藏,非录屏内容) ---- */
+#hintbar{position:absolute;left:96px;bottom:60px;z-index:8;
+  font:400 24px/1 var(--fmono);letter-spacing:.1em;color:var(--dust);opacity:.7}
+#blackout{position:absolute;inset:0;z-index:40;background:#000;opacity:0;transition:opacity 260ms linear}
+
+/* ---- 终场罩层已撤时的瞬时还原 ---- */
+.snap,.snap *{transition:none!important}
+
+/* ---- ?noanim 降级(§7.7):冲入与换轨直切、光轨直显终值、点亮直显全亮、循环全部静止 ---- */
+html.noanim .slide,html.noanim .beam,html.noanim #sun,html.noanim #dim,html.noanim #hline.last,
+html.noanim #blackout{transition:none!important}
+html.noanim #sun .disc,html.noanim #stars i,html.noanim .ig.lit,html.noanim #hline.blink{animation:none}
+html.noanim .ig{opacity:1;filter:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="sky"></div>
+  <div id="stars"></div>
+  <div id="sun"><div class="disc"></div></div>
+  <div id="ground"></div>
+  <div id="gridwrap"><div id="gridtilt"><div id="gridplane"></div></div></div>
+  <div id="hline"></div>
+  <div id="dim"></div>
+  <div id="slides"></div>
+  <div id="telemetry"></div>
+  <div id="hintbar"></div>
+  <div id="blackout"></div>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SHARED DECK v1 · 示例内容(7 套设计语言模板必须逐字一致)
+   数字为模板占位示例，非实测成绩;替换本块即可套真实内容。
+   ============================================================ */
+var DECK={
+  meta:{style:"",doc:"",
+        ver:"TEMPLATE v1 · 2026-10-17",total:"00:42:15"},
+  slides:[
+    {type:"cover",mission:0,
+      kicker:"TELEMETRY ARCHIVE · 2026-10-17",
+      title:"本地 27B 的三场任务",
+      lede:"三场任务跑完，名次停在第 15。",
+      stats:[["任务","3 场"],["参赛","15 队"],["页面","27 页"],["时长","42:15"]]},
+
+    {type:"metric",mission:2,mid:"M2",name:"炸弹人",
+      conclusion:{pre:"翻盘发生在第 12 分钟",verb:"变",a:"−346",b:"−52"},
+      hero:{value:-52,unit:"分",neg:true},
+      note:"一次回防把分差从 346 压回 52，本场净负 52。",
+      rows:[["M1 圈地","+1,842","volt"],["M2 炸弹人","−52","neg"],
+            ["M3 夺旗","6:4",""],["累计 token","27,318",""]]},
+
+    {type:"ranking",mission:1,mid:"M1",name:"圈地",
+      title:"占地率终榜 · 本机排第二",
+      domain:[-400,2600],
+      bars:[{n:"云端旗舰",v:2480,role:"cloud"},
+            {n:"本地 27B",v:1842,role:"local"},
+            {n:"对手 K-09",v:910,role:"rival"},
+            {n:"对手 R-03",v:186,role:"rival"},
+            {n:"对手 X-21",v:-260,role:"neg"}],
+      note:"数值以文字标注在条端；基线为 0，负值向左。"},
+
+    {type:"divider",mission:3,mid:"M3",name:"夺旗",sub:"SECTION 03 · 6:4 收台"},
+
+    {type:"transcript",mission:3,mid:"M3",name:"夺旗",
+      title:"实录 · 最后一次进攻",
+      lines:[["00:37:02","sys","<system> 敌旗在 (14,9)，最近路径被两个箱子堵死"],
+             ["00:37:09","out","先把左箱推到 (12,7)，腾出走道"],
+             ["00:37:21","out","绕下路，顺手把右箱拖到旗点前"],
+             ["00:37:34","sys","<system> 你被正面撞见，损失 1 回合"],
+             ["00:37:40","out","不追了，退到旗点另一侧卡住"],
+             ["00:38:05","out","举旗，原路撤"]],
+      counter:{label:"已耗 token",value:27318,unit:"tok"},
+      note:"失误照实标注，不避讳失败。"},
+
+    {type:"final",mission:3,mid:"M3",
+      close:"三场都跑完了。名次不是结论，日志才是。",
+      credits:[["任务","圈地 / 炸弹人 / 夺旗"],["本机","本地 27B · Q5_K_XL"],
+               ["页面","27 页 · 单文件 HTML"],["录制","2560×1440@60 实机"]],
+      total:"00:42:15"}
+  ]
+};
+/* ======================= SHARED DECK 结束 ==================== */
+/* ---- 方案身份:不属于共享内容契约,各套自行声明 ---- */
+DECK.meta.style="05 SYNTHWAVE"; DECK.meta.doc="design-language-synthwave.md";
+/* ======================= SHARED DECK 结束 ==================== */
+
+var T={dash:500,rail:450,beam:600,sunDip:600,hold:1000,fade:400};   /* 点亮 300ms / 沉降 1s 写在 CSS 里 */
+var P=new URLSearchParams(location.search);
+var NOANIM=P.has("noanim")||P.has("still");
+var FLOW=400;                       /* 网格 400px/s 向观众流动,平面坐标恒速线性(§7.2/§7.1) */
+var TILE=160;
+var stage=document.getElementById("stage");
+var slidesEl=document.getElementById("slides");
+var tele=document.getElementById("telemetry");
+var sunEl=document.getElementById("sun");
+var plane=document.getElementById("gridplane");
+var hline=document.getElementById("hline");
+var dim=document.getElementById("dim");
+var blackout=document.getElementById("blackout");
+var hint=document.getElementById("hintbar");
+var starsEl=document.getElementById("stars");
+var clockStart=Date.now(),cur=0,finished=false,busy=0,wheelAcc=0;
+var flowSpeed=NOANIM?0:FLOW,flowTarget=flowSpeed,flow=0,last=0,exitSeq=[];
+
+if(NOANIM)document.documentElement.classList.add("noanim");
+if(P.has("clean"))document.documentElement.classList.add("clean");
+
+/* ---------- 格式化 ---------- */
+function fmt(n){var s=Math.abs(Math.round(n)).toString(),o="",c=0;
+  for(var i=s.length-1;i>=0;i--){o=s[i]+o;if((++c)%3===0&&i>0)o=","+o;}
+  return (n<0?"−":"")+o;}
+function pad2(v){return (v<10?"0":"")+v;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ---------- 暮空星点:1–2px 铬白,固定种子保证截图可复现 ---------- */
+(function buildStars(){
+  var seed=20261014,html="";
+  function rnd(){seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;}
+  for(var i=0;i<78;i++){
+    var x=Math.round(rnd()*2500)+24,y=Math.round(rnd()*836)+22,s=rnd()<.34?1:2;
+    html+='<b style="left:'+x+'px;top:'+y+'px;width:'+s+'px;height:'+s+'px;opacity:'
+      +(0.16+rnd()*0.4).toFixed(2)+'"></b>';
+  }
+  /* 3 颗星点错峰 4s 闪(§7.6 唯一许可的星点循环) */
+  var tw=[[420,150],[1860,110],[1180,268]];
+  for(i=0;i<3;i++)html+='<i style="left:'+tw[i][0]+'px;top:'+tw[i][1]+'px;animation-delay:'
+    +(i*1.33)+'s"></i>';
+  starsEl.innerHTML=html;
+})();
+
+/* ---------- 网格流动:rAF 恒速推进,便于退场做 ×3 与减速至静止 ---------- */
+function loop(now){
+  if(!last)last=now;
+  var dt=Math.min(64,now-last)/1000;last=now;
+  flowSpeed+=(flowTarget-flowSpeed)*Math.min(1,dt*2.6);
+  if(Math.abs(flowSpeed-flowTarget)<1)flowSpeed=flowTarget;
+  if(flowSpeed){flow=(flow+flowSpeed*dt)%TILE;plane.style.transform="translateY("+flow.toFixed(2)+"px)";}
+  requestAnimationFrame(loop);
+}
+if(!NOANIM)requestAnimationFrame(loop);
+
+/* ---------- 遥测角标:场号 / 走时 / 道数 ---------- */
+function tickClock(){
+  var s=Math.floor((Date.now()-clockStart)/1000);
+  return pad2(Math.floor(s/3600))+":"+pad2(Math.floor(s/60)%60)+":"+pad2(s%60);
+}
+function renderTelemetry(sl){
+  tele.innerHTML=(sl&&sl.mid?'<span class="mid">'+esc(sl.mid)+'</span><span class="chip"></span>':'')+
+    '<span class="lane">LANE <b>'+(cur+1)+'/'+DECK.slides.length+'</b></span>'+
+    '<span class="clk">'+tickClock()+'</span>';
+}
+setInterval(function(){var c=tele.querySelector(".clk");if(c)c.textContent=finished?DECK.meta.total:tickClock();},1000);
+
+/* ---------- 动效原语 ---------- */
+/* 签名动效·驶向地平线(§7.2):沿透视轴从 30% 放大冲到 100%,500ms */
+function posIn(el,root){var x=0,y=0,n=el;
+  while(n&&n!==root){x+=n.offsetLeft;y+=n.offsetTop;n=n.offsetParent;if(!n)break;}
+  return[x,y];}
+function dash(el,root,delay){
+  var base=el.dataset.base||"";
+  if(NOANIM){el.style.transform=base;el.style.opacity="1";return;}
+  var p=posIn(el,root);
+  el.style.transformOrigin=(1184-p[0])+"px "+(864-p[1])+"px";  /* 消失点 = 落日中心 */
+  el.style.transition="none";el.style.transform=base+" scale(.3)";el.style.opacity="0";
+  setTimeout(function(){
+    el.style.transition="transform "+T.dash+"ms cubic-bezier(.1,.8,.3,1),opacity 300ms linear";
+    el.style.transform=base+" scale(1)";el.style.opacity="1";
+  },(delay||0)+16);
+}
+/* 霓虹点亮(§7.4):300ms,含 1 次 100ms 电压不稳闪烁 */
+function ignite(el,delay){
+  if(NOANIM){el.classList.remove("lit");return;}
+  setTimeout(function(){el.classList.add("lit");},delay||0);
+}
+function playIn(root,mode){
+  var els=[].slice.call(root.children).filter(function(el){return el.classList.contains("in");});
+  els.forEach(function(el,i){if(mode==="load")dash(el,root,i*80);else{el.style.transform=el.dataset.base||"";el.style.opacity="1";}});
+  [].slice.call(root.querySelectorAll(".ig")).forEach(function(el,i){ignite(el,(NOANIM?0:300+i*70));});
+}
+/* 数据条·光轨(§7.4):青/品红光轨拖尾画出,头部辉光,600ms */
+function growBeams(root,delay){
+  [].slice.call(root.querySelectorAll(".beam[data-h]")).forEach(function(b,i){
+    var h=b.dataset.h;
+    if(NOANIM){b.style.height=h+"px";return;}
+    b.style.height="0px";
+    setTimeout(function(){b.style.height=h+"px";},(delay||0)+80+i*70);
+  });
+}
+/* 数值走字(高光页 Hero):霓虹点亮的语汇,不滚动到一半再跳,600ms 内收束 */
+function countTo(el,target,done){
+  if(!el)return;
+  if(NOANIM){el.textContent=fmt(target);if(done)done();return;}
+  var t0=performance.now(),dur=T.beam;
+  function step(now){
+    var e=now-t0,p=Math.min(1,e/dur);
+    el.textContent=fmt(target*(1-Math.pow(1-p,2.2)));
+    if(p<1)requestAnimationFrame(step);
+    else{el.textContent=fmt(target);if(done)done();}
+  }
+  requestAnimationFrame(step);
+}
+
+/* ---------- 光柱构造(§5:立于地平线、向天生长;近大远小;数值铬白等宽挂柱顶) ---------- */
+function beam(o){
+  var s=o.scale||1,H=Math.round(o.h*s),W=o.w*s,down=!!o.down;
+  var bottom=384+(1-s)*150;                       /* 远的柱子基点抬高,坐在网格地上 */
+  var vlab='<div class="vlab" style="bottom:'+(down?20:(H+16))+'px">'+esc(o.label)+'</div>';
+  var nlab=o.name?('<div class="nlab'+(o.role==="local"?" local":"")+'" style="'+
+    (down?"bottom:62px":"top:14px")+'">'+esc(o.name)+'</div>'):'';
+  return '<div class="col in" style="left:'+(o.x-96)+'px;bottom:'+bottom+'px;height:0">'+
+    '<div class="beam'+(o.role==="local"?"":" p")+(down?" neg":"")+'" data-h="'+H+'"'+
+      ' style="width:'+W+'px;margin-left:'+(-W/2)+'px;height:'+(NOANIM?H:0)+'px">'+
+      (down?'<div class="head" style="top:auto;bottom:-2px"></div>'
+           :'<div class="head"></div><div class="trail"></div>')+
+      '<div class="foot"></div></div>'+vlab+nlab+'</div>';
+}
+
+/* ---------- 页渲染 ---------- */
+/* 铬字标题:同一字符再挂一层 data-t 作 1px 暮紫描边(§3.1) */
+function chr(t,cls,style){var txt=esc(t);
+  return '<span class="tilt chrome ig'+(cls?" "+cls:"")+'"'+(style?' style="'+style+'"':'')+
+    ' data-t="'+txt+'">'+txt+'</span>';}
+function build(sl){
+  var d=document.createElement("div");
+  d.className="slide";
+  if(sl.type==="cover")cover(d,sl);
+  else if(sl.type=="metric")metric(d,sl);
+  else if(sl.type==="ranking")ranking(d,sl);
+  else if(sl.type==="divider")divider(d,sl);
+  else if(sl.type==="transcript")transcript(d,sl);
+  else final(d,sl);
+  return d;
+}
+
+function cover(d,s){
+  d.innerHTML='<div class="band in" style="top:96px"><span class="kicker"><span class="ig">'+
+      esc(s.kicker)+'</span></span></div>'+
+    '<div class="band in" style="top:176px">'+chr(s.title,"tcover")+'</div>'+
+    '<div class="band in" style="top:420px"><span class="lede"><span class="ig">'+esc(s.lede)+'</span></span></div>'+
+    '<div class="in" style="position:absolute;left:150px;top:560px;width:560px">'+
+      s.stats.slice(0,2).map(function(k){return statRow(k,0);}).join("")+'</div>'+
+    '<div class="in" style="position:absolute;right:150px;top:560px;width:560px">'+
+      s.stats.slice(2).map(function(k){return statRow(k,1);}).join("")+'</div>';
+  d._enter=function(r,mode){playIn(r,mode);};
+}
+function statRow(k,right){
+  return '<div style="display:flex;gap:30px;align-items:baseline;justify-content:'+(right?"flex-end":"flex-start")+
+    ';height:62px;border-bottom:1px solid rgba(232,244,255,.18)">'+
+    '<span class="mono" style="font-size:28px;letter-spacing:.2em;color:var(--dust);'+
+    (right?'':'width:150px')+'">'+esc(k[0])+'</span>'+
+    '<span class="num" style="font-size:44px"><span class="ig">'+esc(k[1])+'</span></span></div>';
+}
+
+function metric(d,s){
+  var c=s.conclusion;
+  var rows=s.rows.map(function(r,i){
+    return '<tr class="'+(i===1?"now":"")+'"><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>';}).join("");
+  d.innerHTML='<div class="band in" style="top:70px"><span class="kicker"><span class="ig">'+
+      s.mid+' · '+esc(s.name)+' · 结论</span></span></div>'+
+    '<div class="band in" style="top:130px">'+chr(c.pre)+'</div>'+
+    '<div class="band in" style="top:330px"><span class="compare">'+
+      '<span class="num p"><span class="ig">'+esc(c.a)+'</span></span>'+
+      '<span class="arrow">'+esc(c.verb)+'</span>'+
+      '<span class="num c"><span class="ig">'+esc(c.b)+'</span></span></span></div>'+
+    '<div class="in" style="position:absolute;left:150px;top:400px;width:520px">'+
+      '<div class="frame"><table><thead><tr><th>任务</th><th>结果</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+    '<div class="in" style="position:absolute;right:170px;top:380px;width:560px;text-align:right">'+
+      '<div class="hero"><span class="ig"><span class="num-h">0</span>'+
+      '<span class="unit">'+esc(s.hero.unit)+'</span></span></div>'+
+      '<div class="note" style="margin-top:34px">'+esc(s.note)+'</div></div>'+
+    beam({x:900,h:440,w:64,role:"other",label:c.a})+
+    beam({x:1660,h:66,w:64,role:"local",label:c.b});
+  d._enter=function(r,mode){
+    playIn(r,mode);
+    growBeams(r,NOANIM?0:220);
+    countTo(r.querySelector(".num-h"),s.hero.value);
+  };
+}
+
+function ranking(d,s){
+  var hi=Math.max(s.domain[1],1),base=520;
+  /* 品红 = 他者/基准,恒挂左侧;青 = 本机,恒挂右侧(§1.2/§6);越靠中轴越远越小 */
+  var spec=[{x:260,i:0,s:1},{x:520,i:2,s:.84},{x:740,i:3,s:.7},{x:920,i:4,s:.62},{x:2200,i:1,s:1}];
+  d.innerHTML='<div class="band in" style="top:70px"><span class="kicker"><span class="ig">'+
+      s.mid+' · '+esc(s.name)+'</span></span></div>'+
+    '<div class="band in" style="top:120px">'+chr(s.title)+'</div>'+
+    '<div class="in" style="position:absolute;right:110px;top:270px;width:640px">'+
+      '<div class="frame"><div class="note">'+esc(s.note)+'</div></div></div>'+
+    spec.map(function(o){var b=s.bars[o.i];
+      return beam({x:o.x,h:Math.abs(b.v)/hi*base,w:90,scale:o.s,role:b.role,
+        label:fmt(b.v),name:b.n,down:b.v<0});}).join("");
+  d._enter=function(r,mode){
+    playIn(r,mode);
+    growBeams(r,NOANIM?0:200);
+    if(!NOANIM){hline.classList.add("blink");
+      setTimeout(function(){hline.classList.remove("blink");},420);}
+  };
+}
+
+function divider(d,s){
+  d.innerHTML='<div class="band in" style="top:130px"><span class="num c" style="font-size:40px">'+
+      '<span class="ig">'+esc(s.sub)+'</span></span></div>'+
+    '<div class="band in" style="top:210px">'+chr(s.name,"tdiv")+'</div>';
+  d._enter=function(r,mode){playIn(r,mode);};
+  d._dip=true;
+}
+
+function transcript(d,s){
+  function line(l){return '<div class="logline'+(l[1]==="out"?" me":"")+'"><t>'+esc(l[0])+
+    '</t><span>'+esc(l[2])+'</span></div>';}
+  var half=Math.ceil(s.lines.length/2);
+  d.innerHTML='<div class="band in" style="top:70px"><span class="kicker"><span class="ig">'+
+      s.mid+' · '+esc(s.name)+'</span></span></div>'+
+    '<div class="band in" style="top:120px">'+chr(s.title)+'</div>'+
+    '<div class="band in" style="top:300px">'+
+      '<div class="hero" style="display:inline-block;font-size:110px"><span class="ig">'+
+      '<span class="num-h">0</span><span class="unit">'+esc(s.counter.unit)+'</span></span></div>'+
+      '<div class="kicker" style="font-size:26px;letter-spacing:.22em;margin-top:4px">'+
+      esc(s.counter.label)+'</div>'+
+      '<div class="note" style="margin:16px auto 0;max-width:1000px">'+esc(s.note)+'</div></div>'+
+    '<div class="log in" style="left:110px;top:566px"><div class="frame">'+
+      s.lines.slice(0,half).map(line).join("")+'</div></div>'+
+    '<div class="log in" style="right:110px;top:566px"><div class="frame">'+
+      s.lines.slice(half).map(line).join("")+'</div></div>';
+  d._enter=function(r,mode){
+    playIn(r,mode);
+    countTo(r.querySelector(".num-h"),s.counter.value);
+  };
+}
+
+function final(d,s){
+  d.innerHTML='<div class="band in" style="top:86px"><span class="kicker">TOTAL </span>'+
+      '<span class="num c" style="font-size:34px"><span class="ig">'+esc(s.total)+'</span></span></div>'+
+    '<div class="band in" style="top:150px">'+
+      chr(s.close,"","font-size:96px;max-width:1240px")+'</div>'+
+    '<div class="in" style="position:absolute;left:150px;top:540px;width:780px">'+
+      s.credits.slice(0,2).map(creditRow).join("")+'</div>'+
+    '<div class="in" style="position:absolute;right:150px;top:540px;width:780px;text-align:right">'+
+      s.credits.slice(2).map(creditRow).join("")+'</div>';
+  var items=function(){return [].slice.call(d.children).filter(function(el){
+      return el.classList.contains("in");});};
+  d._enter=function(r,mode){
+    playIn(r,mode);
+    d._seq.push(setTimeout(function(){runExit(r);},NOANIM?900:2200));
+  };
+  d._seq=[];
+  d._reset=function(){                       /* 终场定格解除时还原:撤罩层 + 复原元素 + 允许重播 */
+    (d._seq||[]).forEach(clearTimeout);d._seq=[];
+    items().forEach(function(el){el.classList.remove("off");el.style.opacity="";});
+    d._seen=0;
+  };
+}
+function creditRow(k){
+  return '<div style="display:flex;justify-content:space-between;gap:28px;align-items:baseline;'+
+    'height:66px;border-bottom:1px solid rgba(232,244,255,.16)">'+
+    '<span class="mono" style="font-size:28px;letter-spacing:.18em;color:var(--dust)">'+esc(k[0])+'</span>'+
+    '<span class="num" style="font-size:32px"><span class="ig">'+esc(k[1])+'</span></span></div>';
+}
+
+/* ---------- 退场 · 日落收光(§7.5 六步,顺序执行) ---------- */
+function runExit(root){
+  clearExit();
+  var els=[].slice.call(root.children).filter(function(el){return el.classList.contains("in");});
+  if(NOANIM){                                   /* 降级:状态一步到位,仍可被输入解除 */
+    flowSpeed=flowTarget=0;
+    sunEl.style.transform="translateY(400px)";dim.style.opacity="1";
+    els.forEach(function(el){el.classList.add("off");});
+    exitSeq.push(setTimeout(function(){hline.classList.add("last");blackout.style.opacity="1";
+      finished=true;renderTelemetry(DECK.slides[cur]);},300));
+    return;
+  }
+  flowSpeed=flowTarget=FLOW*3;                  /* 1 网格流速 ×3(镜头加速) */
+  exitSeq.push(setTimeout(function(){
+    sunEl.style.transform="translateY(400px)";  /* 2 落日沉降 + 天空压暗 1s */
+    dim.style.opacity="1";
+  },200));
+  exitSeq.push(setTimeout(function(){           /* 3 铬字与霓虹电压不稳闪 2 次后熄灭 */
+    els.forEach(function(el){el.classList.add("off");});
+  },1150));
+  exitSeq.push(setTimeout(function(){           /* 4 网格流减速至静止 */
+    flowTarget=0;
+  },1300));
+  exitSeq.push(setTimeout(function(){           /* 5 全黑前留一条品红地平线 1s */
+    hline.classList.add("last");blackout.style.opacity="1";
+  },1750));
+  exitSeq.push(setTimeout(function(){           /* 6 地平线渐隐 400ms,全黑停 ≥1s 供切尾 */
+    hline.style.opacity="0";
+  },1750+T.hold));
+  exitSeq.push(setTimeout(function(){
+    finished=true;renderTelemetry(DECK.slides[cur]);
+  },1750+T.hold+T.fade+40));
+}
+function clearExit(){(exitSeq||[]).forEach(clearTimeout);exitSeq=[];}
+
+/* ---------- 转场 · 换轨(§7.3:旧页沿透视轴推远消失 + 新页从地平线冲来,450ms) ---------- */
+function vpOrigin(el){
+  el.style.transition="none";
+  el.style.transformOrigin="1184px 864px";      /* slide 内的消失点 = 落日中心 */
+}
+function rail(from,to){
+  var a=nodes[from],b=nodes[to];
+  vpOrigin(a);vpOrigin(b);
+  a.style.transform="scale(1)";a.style.opacity="1";
+  b.style.transform="scale(.26)";b.style.opacity="0";
+  b.classList.add("cur");b.style.visibility="visible";
+  renderTelemetry(DECK.slides[to]);
+  requestAnimationFrame(function(){
+    a.style.transition="transform "+T.rail+"ms cubic-bezier(.1,.8,.3,1),opacity 300ms linear";
+    b.style.transition="transform "+T.rail+"ms cubic-bezier(.1,.8,.3,1),opacity 260ms linear";
+    a.style.transform="scale(.26)";a.style.opacity="0";
+    b.style.transform="scale(1)";b.style.opacity="1";
+  });
+  setTimeout(function(){
+    a.classList.remove("cur");
+    [a,b].forEach(function(el){el.style.transition="";el.style.transform="";el.style.opacity="";
+      el.style.transformOrigin="";el.style.visibility="";});
+    if(!b._seen){b._seen=1;b._enter(b,"rail");}
+  },T.rail+30);
+}
+function cutTo(from,to){
+  nodes[from].classList.remove("cur");
+  nodes[from].style.transform="";nodes[from].style.opacity="";
+  show(to,"rail");
+}
+
+/* ---------- 装配 ---------- */
+var nodes=DECK.slides.map(function(s){
+  var el=build(s);slidesEl.appendChild(el);return el;});
+
+function show(i,mode){
+  var el=nodes[i];
+  el.classList.add("cur");
+  renderTelemetry(DECK.slides[i]);
+  if(el._enter&&!el._seen){el._seen=1;el._enter(el,mode||"load");}
+}
+
+/* 段落切换:落日"落半格再升起"(§7.3 第 2 项,与换轨同帧开始) */
+function dipSun(){
+  if(NOANIM)return;
+  sunEl.classList.remove("dip");void sunEl.offsetWidth;
+  sunEl.classList.add("dip");
+  setTimeout(function(){sunEl.classList.remove("dip");},T.sunDip+40);
+}
+
+/* 解除终场定格:撤罩层 + 还原被退场熄灭/移走的元素 + 允许重播整套退场 */
+function unblack(){
+  var f=nodes[nodes.length-1];
+  clearExit();
+  if(f._reset)f._reset();
+  stage.classList.add("snap");
+  blackout.style.opacity="0";dim.style.opacity="0";
+  hline.classList.remove("last");hline.classList.remove("blink");hline.style.opacity="";
+  sunEl.style.transform="";
+  void stage.offsetWidth;
+  stage.classList.remove("snap");
+  flowTarget=flowSpeed=NOANIM?0:FLOW;
+  if(NOANIM)plane.style.transform="translateY(0px)";
+  finished=false;
+  renderTelemetry(DECK.slides[cur]);
+}
+
+function go(to,dir){
+  to=Math.max(0,Math.min(DECK.slides.length-1,to));
+  if(busy)return;
+  if(to===cur){if(parseFloat(getComputedStyle(blackout).opacity)>0.5)unblack();return;}
+  unblack();
+  var a=DECK.slides[cur],b=DECK.slides[to];
+  var div=(b.type==="divider"||a.type==="divider");
+  if(NOANIM){cutTo(cur,to);}
+  else{busy=1;setTimeout(function(){busy=0;},T.rail+40);rail(cur,to);}
+  if(div)dipSun();
+  cur=to;hint.textContent=keys();
+  if(NOANIM)renderTelemetry(b);
+}
+function keys(){return (cur+1)+" / "+DECK.slides.length+
+  "   ·   → 下一页   ← 上一页   滚轮   点两侧翻页   Home / End   F 纯净屏"+
+  (NOANIM?"   A 开启动效":"   A 降级 noanim")+"   ·   "+DECK.meta.ver;}
+
+var jump=P.has("slide")?parseInt(P.get("slide"),10):0;
+cur=isNaN(jump)?0:Math.max(0,Math.min(DECK.slides.length-1,jump));
+show(cur);
+hint.textContent=keys();
+
+/* 鼠标翻页:滚轮累计过 40px 阈值才翻(触控板惯性滚动不连跳);两侧 28% 翻页,中间 44% 安全区 */
+addEventListener("wheel",function(e){
+  if(busy){wheelAcc=0;return;}
+  wheelAcc+=e.deltaY||e.detail||0;
+  if(Math.abs(wheelAcc)<40)return;
+  var d=wheelAcc>0?1:-1;wheelAcc=0;go(cur+d,d);
+},{passive:true});
+stage.addEventListener("click",function(e){
+  var x=e.clientX/innerWidth;
+  if(x<0.28)go(cur-1,-1);else if(x>0.72)go(cur+1,1);
+});
+
+addEventListener("keydown",function(e){
+  var k=e.key;
+  if(k==="ArrowRight"||k==="PageDown"||k===" "){e.preventDefault();go(cur+1,1);}
+  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();go(cur-1,-1);}
+  else if(k==="Home")go(0,-1);
+  else if(k==="End")go(DECK.slides.length-1,1);
+  else if(k==="f"||k==="F")document.documentElement.classList.toggle("clean");
+  else if(k==="a"||k==="A")location.search=NOANIM?"":"noanim=1";
+});
+
+function fit(){stage.style.setProperty("--s",Math.min(innerWidth/2560,innerHeight/1440));}
+addEventListener("resize",fit);fit();
+window.__ready=true;                 /* 供截图/录屏脚本判活 */
+})();
+</script>
+</body>
+</html>

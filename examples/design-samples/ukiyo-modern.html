@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>浮世绘现代 UKIYO MODERN · 模板样例 · llm-html2video</title>
+<!--
+  设计语言 04 浮世绘现代 · 单文件模板
+  规范源: ../docs/design-language-ukiyo-modern.md   v1.0 2026-10-14
+  立意:   平涂 × 骨线 × 留白。每一页是一版:骨线先印,色块后套,文字最后落。
+  用法:   ukiyo-modern.html              正常播放(2560x1440 自适应缩放)
+          ?noanim          降级:套印直呈完成态、转场 1 帧直切、波纹静态双环
+          ?clean=1         录屏:隐藏鼠标与左下角键位提示条(等价按 F)
+          ?slide=3         直接定位到第 4 页
+  键位:   → / Space / PageDown 下页   ← / PageUp 上页   Home / End   F 纯净屏   A 切换 ?noanim
+  母题:   骨线波(§4.3-1) / 云气纹(§4.3-2) / 円相(§4.3-3) / 霞带(§4.3-4,唯一斜元素)
+  可视化: 对比=波高,排行=山形序列(本机座染朱红),时间=云纹带刻度,阶段完成=円相
+          全片无坐标轴无网格,数值以竖排小字标注于图形旁
+  转场:   横卷 500ms(右入左出,页缘露 8px 和纸卷边) / 云过 600ms(章节切换)
+  退场:   收卷落款(§7.5) 印章 80ms 落定 → 云气横过 600ms → 右向左收卷 500ms → 画轴居中
+          缩小 → 明度缓沉至墨黑 1.2s → 留印位朱红 800ms 后熄 → 全黑定格
+          干净帧取「全黑」。定格可解除:任何翻页输入撤罩层、还原收卷元素,回末页重播整套。
+-->
+<style>
+/* ---- §2.1 色板 token:名与值逐字实现,不自创色、不加渐变 ---- */
+:root{
+  --washi:  #F2EAD8;  /* 和纸:暖米,带极轻纤维纹理(噪声 3%) */
+  --indigo: #1B3A5C;  /* 靛蓝:主骨线与大色块 */
+  --shu:    #C73E2C;  /* 朱红:点题色,落款/关键值 */
+  --sumi:   #2B2B28;  /* 墨:正文 */
+  --gold:   #B98A2F;  /* 金泥:次级强调,仅线与小面 */
+  --mist:   #8FA3B0;  /* 霞灰:次要层 */
+}
+/* ---- 骨架契约字体栈 ---- */
+:root{
+  --fserif:"Noto Serif SC","SimSun","Songti SC",serif;
+  --fsans:"Noto Sans SC","Microsoft YaHei","PingFang SC";
+  --fmono:"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  --press:cubic-bezier(.3,0,.2,1);              /* §7.1 套印与横卷缓动 */
+  --noise:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="220" height="220"><filter id="w"><feTurbulence type="fractalNoise" baseFrequency="0.86" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="220" height="220" filter="url(%23w)"/></svg>');
+}
+
+html,body{margin:0;height:100%;background:var(--sumi);overflow:hidden}
+html.clean,html.clean *{cursor:none!important}
+html.clean #hintbar{display:none}
+
+#stage{position:fixed;left:50%;top:50%;width:2560px;height:1440px;
+  transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:center center;
+  background:var(--washi);overflow:hidden;font-family:var(--fserif);color:var(--sumi)}
+*{box-sizing:border-box}
+
+/* ---- 页容器:和纸暖米底 + 极轻纤维噪声 3% + 页缘 8px 卷边 ---- */
+#slides{position:absolute;inset:0;z-index:3}
+.slide{position:absolute;inset:96px;opacity:0;visibility:hidden;
+  will-change:transform,opacity;background:var(--washi)}
+.slide.cur{opacity:1;visibility:visible}
+.slide::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.03;
+  background-image:var(--noise)}
+.slide::before{content:"";position:absolute;top:0;right:-8px;width:8px;height:100%;
+  background:var(--washi);border-left:3px solid var(--sumi);border-right:2px solid var(--mist)}
+
+.pw{position:absolute}
+.pw-fill,.pw-line{position:absolute;inset:0;display:block}
+.pw-line{border:4px solid var(--sumi)}
+.pw-line.ind{border-color:var(--indigo)} .pw-line.gold{border-color:var(--gold)}
+.f-ind{background:var(--indigo)} .f-mist{background:var(--mist)} .f-shu{background:var(--shu)}
+.f-sumi{background:var(--sumi)} .f-gold{background:var(--gold)}
+
+/* ---- 母题 SVG:一律平涂 fill + 骨线 stroke,无渐变无阴影无透视(§2.2) ---- */
+.svgf,.svgk{position:absolute;left:0;top:0;display:block}
+svg .fl-ind{fill:var(--indigo)} svg .fl-mist{fill:var(--mist)} svg .fl-sumi{fill:var(--sumi)}
+svg .fl-shu{fill:var(--shu)} svg .fl-gold{fill:var(--gold)} svg .fl-washi{fill:var(--washi)}
+svg .ln-washi{fill:none;stroke:var(--washi);stroke-linecap:round}
+svg .ln-ind{fill:none;stroke:var(--indigo);stroke-linecap:round}
+svg .ln-sumi{fill:none;stroke:var(--sumi);stroke-linecap:round}
+svg .ln-gold{fill:none;stroke:var(--gold);stroke-linecap:round}
+svg .edged{stroke:var(--sumi);stroke-width:3.5;stroke-linejoin:round}
+
+/* ---- §7.6 背景层动效:全片唯一循环 = 骨线波 10s ±4px 横移 ---- */
+.drift{animation:tidedrift 10s ease-in-out infinite}
+@keyframes tidedrift{0%,100%{transform:translateX(-4px)}50%{transform:translateX(4px)}}
+
+/* ---- §3 字体与排版 ---- */
+.kick{position:absolute;font-family:var(--fmono);font-size:26px;letter-spacing:.16em;
+  color:var(--indigo);line-height:1.3}
+h1.pg{margin:0;font-family:var(--fserif);font-weight:900;font-size:60px;line-height:1.3;
+  letter-spacing:.05em;color:var(--sumi)}                 /* 横排标题字距 +0.05em */
+h1.pg b{font-weight:900;color:var(--indigo);font-variant-numeric:tabular-nums}
+.vtitle{position:absolute;writing-mode:vertical-rl;font-family:var(--fserif);font-weight:900;
+  font-size:104px;letter-spacing:.06em;line-height:1;color:var(--sumi)}
+.vtitle.mid{font-size:128px} .vtitle.sub{font-size:64px}
+.body{font-family:var(--fserif);font-weight:400;font-size:28px;line-height:1.9;color:var(--sumi)}
+.body.lead{font-size:30px}
+.vcol{position:absolute;writing-mode:vertical-rl}
+.vlab{font-family:var(--fserif);font-size:26px;line-height:1.9;color:var(--indigo)}
+.vnum{font-family:var(--fserif);font-size:30px;line-height:1.9;color:var(--sumi);font-weight:700;
+  font-variant-numeric:tabular-nums}
+.anno{position:absolute;writing-mode:vertical-rl;font-family:var(--fserif);font-size:26px;
+  line-height:1.9;color:var(--sumi);font-variant-numeric:tabular-nums}
+.anno i{display:block;font-family:var(--fmono);font-size:24px;font-style:normal;color:var(--indigo)}
+.hero{position:absolute;font-family:var(--fserif);font-weight:900;font-size:132px;line-height:1;
+  color:var(--shu);letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.hero .unit{font-size:30px;font-weight:400;color:var(--sumi);letter-spacing:.06em}
+.hero.c2{font-size:96px}
+.mark{position:absolute;display:flex;align-items:center;justify-content:center;
+  font-family:var(--fserif);font-weight:900;font-size:184px;line-height:1;color:var(--sumi)}
+.logline{display:flex;gap:26px;font-family:var(--fserif);font-size:28px;line-height:1.9;color:var(--sumi)}
+.logline t{font-family:var(--fmono);font-size:24px;color:var(--sumi);flex:none}
+/* §2.3:霞灰带只作色带,其上文字一律墨色;<system> 行以一道靛蓝骨线区分,不改字色 */
+.logline .sys{color:var(--sumi)}
+.sysline{border-left:5px solid var(--indigo);padding-left:24px;margin-left:-29px}
+.ticks{position:absolute;font-family:var(--fmono);font-size:24px;color:var(--sumi)}
+.dot{position:absolute;width:12px;height:12px;background:var(--sumi)}
+.tick{position:absolute;height:4px;background:var(--sumi)}
+
+/* ---- §7.4 波式强调:2 圈骨线波纹,平涂圆环扩散淡出,800ms 封顶 ---- */
+.ripple{position:absolute;width:520px;height:520px;pointer-events:none}
+.ripple s{position:absolute;left:50%;top:50%;display:block;border-radius:50%;
+  border:10px solid var(--indigo);opacity:0}
+.ripple s:nth-child(1){width:240px;height:240px;margin:-120px 0 0 -120px}
+.ripple s:nth-child(2){width:420px;height:420px;margin:-210px 0 0 -210px}
+.ripple.on s{animation:spread 760ms linear 1}
+.ripple.on s:nth-child(2){animation-delay:120ms}
+@keyframes spread{0%{transform:scale(.82);opacity:.95}100%{transform:scale(1.16);opacity:0}}
+.ripple.static s{animation:none;opacity:.3;transform:scale(1)}   /* §7.7 静态双环 */
+
+/* ---- §4.3-4 霞带:全方案唯一允许的斜元素 ---- */
+.mistband{position:absolute;transform:rotate(-3.2deg)}
+
+/* ---- §3.3 落款印:右下 48px 正方形朱红、白文页码、全片统一位置 ---- */
+#seal{position:absolute;right:96px;bottom:96px;z-index:26;width:48px;height:48px;
+  background:var(--shu);border:3px solid var(--sumi);display:flex;align-items:center;
+  justify-content:center;font-family:var(--fserif);font-weight:900;font-size:26px;
+  line-height:1;color:var(--washi)}
+#seal.big{width:96px;height:96px;font-size:52px}
+
+/* ---- 转场与退场层 ---- */
+#cloudpass{position:absolute;left:0;top:0;width:2560px;height:1440px;z-index:14;
+  display:none;pointer-events:none;background:var(--washi)}
+#cloudpass.on{display:block;animation:cloudgo 600ms linear 1}
+@keyframes cloudgo{0%{transform:translateX(-2560px)}45%{transform:translateX(0)}
+  55%{transform:translateX(0)}100%{transform:translateX(2560px)}}
+#cloudpass::after{content:"";position:absolute;inset:0;opacity:.03;pointer-events:none;
+  background-image:var(--noise)}
+#roller{position:absolute;left:96px;top:96px;width:44px;height:1248px;z-index:21;display:none;
+  background:var(--indigo);border-left:4px solid var(--sumi);border-right:4px solid var(--sumi)}
+#roller::before,#roller::after{content:"";position:absolute;left:-16px;width:76px;height:26px;
+  background:var(--sumi)}
+#roller::before{top:-13px} #roller::after{bottom:-13px}
+#dim{position:absolute;inset:0;z-index:24;background:var(--sumi);opacity:0;pointer-events:none;
+  transition:opacity 1200ms linear}        /* §7.5 步骤5「整体明度缓沉至墨黑(1.2s)」文档明示 */
+#blackout{position:absolute;inset:0;z-index:30;background:#000;opacity:0;pointer-events:none;
+  transition:opacity 400ms linear}
+#hintbar{position:absolute;left:96px;bottom:88px;z-index:8;font-family:var(--fsans);
+  font-size:24px;letter-spacing:.05em;color:var(--indigo)}
+
+/* ---- §7.7 降级 ?noanim ---- */
+html.noanim .drift{animation:none}
+html.noanim #cloudpass.on{animation:none;display:none}
+html.noanim .ripple.on s{animation:none}
+html.noanim #dim,html.noanim #blackout{transition:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="slides"></div>
+  <div id="cloudpass"></div>
+  <div id="roller"></div>
+  <div id="dim"></div>
+  <div id="seal"></div>
+  <div id="hintbar"></div>
+  <div id="blackout"></div>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SHARED DECK v1 · 示例内容(7 套设计语言模板必须逐字一致)
+   数字为模板占位示例，非实测成绩;替换本块即可套真实内容。
+   ============================================================ */
+var DECK={
+  meta:{style:"",doc:"",
+        ver:"TEMPLATE v1 · 2026-10-17",total:"00:42:15"},
+  slides:[
+    {type:"cover",mission:0,
+      kicker:"TELEMETRY ARCHIVE · 2026-10-17",
+      title:"本地 27B 的三场任务",
+      lede:"三场任务跑完，名次停在第 15。",
+      stats:[["任务","3 场"],["参赛","15 队"],["页面","27 页"],["时长","42:15"]]},
+
+    {type:"metric",mission:2,mid:"M2",name:"炸弹人",
+      conclusion:{pre:"翻盘发生在第 12 分钟",verb:"变",a:"−346",b:"−52"},
+      hero:{value:-52,unit:"分",neg:true},
+      note:"一次回防把分差从 346 压回 52，本场净负 52。",
+      rows:[["M1 圈地","+1,842","volt"],["M2 炸弹人","−52","neg"],
+            ["M3 夺旗","6:4",""],["累计 token","27,318",""]]},
+
+    {type:"ranking",mission:1,mid:"M1",name:"圈地",
+      title:"占地率终榜 · 本机排第二",
+      domain:[-400,2600],
+      bars:[{n:"云端旗舰",v:2480,role:"cloud"},
+            {n:"本地 27B",v:1842,role:"local"},
+            {n:"对手 K-09",v:910,role:"rival"},
+            {n:"对手 R-03",v:186,role:"rival"},
+            {n:"对手 X-21",v:-260,role:"neg"}],
+      note:"数值以文字标注在条端；基线为 0，负值向左。"},
+
+    {type:"divider",mission:3,mid:"M3",name:"夺旗",sub:"SECTION 03 · 6:4 收台"},
+
+    {type:"transcript",mission:3,mid:"M3",name:"夺旗",
+      title:"实录 · 最后一次进攻",
+      lines:[["00:37:02","sys","<system> 敌旗在 (14,9)，最近路径被两个箱子堵死"],
+             ["00:37:09","out","先把左箱推到 (12,7)，腾出走道"],
+             ["00:37:21","out","绕下路，顺手把右箱拖到旗点前"],
+             ["00:37:34","sys","<system> 你被正面撞见，损失 1 回合"],
+             ["00:37:40","out","不追了，退到旗点另一侧卡住"],
+             ["00:38:05","out","举旗，原路撤"]],
+      counter:{label:"已耗 token",value:27318,unit:"tok"},
+      note:"失误照实标注，不避讳失败。"},
+
+    {type:"final",mission:3,mid:"M3",
+      close:"三场都跑完了。名次不是结论，日志才是。",
+      credits:[["任务","圈地 / 炸弹人 / 夺旗"],["本机","本地 27B · Q5_K_XL"],
+               ["页面","27 页 · 单文件 HTML"],["录制","2560×1440@60 实机"]],
+      total:"00:42:15"}
+  ]
+};
+/* ======================= SHARED DECK 结束 ==================== */
+/* ---- 方案身份:不属于共享内容契约,各套自行声明 ---- */
+DECK.meta.style="04 UKIYO MODERN"; DECK.meta.doc="design-language-ukiyo-modern.md";
+/* ======================= SHARED DECK 结束 ==================== */
+
+/* ---------- §7.1 时长预算:微交互 ≤200 / 进场 300–500 / 翻页 500 / 章节 600 / 单段 ≤800 ---------- */
+var T={line:300,fill:400,text:200,rest:150,roll:500,cloud:600,ripple:760,stamp:80,
+       coils:400,dim:1200,hold:800,black:400,exitAt:3000};
+var KANJI=["一","二","三","四","五","六"];
+var P=new URLSearchParams(location.search);
+var NOANIM=P.has("noanim")||P.has("still");
+var stage=document.getElementById("stage"),slidesEl=document.getElementById("slides");
+var seal=document.getElementById("seal"),hint=document.getElementById("hintbar");
+var cloudpass=document.getElementById("cloudpass"),roller=document.getElementById("roller");
+var dim=document.getElementById("dim"),blackout=document.getElementById("blackout");
+var cur=0,busy=0,wheelAcc=0,seq=[];
+
+if(NOANIM)document.documentElement.classList.add("noanim");
+if(P.has("clean"))document.documentElement.classList.add("clean");
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function fmt(n){var s=Math.abs(Math.round(n)).toString(),o="",c=0;
+  for(var i=s.length-1;i>=0;i--){o=s[i]+o;if((++c)%3===0&&i>0)o=","+o;}
+  return (n<0?"−":"")+o;}
+function sel(r,q){return Array.prototype.slice.call(r.querySelectorAll(q));}
+
+/* ============================================================
+   §7.2 签名动效:套印三版
+   一版 骨线描画 300ms → 二版 色块从骨线框内擦入 400ms →
+   三版 文字淡落 200ms;版间各停 150ms,像等墨干。
+   ============================================================ */
+function isSvg(el){var t=el.tagName.toLowerCase();return t==="path"||t==="svg"||t==="circle";}
+function setLine(el,hidden){
+  if(isSvg(el)){el.style.strokeDasharray="100";el.style.strokeDashoffset=hidden?"100":"0";}
+  else el.style.clipPath="inset(0 "+(hidden?100:0)+"% 0 0)";
+}
+function setFill(el,hidden){el.style.clipPath=hidden?"inset(0 0 0 100%)":"inset(0 0 0 0)";}
+function printFinish(root){
+  sel(root,'[data-v="line"]').forEach(function(el){el.style.transition="none";
+    if(isSvg(el))el.style.strokeDasharray="";setLine(el,0);});
+  sel(root,'[data-v="fill"]').forEach(function(el){el.style.transition="none";setFill(el,false);});
+  sel(root,'[data-v="text"]').forEach(function(el){
+    el.style.transition="none";el.style.opacity="1";el.style.transform="none";});
+}
+function printIn(root){
+  var L=sel(root,'[data-v="line"]'),F=sel(root,'[data-v="fill"]'),X=sel(root,'[data-v="text"]');
+  if(NOANIM){printFinish(root);return 0;}
+  var MAXS=6,stag=function(i){return Math.min(i,MAXS)*24;};
+  L.forEach(function(el){el.style.transition="none";el.style.opacity="1";setLine(el,1);});
+  F.forEach(function(el){el.style.transition="none";setFill(el,true);});
+  X.forEach(function(el){el.style.transition="none";el.style.opacity="0";
+    el.style.transform="translateY(12px)";});
+  requestAnimationFrame(function(){                            /* 一版:骨线 */
+    L.forEach(function(el,i){
+      el.style.transition=(isSvg(el)?"stroke-dashoffset ":"clip-path ")+T.line+"ms linear "+stag(i)+"ms";
+      setLine(el,0);});
+  });
+  var tF=T.line+Math.min(Math.max(L.length-1,0),MAXS)*24+T.rest;
+  setTimeout(function(){                                       /* 二版:套色 */
+    F.forEach(function(el,i){
+      el.style.transition="clip-path "+T.fill+"ms var(--press) "+stag(i)+"ms";
+      setFill(el,false);});
+  },tF);
+  var tX=tF+T.fill+Math.min(Math.max(F.length-1,0),MAXS)*24+T.rest;
+  setTimeout(function(){                                       /* 三版:落字 */
+    X.forEach(function(el,i){
+      el.style.transition="opacity "+T.text+"ms linear "+stag(i)+"ms,"+
+        "transform "+T.text+"ms var(--press) "+stag(i)+"ms";
+      el.style.opacity="1";el.style.transform="translateY(0)";});
+  },tX);
+  return tX+T.text+Math.min(Math.max(X.length-1,0),MAXS)*24;
+}
+
+/* ============================================================
+   母题构件(§4.3 白名单)
+   ============================================================ */
+function waveLine(x1,topY,amp,wl,ph,n,close){
+  var d="";
+  for(var i=0;i<=n;i++){var x=x1*i/n;
+    var y=topY-amp*Math.sin(x/wl*2*Math.PI+ph);
+    d+=(i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}
+  if(close)d+="L"+x1+" "+close+"L0 "+close+"Z";
+  return d;
+}
+function waveY(x1,topY,amp,wl,ph){return topY-amp*Math.sin(x1/wl*2*Math.PI+ph);}
+/* 骨线波:平涂靛蓝 + 白骨线层叠 3–5 层,层级即量级;外缘以墨骨线收边(§2.2)
+   唯一循环层(§7.6)在此:±4px / 10s 横移 */
+function waveMotif(w,h,amp,wl,layers){
+  var fills="",lines="",ann="";
+  layers.forEach(function(L,i){
+    var a=amp*(1-i*0.1),ph=0.55+i*1.15,top=h-L.h;
+    fills+='<path class="fl-ind" d="'+waveLine(w,top,a,wl,ph,54,h)+'"/>';
+    /* 首层=外轮廓,墨骨线 3.5px 沿闭合边收边;内层之间用白骨线(纸色)分隔 */
+    lines+='<path class="'+(i?"ln-washi":"ln-sumi")+'" stroke-width="'+(i?4:3.5)+
+      '" fill="none" pathLength="100" data-v="line" d="'+
+      waveLine(w,top,a,wl,ph,54,i?0:h)+'"/>';
+    if(L.ann){                                   /* 数值竖排标注在图形旁,引线相连 */
+      var ye=waveY(w,top,a,wl,ph);
+      ann+='<div class="tick" data-v="line" style="left:'+(w+2)+'px;top:'+(ye-2).toFixed(1)+
+        'px;width:44px"></div>'+
+        '<div class="anno" data-v="text" style="left:'+(w+58)+'px;top:'+(ye-96).toFixed(1)+'px">'+
+        L.ann+'</div>';
+    }
+  });
+  return '<svg class="svgf" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" data-v="fill">'+
+    '<g class="drift">'+fills+'</g></svg>'+
+    '<svg class="svgk" width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'">'+
+    '<g class="drift">'+lines+'</g></svg>'+ann;
+}
+/* 云气纹:顶部连拱 + 平底,横向贯穿表章节分隔(§4.3-2) */
+function cloudTop(x1,cy,r){
+  var d="",x=0;
+  while(x<x1-1){var nx=Math.min(x+2*r,x1);d+="A"+r+" "+r+" 0 0 1 "+nx.toFixed(1)+" "+cy+" ";x=nx;}
+  return d;
+}
+function cloudBand(w,h,cy,r,o){
+  o=o||{};
+  var body="M0 "+cy+" "+cloudTop(w,cy,r)+"L"+w+" "+h+"L0 "+h+"Z";
+  var s="";
+  if(o.fill)s+='<path class="'+o.fill+'" d="'+body+'"/>';
+  if(o.line)s+='<path class="'+o.line+'" stroke-width="'+(o.lw||3.5)+'" pathLength="100"'+
+    ' data-v="line" d="'+body+'" fill="none"/>';
+  if(o.inner)s+='<path class="'+o.inner+'" stroke-width="4" pathLength="100" data-v="line"'+
+    ' fill="none" d="M0 '+(cy+28)+' '+cloudTop(w,cy+28,r)+'"/>';
+  return s;
+}
+/* 円相:墨或金泥一笔圆,右侧留缺口作飞白意(§4.3-3,每页 ≤1 枚) */
+function enso(cx,cy,r,cls,w){
+  var a0=Math.PI/3,a1=Math.PI*340/180;            /* 60°起笔顺时针 280°,右侧留缺口 */
+  return '<path class="'+cls+'" stroke-width="'+w+'" stroke-linecap="round" pathLength="100"'+
+    ' data-v="line" fill="none" d="M'+(cx+r*Math.cos(a0)).toFixed(1)+' '+
+    (cy+r*Math.sin(a0)).toFixed(1)+'A'+r+' '+r+' 0 1 1 '+(cx+r*Math.cos(a1)).toFixed(1)+
+    ' '+(cy+r*Math.sin(a1)).toFixed(1)+'"/>';
+}
+/* 山形序列:等高平涂山脊一字排开(§5 排行) */
+function ridge(cx,gy,hw,h,up){
+  var s=up?1:-1;
+  return "M"+(cx-hw)+" "+gy+"L"+(cx-hw*0.34).toFixed(1)+" "+(gy-s*h*0.66).toFixed(1)+
+    "L"+cx+" "+(gy-s*h).toFixed(1)+"L"+(cx+hw*0.42).toFixed(1)+" "+(gy-s*h*0.55).toFixed(1)+
+    "L"+(cx+hw)+" "+gy+"Z";
+}
+
+/* ============================================================
+   六种页型 · 用版画语汇转译同一份内容
+   ============================================================ */
+function build(sl,i){
+  var d=document.createElement("div");
+  d.className="slide";d.dataset.i=i;
+  ({cover:cover,metric:metric,ranking:ranking,divider:divider,
+    transcript:transcript,final:fin})[sl.type](d,sl,i);
+  return d;
+}
+
+/* 封面:右缘竖排卷题 + 円相一枚 + 骨线波;朱红仅落款印 */
+function cover(d,s){
+  var h='<div class="pw" style="left:96px;top:140px;width:380px;height:380px">'+
+    '<svg class="svgk" width="380" height="380" viewBox="0 0 380 380">'+
+    enso(190,190,168,"ln-sumi",16)+'</svg></div>';
+  h+='<div class="kick" data-v="text" style="left:100px;top:548px;width:760px">'+esc(s.kicker)+'</div>';
+  h+='<div class="body lead" data-v="text" style="position:absolute;left:100px;top:612px;width:780px">'+
+    esc(s.lede)+'</div>';
+  h+='<div class="pw" style="left:60px;top:760px;width:1460px;height:488px;overflow:hidden">'+
+    waveMotif(1400,488,40,620,[{h:380},{h:282},{h:186},{h:96}])+'</div>';
+  h+='<div class="vtitle" data-v="line" style="right:96px;top:40px">'+esc(s.title)+'</div>';
+  s.stats.forEach(function(k,j){                 /* 卷首账目:竖排小字,自右而左 */
+    h+='<div class="vcol" data-v="text" style="right:'+(470+j*132)+'px;top:104px">'+
+      '<div class="vlab">'+esc(k[0])+'</div><div class="vnum">'+esc(k[1])+'</div></div>';
+  });
+  d.innerHTML=h;
+  d._enter=function(r){printIn(r);};
+}
+
+/* 数据页:骨线波表对比(波高即量级)+ 结论值朱红一处 + 竖排行次 */
+function metric(d,s){
+  var c=s.conclusion,sc=430/346;
+  var h='<div class="kick" data-v="text" style="left:60px;top:6px">'+s.mid+' · '+esc(s.name)+' · 结论</div>';
+  h+='<h1 class="pg" data-v="text" style="position:absolute;left:60px;top:46px;width:1640px">'+
+    esc(c.pre)+'：<b>'+esc(c.a)+'</b> '+esc(c.verb)+' <b>'+esc(c.b)+'</b></h1>';
+  h+='<div class="ripple" id="rip" style="left:40px;top:36px"><s></s><s></s></div>';
+  h+='<div class="hero" id="hero" data-v="text" style="left:150px;top:226px"><span class="v">'+
+    (NOANIM?fmt(s.hero.value):"0")+'</span><span class="unit">'+esc(s.hero.unit)+'</span></div>';
+  h+='<div class="body" data-v="text" style="position:absolute;left:150px;top:424px;width:1120px">'+
+    esc(s.note)+'</div>';
+  h+='<div class="pw" style="left:60px;top:640px;width:1660px;height:600px;overflow:hidden">'+
+    waveMotif(1420,600,34,560,[
+      {h:430,ann:esc(c.a)},{h:318},{h:(52*sc).toFixed(1),ann:esc(c.b)},{h:18}])+'</div>';
+  s.rows.forEach(function(r,j){
+    h+='<div class="vcol" data-v="text" style="left:'+(1760+j*158)+'px;top:130px">'+
+      '<div class="vlab">'+esc(r[0])+'</div><div class="vnum">'+esc(r[1])+'</div></div>';
+  });
+  d.innerHTML=h;
+  d._enter=function(r){
+    var t=printIn(r);
+    count(r.querySelector("#hero .v"),s.hero.value,t);
+    setTimeout(function(){ripple(r.querySelector("#rip"));},t+40);
+  };
+}
+
+/* 排行页:山形序列,等高平涂山脊一字排开,本机座染朱红;无坐标轴无网格 */
+function ranking(d,s){
+  var hi=0;s.bars.forEach(function(b){hi=Math.max(hi,Math.abs(b.v));});
+  var W=2368,H=880,maxH=440,gy=620,x0=309,bw=230,gap=150,sc=maxH/hi;
+  /* 大地:平涂霞灰一整块横贯页缘,上下各收一道墨骨线——不是坐标轴,没有刻度与网格 */
+  var fills='<path class="fl-mist" d="M0 '+gy+'L'+W+' '+gy+'L'+W+' '+H+'L0 '+H+'Z"/>';
+  var lines='<path class="ln-sumi" stroke-width="3.5" fill="none" pathLength="100" data-v="line" d="M0 '+
+    gy+'L'+W+' '+gy+'"/><path class="ln-sumi" stroke-width="3.5" fill="none" pathLength="100"'+
+    ' data-v="line" d="M0 '+H+'L'+W+' '+H+'"/>';
+  s.bars.forEach(function(b,i){
+    var cx=x0+i*(bw+gap)+bw/2,up=b.v>=0,hh=Math.max(36,Math.abs(b.v)*sc);
+    if(up){
+      /* 最高=和纸白雪山,他者=霞灰,一律墨骨线收边 */
+      fills+='<path class="'+(b.role==="cloud"?"fl-washi":"fl-mist")+' edged" d="'+
+        ridge(cx,gy,bw/2,hh,true)+'"/>';
+    }else{
+      /* 负值=向大地陷落的靛蓝深谷 */
+      fills+='<path class="fl-ind edged" d="'+ridge(cx,gy,bw/2,hh,false)+'"/>';
+    }
+    if(b.role==="local"){                        /* 本机座染朱红:平涂基座 + 墨骨线 */
+      fills+='<path class="fl-shu edged" d="M'+(cx-bw/2-4)+' '+gy+'L'+(cx+bw/2+4)+' '+gy+
+        'L'+(cx+bw/2+4)+' '+(gy-34)+'L'+(cx-bw/2-4)+' '+(gy-34)+'Z"/>';
+    }
+    lines+='<path class="ln-washi" stroke-width="3.5" fill="none" pathLength="100" data-v="line" d="M'+
+      (cx-bw*0.34).toFixed(1)+' '+(gy-hh*0.66).toFixed(1)+'L'+cx+' '+(gy-hh).toFixed(1)+'"/>';
+  });
+  var h='<div class="kick" data-v="text" style="left:60px;top:6px">'+s.mid+' · '+esc(s.name)+'</div>'+
+    '<h1 class="pg" data-v="text" style="position:absolute;left:60px;top:46px;width:1800px">'+esc(s.title)+'</h1>'+
+    '<div class="pw" style="left:0;top:160px;width:'+W+'px;height:'+H+'px;overflow:hidden">'+
+    '<svg class="svgf" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" data-v="fill">'+fills+'</svg>'+
+    '<svg class="svgk" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'+lines+'</svg>'+
+    '<div style="position:absolute;left:0;top:0;width:'+W+'px;height:'+H+'px">';
+  s.bars.forEach(function(b,i){                  /* 名目与数值:竖排小字立于山脊旁 */
+    var lx=(i===0)?x0-120:(x0+(i-1)*(bw+gap)+bw+22);
+    h+='<div class="vcol" data-v="text" style="left:'+lx+'px;bottom:'+(H-gy+16)+'px">'+
+      '<div class="vlab">'+esc(b.n)+'</div><div class="vnum">'+fmt(b.v)+'</div></div>';
+  });
+  h+='</div></div><div class="body" data-v="text" style="position:absolute;left:60px;top:1080px;width:1500px">'+
+    esc(s.note)+'</div>';
+  d.innerHTML=h;
+  d._enter=function(r){printIn(r);};
+}
+
+/* 章节页:云气纹带横贯 + 转角云纹 + 卷目竖排 + 円相一枚表阶段完成;金泥只作线 */
+function divider(d,s){
+  var h='<div class="kick" data-v="text" style="left:60px;top:6px">'+s.mid+' · 卷目</div>';
+  h+='<div class="pw" style="left:0;top:500px;width:2368px;height:300px;overflow:hidden">'+
+    '<svg class="svgf" width="2368" height="300" viewBox="0 0 2368 300" data-v="fill">'+
+    cloudBand(2368,300,150,76,{fill:"fl-mist"})+'</svg>'+
+    '<svg class="svgk" width="2368" height="300" viewBox="0 0 2368 300">'+
+    cloudBand(2368,300,150,76,{line:"ln-sumi",inner:"ln-gold"})+'</svg></div>';
+  /* 转角云纹:自左下角起,向上折 */
+  h+='<div class="pw" style="left:0;top:1058px;width:1200px;height:190px;overflow:hidden">'+
+    '<svg class="svgf" width="1200" height="190" viewBox="0 0 1200 190" data-v="fill">'+
+    cloudBand(1200,190,64,52,{fill:"fl-mist"})+'</svg>'+
+    '<svg class="svgk" width="1200" height="190" viewBox="0 0 1200 190">'+
+    cloudBand(1200,190,64,52,{line:"ln-sumi"})+'</svg></div>';
+  h+='<div class="vtitle mid" data-v="line" style="right:96px;top:96px">'+esc(s.name)+'</div>';
+  h+='<div class="body lead" data-v="text" style="position:absolute;left:60px;top:850px;width:920px">'+
+    esc(s.sub)+'</div>';
+  h+='<div class="pw" style="left:200px;top:130px;width:300px;height:300px">'+
+    '<svg class="svgk" width="300" height="300" viewBox="0 0 300 300">'+enso(150,150,126,"ln-gold",12)+
+    '</svg></div>';
+  h+='<div class="anno" data-v="text" style="left:560px;top:150px"><i>阶段完成</i></div>';
+  d.innerHTML=h;
+  d._enter=function(r){printIn(r);};
+}
+
+/* 叙事页:霞带平涂斜托正文 + 云纹带刻度表时间 + 结论值朱红 */
+function transcript(d,s){
+  var h='<div class="kick" data-v="text" style="left:60px;top:6px">'+s.mid+' · '+esc(s.name)+'</div>';
+  h+='<div class="vtitle sub" data-v="line" style="right:56px;top:118px">'+esc(s.title)+'</div>';
+  h+='<div class="mistband" style="left:40px;top:120px;width:1580px;height:460px">'+
+    '<div class="pw" style="inset:0"><i class="pw-fill f-mist" data-v="fill"></i>'+
+    '<i class="pw-line ind" data-v="line"></i></div>'+
+    '<div style="position:absolute;left:64px;top:44px;width:1440px">'+
+    s.lines.map(function(l){return '<div class="logline'+(l[1]==="sys"?" sysline":"")+
+      '" data-v="text"><t>'+esc(l[0])+'</t><span class="'+l[1]+'">'+esc(l[2])+'</span></div>';}).join("")+
+    '</div></div>';
+  h+='<div class="ripple" id="rip" style="left:1670px;top:534px"><s></s><s></s></div>';
+  h+='<div class="kick" data-v="text" style="left:1740px;top:700px">'+esc(s.counter.label)+'</div>';
+  h+='<div class="hero c2" id="hero" data-v="text" style="left:1740px;top:746px"><span class="v">'+
+    (NOANIM?fmt(s.counter.value):"0")+'</span><span class="unit">'+esc(s.counter.unit)+'</span></div>';
+  /* 时间 = 云纹带刻度:墨点立于拱谷,小字标注其下,不画坐标轴 */
+  h+='<div class="pw" style="left:60px;top:900px;width:1560px;height:150px;overflow:hidden">'+
+    '<svg class="svgf" width="1560" height="150" viewBox="0 0 1560 150" data-v="fill">'+
+    cloudBand(1560,150,58,41,{fill:"fl-mist"})+'</svg>'+
+    '<svg class="svgk" width="1560" height="150" viewBox="0 0 1560 150">'+
+    cloudBand(1560,150,58,41,{line:"ln-sumi"})+'</svg></div>';
+  s.lines.forEach(function(l,j){
+    var x=82+j*246;                               /* 246 = 3×拱距,墨点正落在拱谷上 */
+    h+='<div class="dot" data-v="line" style="left:'+(x-6)+'px;top:952px"></div>'+
+      '<div class="ticks" data-v="text" style="left:'+(x-75)+'px;top:1068px;width:150px">'+esc(l[0])+'</div>';
+  });
+  h+='<div class="body" data-v="text" style="position:absolute;left:60px;top:1148px;width:1520px">'+
+    esc(s.note)+'</div>';
+  d.innerHTML=h;
+  d._enter=function(r){
+    var t=printIn(r);
+    count(r.querySelector("#hero .v"),s.counter.value,t);
+    setTimeout(function(){ripple(r.querySelector("#rip"));},t+40);
+  };
+}
+
+/* 结束页:「完」字小品 —— 中央円相内书完,右下钤全片最大一枚朱红印;退场=收卷落款 */
+function fin(d,s){
+  var h='<div class="pw" style="left:874px;top:120px;width:620px;height:620px">'+
+    '<svg class="svgk" width="620" height="620" viewBox="0 0 620 620">'+enso(310,310,268,"ln-sumi",16)+
+    '</svg></div>';
+  h+='<div class="mark" data-v="text" style="left:874px;top:120px;width:620px;height:620px">完</div>';
+  h+='<div class="body lead" data-v="text" style="position:absolute;left:60px;top:130px;width:700px">'+
+    esc(s.close)+'</div>';
+  s.credits.forEach(function(k,j){
+    h+='<div class="vcol" data-v="text" style="left:'+(1620+j*150)+'px;top:830px">'+
+      '<div class="vlab">'+esc(k[0])+'</div><div class="vnum" style="font-size:28px">'+esc(k[1])+'</div></div>';
+  });
+  h+='<div class="kick" data-v="text" style="left:60px;top:1160px">END · '+esc(s.total)+'</div>';
+  d.innerHTML=h;
+  d._enter=function(r){
+    var t=printIn(r);
+    if(NOANIM){                                  /* §7.7:降级版退场 1 帧直切到干净帧 */
+      seq.push(setTimeout(function(){
+        blackout.style.opacity="1";r.style.clipPath="inset(0 100% 0 0)";seal.style.opacity="0";
+      },1200));
+      return;
+    }
+    seq.push(setTimeout(function(){curtain(r);},Math.max(t+700,T.exitAt)));
+  };
+  /* 终场定格解除:撤罩层 + 还原被收卷/熄灭的元素 + 允许回末页重播整套退场 */
+  d._reset=function(){
+    seq.forEach(clearTimeout);seq=[];
+    dim.style.transition="none";dim.style.opacity="0";
+    blackout.style.transition="none";blackout.style.opacity="0";
+    roller.style.transition="none";roller.style.display="none";
+    roller.style.transform="";roller.style.opacity="1";
+    cloudpass.classList.remove("on");cloudpass.innerHTML="";
+    d.style.clipPath="";d.style.transition="";d.style.transform="";
+    sel(d,'[data-v]').forEach(function(el){el.style.transition="none";
+      el.style.opacity="";el.style.transform="";});
+    printFinish(d);
+    seal.style.transition="none";seal.style.opacity="1";
+    renderChrome(DECK.slides.length-1);
+    d._seen=0;                                      /* 允许回末页重播整套退场 */
+  };
+}
+
+/* ---------- 数字落定:先给画面,数值以竖排小字随后,但每数必标(§8) ---------- */
+function count(el,target,at){
+  if(!el)return;
+  if(NOANIM){el.textContent=fmt(target);return;}
+  setTimeout(function(){
+    var t0=performance.now(),dur=600;
+    function step(){
+      var e=performance.now()-t0;
+      el.textContent=fmt(target*Math.min(1,e/dur));
+      if(e<dur)requestAnimationFrame(step);else el.textContent=fmt(target);
+    }
+    step();
+  },at||0);
+}
+/* ---------- §7.4 波式强调 ---------- */
+function ripple(r){
+  if(!r)return;
+  if(NOANIM){r.classList.add("static");return;}
+  r.classList.add("on");
+  setTimeout(function(){r.classList.remove("on");},T.ripple+260);
+}
+
+/* ============================================================
+   §7.5 退场:收卷落款(七步,顺序执行)
+   ============================================================ */
+function curtain(r){
+  /* 1 印章 1.15 → 1.0 落定,80ms 顿感,如钤印 */
+  seal.style.transition="transform "+T.stamp+"ms steps(3,end)";
+  seal.style.transform="scale(1)";
+  seq.push(setTimeout(function(){
+    /* 2 云气纹带横过全屏 600ms */
+    cloudSweep(function(){
+      /* 3 整页从右向左收卷成画轴 500ms(横卷逆运算) */
+      roller.style.display="block";
+      roller.style.transition="none";roller.style.opacity="1";
+      roller.style.transform="translateX(2324px)";
+      r.style.transition="none";r.style.clipPath="inset(0 0 0 0)";
+      requestAnimationFrame(function(){
+        roller.style.transition="transform "+T.roll+"ms var(--press)";
+        roller.style.transform="translateX(0px)";
+        r.style.transition="clip-path "+T.roll+"ms var(--press)";
+        r.style.clipPath="inset(0 100% 0 0)";
+      });
+      /* 4 画轴缩小居中 */
+      seq.push(setTimeout(function(){
+        roller.style.transition="transform "+T.coils+"ms var(--press)";
+        roller.style.transform="translateX(1162px) scale(.34)";
+      },T.roll+40));
+      /* 5 整体明度缓沉至墨黑 1.2s */
+      seq.push(setTimeout(function(){
+        dim.style.opacity="1";
+        roller.style.transition="opacity 400ms linear";roller.style.opacity="0";
+      },T.roll+T.coils+80));
+      /* 6 留印位一点朱红,800ms 后熄 —— 7 全黑停 ≥1s 供录屏切尾 */
+      seq.push(setTimeout(function(){
+        seal.style.transition="opacity "+T.black+"ms linear";seal.style.opacity="0";
+        blackout.style.opacity="1";
+      },T.roll+T.coils+80+T.dim+T.hold));
+    });
+  },T.stamp+40));
+}
+function cloudSweep(done){
+  if(NOANIM){if(done)done();return;}
+  cloudpass.innerHTML=cloudSheet();
+  cloudpass.classList.remove("on");void cloudpass.offsetWidth;
+  cloudpass.classList.add("on");
+  seq.push(setTimeout(function(){
+    cloudpass.classList.remove("on");cloudpass.innerHTML="";if(done)done();
+  },T.cloud));
+}
+function cloudSheet(){                           /* 全屏云气sheet:承上启下(§7.3-2) */
+  return '<svg width="2560" height="1440" viewBox="0 0 2560 1440" style="display:block">'+
+    '<rect class="fl-washi" x="0" y="0" width="2560" height="1440"/>'+
+    '<path class="fl-mist" d="M0 300 '+cloudTop(2560,300,110)+'L2560 620L0 620Z"/>'+
+    '<path class="ln-ind" stroke-width="5" d="M0 300 '+cloudTop(2560,300,110)+'"/>'+
+    '<path class="fl-ind" d="M0 940 '+cloudTop(2560,940,96)+'L2560 1440L0 1440Z"/>'+
+    '<path class="ln-washi" stroke-width="6" d="M0 984 '+cloudTop(2560,984,96)+'"/></svg>';
+}
+
+/* ============================================================
+   §7.3 翻页转场:横卷(默认) / 云过(章节切换)
+   ============================================================ */
+function reveal(el){
+  el.classList.add("cur");
+  if(el._enter&&!el._seen){el._seen=1;el._enter(el);}
+}
+function hide(el){el.classList.remove("cur");}
+function roll(from,to){
+  var a=nodes[from],b=nodes[to],dir=(to>from?1:-1);
+  if(NOANIM){hide(a);renderChrome(to);b.style.clipPath="";reveal(b);return;}
+  a.style.transition="none";b.style.transition="none";
+  a.style.zIndex=5;b.style.zIndex=6;
+  b.style.transform="translateX("+(dir*100)+"%)";
+  b.classList.add("cur");renderChrome(to);
+  requestAnimationFrame(function(){
+    var tr="transform "+T.roll+"ms var(--press)";
+    a.style.transition=tr;b.style.transition=tr;
+    a.style.transform="translateX("+(-dir*100)+"%)";
+    b.style.transform="translateX(0%)";
+  });
+  setTimeout(function(){
+    hide(a);a.style.transition="";a.style.transform="";a.style.zIndex="";
+    b.style.zIndex="";b.style.transition="";b.style.transform="";
+    if(!b._seen){b._seen=1;b._enter(b);}
+  },T.roll+40);
+}
+function cloudTrans(from,to){
+  var a=nodes[from],b=nodes[to];
+  if(NOANIM){hide(a);renderChrome(to);reveal(b);return;}
+  cloudSweep(function(){hide(a);renderChrome(to);reveal(b);});
+}
+function kindOf(from,to){
+  var a=DECK.slides[from],b=DECK.slides[to];
+  return (b.type==="divider"||a.type==="divider")?"cloud":"roll";
+}
+
+/* ---------- 落款印:页码白文(篆意汉字数字),全片统一位置 ---------- */
+function renderChrome(i){
+  var s=DECK.slides[i],big=s.type==="final";
+  seal.className=big?"big":"";
+  seal.textContent=KANJI[i]||String(i+1);
+  seal.style.transition="none";seal.style.opacity="1";
+  seal.style.transform=(big&&!NOANIM)?"scale(1.15)":"scale(1)";
+}
+/* ---------- 解除终场定格:任何翻页输入都要撤罩层并还原元素 ---------- */
+function unblack(){
+  var f=nodes[nodes.length-1];
+  if(f._reset)f._reset();
+  else{dim.style.opacity="0";blackout.style.opacity="0";}
+  renderChrome(cur);
+}
+function go(to,dir){
+  to=Math.max(0,Math.min(DECK.slides.length-1,to));
+  if(busy)return;
+  if(to===cur){
+    if(blackout.style.opacity==="1"||dim.style.opacity==="1")unblack();
+    return;
+  }
+  unblack();
+  var kind=kindOf(cur,to),d=dir||(to>cur?1:-1);
+  if(!NOANIM){busy=1;setTimeout(function(){busy=0;},(T[kind]||T.roll)+60);}
+  if(kind==="cloud")cloudTrans(cur,to,d);else roll(cur,to,d);
+  cur=to;hint.textContent=keys();
+}
+function keys(){return (cur+1)+" / "+DECK.slides.length+
+  "   ·   → 下一页   ← 上一页   滚轮   点两侧翻页   Home / End   F 纯净屏"+
+  (NOANIM?"   A 开启动效":"   A 降级 noanim");}
+
+/* ---------- 装配 ---------- */
+var nodes=DECK.slides.map(function(s,i){var el=build(s,i);slidesEl.appendChild(el);return el;});
+var jump=P.has("slide")?parseInt(P.get("slide"),10):0;
+cur=isNaN(jump)?0:Math.max(0,Math.min(DECK.slides.length-1,jump));
+renderChrome(cur);
+reveal(nodes[cur]);
+hint.textContent=keys();
+
+/* 鼠标:滚轮累计过 40px 阈值才翻一次(触控板惯性不连跳);
+   点两侧 28% 翻页,中间 44% 安全区;转场期间加锁,输入不叠加 */
+addEventListener("wheel",function(e){
+  if(busy){wheelAcc=0;return;}
+  wheelAcc+=e.deltaY||e.detail||0;
+  if(Math.abs(wheelAcc)<40)return;
+  var d=wheelAcc>0?1:-1;wheelAcc=0;go(cur+d,d);
+},{passive:true});
+stage.addEventListener("click",function(e){
+  var x=e.clientX/innerWidth;
+  if(x<0.28)go(cur-1,-1);else if(x>0.72)go(cur+1,1);
+});
+addEventListener("keydown",function(e){
+  var k=e.key;
+  if(k==="ArrowRight"||k==="PageDown"||k===" "){e.preventDefault();go(cur+1,1);}
+  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();go(cur-1,-1);}
+  else if(k==="Home")go(0,-1);
+  else if(k==="End")go(DECK.slides.length-1,1);
+  else if(k==="f"||k==="F")document.documentElement.classList.toggle("clean");
+  else if(k==="a"||k==="A")location.search=NOANIM?"":"noanim=1";
+});
+
+function fit(){stage.style.setProperty("--s",Math.min(innerWidth/2560,innerHeight/1440));}
+addEventListener("resize",fit);fit();
+window.__ready=true;                 // 供截图/录屏脚本判活
+})();
+</script>
+</body>
+</html>

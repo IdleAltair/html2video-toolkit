@@ -176,7 +176,7 @@
 2. **炸弹人四条回放重录** —— 旧片是改模板前录的，已请 Qoder 按新模板重出（`bomb_solo` / `bomb_melee` / `bomb_ot` / `bomb_blind`）。
 3. **配音与字幕** —— 日语稿与 TTS 已出（`script/口播稿.ja.md`、`dubbing/tts_clips/`、`dubbing/字幕.srt`、`data/cues.json`），
    整片 15.2 分钟；**合入成片留到最后一步**，`dubbing/字幕.*.txt` 都是 `pipeline/dub.py` 的产物，别手改。
-4. **合成** —— 需要 ffmpeg 时用 WSL 里的 `/home/altair/mamba/envs/ninfer/bin/ffmpeg`（9.0.2，带 libx264 / aac / libvpx），不必另装。
+4. **合成** —— 需要 ffmpeg 时用 WSL 里的 `$HOME/mamba/envs/ninfer/bin/ffmpeg`（9.0.2，带 libx264 / aac / libvpx），不必另装。
 
 ---
 

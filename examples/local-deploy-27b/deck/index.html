@@ -1,0 +1,1242 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>两台 RTX 5060 Ti 16GB 跑 27B · 瑞士网格 · 本地部署 deck</title>
+<!--
+  设计语言 02 瑞士网格 · 本地 27B 部署 deck（单文件，零外部依赖）
+  模板源: swiss-grid.html（设计语言 02 瑞士网格 v1.0）
+  内容:   由 SHARED DECK 块改写，口播稿 local-deploy-share/article-draft.md
+  用法:   index.html           正常播放(2560x1440 自适应缩放)
+          ?noanim          降级:落版与推格 1 帧直切、数据条与数字直显终值
+          ?clean=1         录屏:隐藏鼠标与左下角键位提示条(等价按 F)
+          ?slide=3         直接定位到第 4 页
+          ?fig=2           钉住 rot 轮换页第 3 帧(0 基,截图/TTS 对齐用),不自动轮换
+          ?tab=2           钉住 swap 两段页第 2 段(1 基,截图/TTS 对齐用),不自动轮换
+          ?autoexit=1      恢复末页自动退场(默认停在结论页,按 →/Space 才播退场)
+  键位:   → / Space / PageDown 下页   ← / PageUp 上页   Home / End   F 纯净屏   A 切换 ?noanim
+           G               rot 轮换页手动切下一帧(备用;不占既有键位,无冲突)
+  栅格:   四边边距 96 / 内容区 2368x1248 / 12 列(列宽 168 + 列距 32 = 步距 200) / 垂直基线模块 16px
+          脚注带 = 内容区底部 1/6 = 208px(13 模块),顶边 y=1040,以 0.75px 毛发线与正文区隔开
+  新增:   figure 页型 + rot 同位轮换(2–4 帧 · object-fit:contain · 300ms 淡入淡出,不重新入场);
+          table 密排表格页型(3 列栅格 + 行间毛发线 + 表头 24px 灰字 + 等宽数字右对齐)
+-->
+<style>
+/* ---- 色板 token · 规范 §2.1,逐字照抄。灰度阶梯用 --ink 的浓度阶,不新增色值、不加第二彩色 §2.2 ---- */
+:root{
+  --paper: #FAFAF7;  /* 纸白:微暖,非纯白 */
+  --ink:   #111111;  /* 文字黑 */
+  --gray:  #8A8A85;  /* 次级灰 */
+  --hair:  #D8D8D2;  /* 毛发线 */
+  --red:   #E4032E;  /* 瑞士红:全页唯一彩色 */
+  --fsans:"Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
+  --fmono:"Cascadia Code","JetBrains Mono","IBM Plex Mono",Consolas,monospace;
+  --hairw:0.75px;                      /* 毛发线宽度 §4.3 */
+  --drop:420ms;                        /* 元素进场 §7.1 */
+  --shift:240ms;                       /* 红移 §7.2 */
+  --ease-stop:cubic-bezier(0.2,0,0,1); /* 落版急停 §7.1 */
+  --push:520ms;                        /* 推格转场 §7.3 */
+  --swap:560ms;                        /* 整版更换 §7.3 */
+  --ease-push:cubic-bezier(.22,.61,.36,1); /* 转场缓动 §7.3 */
+  --ease-drop:cubic-bezier(.16,1,.3,1);  /* 进场缓动 §7.1 */
+}
+
+*{box-sizing:border-box}
+i,em,cite,var,address{font-style:normal}   /* §3.3 斜体全方案禁止:强调只用字重 */
+html,body{margin:0;height:100%;background:var(--hair);overflow:hidden}
+html.clean,html.clean *{cursor:none!important}
+html.clean #hintbar{display:none}
+#stage{position:fixed;left:50%;top:50%;width:2560px;height:1440px;
+  transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:center center;
+  background:var(--paper);color:var(--ink);font-family:var(--fsans);overflow:hidden}
+
+/* ---- 页容器:四边安全边距 96 §4.1 ---- */
+#slides{position:absolute;inset:0;z-index:3}
+.slide{position:absolute;inset:96px;opacity:0;visibility:hidden;will-change:transform}
+.slide.cur,.slide.out{opacity:1;visibility:visible}
+.g{position:absolute}
+.num{font-variant-numeric:tabular-nums}   /* 等宽数字 §3.1 */
+
+/* ---- 母题 §4.3-1 毛发线:0.75px --hair,正交,绝不倾斜 ---- */
+.hl{height:var(--hairw);background:var(--hair)}
+.vl{width:var(--hairw);background:var(--hair)}
+.conn{height:var(--hairw);background:var(--hair);flex:1 1 auto}
+
+/* ---- 页眉 §3.3 §4.2:左上章节编号 3.2、右上页码 06/06,等宽挂栅格固定位 ---- */
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;height:48px}
+.chap{font:700 24px/48px var(--fmono);color:var(--ink);letter-spacing:.06em}
+.pg{font:400 24px/48px var(--fmono);color:var(--ink);letter-spacing:.06em}
+
+/* ---- 字号阶梯 §3.2 ---- */
+.kick{font:400 26px/32px var(--fmono);letter-spacing:.2em;color:var(--gray)}
+.h1{font:700 120px/1.15 var(--fsans);color:var(--ink)}
+.h2{font:700 64px/1.25 var(--fsans);color:var(--ink)}
+.h3{font:700 56px/1.25 var(--fsans);color:var(--ink)}
+.lede{font:400 32px/1.7 var(--fsans);color:var(--ink)}   /* 正文固定 4 栏宽 §3.3 */
+.note{font:400 26px/1.6 var(--fsans);color:var(--gray)}
+
+/* ---- 母题 §4.3-2 编号圆:直径 48,红底白字 —— 全方案唯一允许的非矩形态 ---- */
+.dot{display:inline-block;width:48px;height:48px;border-radius:50%;background:var(--ink);
+  color:var(--paper);font:700 24px/48px var(--fmono);text-align:center;letter-spacing:0}
+
+/* ---- 红 §2.2:每屏 ≤2 处、面积 ≤1%、语义页内唯一(当前/结论/否定三选一,脚注带声明) ---- */
+.slide .rd{color:var(--red)}
+.slide .dot.rd,.slide .cap{background-color:var(--red);color:var(--paper)}
+.rd,.cap{transition:color var(--shift) linear,background-color var(--shift) linear}
+
+/* ---- 母题 §4.3-3 / §5:脚注带(底部 1/6,毛发线隔开,凡数据必有来源) ---- */
+.band{height:208px;border-top:var(--hairw) solid var(--hair);padding:32px 0 0;
+  display:flex;justify-content:space-between;align-items:flex-start}
+.bl{width:1568px}                  /* 栅格 1–8 栏 */
+.br{width:768px;text-align:right} /* 栅格 9–12 栏 */
+.fn{margin:0 0 8px;font:400 26px/1.6 var(--fsans);color:var(--gray)}
+.fnref{font:700 24px/1 var(--fmono);color:var(--ink);margin-right:16px}
+.fnm{margin:0;font:400 24px/1.6 var(--fmono);color:var(--gray);letter-spacing:.06em}
+
+/* ---- 统计带 / 章节条:毛发线分隔的等高栏格 ---- */
+.stats,.chstrip{display:flex;border-top:var(--hairw) solid var(--hair)}
+.cell{padding-top:32px;position:relative}
+.cell.vr{border-right:var(--hairw) solid var(--hair)}
+.clab{margin:0;font:400 24px/1 var(--fmono);color:var(--gray);letter-spacing:.12em}
+.cval{margin:32px 0 0;font:400 48px/1 var(--fmono);color:var(--ink)}
+.cmid{margin:32px 0 0;font:400 24px/1 var(--fmono);color:var(--gray);letter-spacing:.12em}
+.cname2{margin:16px 0 0;font:400 40px/1.2 var(--fsans);color:var(--ink)}
+.cell.em .cname2,.cell.em .cmid{font-weight:700}
+
+/* ---- 封面目录条 §4.2:栅格列 168 + 32 + 968 + 32 + 168 = 7 栏宽 ---- */
+.ixh,.ixrow{display:grid;grid-template-columns:168px 968px 168px;column-gap:32px;align-items:baseline}
+.ixh{font:400 24px/1 var(--fmono);color:var(--gray);letter-spacing:.12em;padding-bottom:16px}
+.ixrow{height:56px;border-bottom:var(--hairw) solid var(--hair)}
+.ixrow .a{font:400 24px/1 var(--fmono);color:var(--gray)}
+.ixrow .b{font:400 28px/1.2 var(--fsans);color:var(--ink)}
+.ixrow .c{font:400 24px/1 var(--fmono);color:var(--gray);text-align:right}
+.ixrow.on .a,.ixrow.on .c{color:var(--ink)}
+.ixrow.on .b{font-weight:700}
+
+/* ---- 栏分隔:正文区与图表区之间的通高毛发线(§4.2 版面结构) ---- */
+.colrule{width:var(--hairw);background:var(--hair)}
+
+/* ---- 表格 §5(主战场):毛发线 + 等宽数字右对齐;对比用字重 700 不靠颜色 ---- */
+.trh{display:flex;justify-content:space-between;border-bottom:var(--hairw) solid var(--hair);
+  padding:0 0 16px;font:400 26px/1 var(--fmono);color:var(--gray);letter-spacing:.12em}
+.tr{display:flex;justify-content:space-between;align-items:baseline;height:64px;
+  border-bottom:var(--hairw) solid var(--hair)}
+.tr.last{border-bottom:none}
+.tl{font:400 32px/1.3 var(--fsans);color:var(--ink)}
+.tv{font:400 32px/1 var(--fmono);color:var(--ink);text-align:right}
+.tr.em .tl,.tr.em .tv{font-weight:700}
+
+/* ---- 巨数 §5:200px+ 跨栏黑字;红只给单位或脚注编号 ---- */
+.big{font:700 200px/1 var(--fmono);color:var(--ink);letter-spacing:-.02em}
+.big.mid{font-size:120px}
+.unit{font:400 56px/1 var(--fmono);color:var(--gray);margin-left:32px}
+.unit.sm{font-size:40px}
+.rf{font:400 24px/1 var(--fmono);margin-left:16px;vertical-align:18px}
+
+/* ---- 流程 §5:编号圆序列 + 毛发线连接(编号圆是唯一的圆) ---- */
+.flow{display:flex;align-items:center;gap:32px;height:48px}
+.fidx{font:400 24px/1 var(--fmono);color:var(--gray)}
+.fval{font:400 40px/1 var(--fmono);color:var(--ink)}
+.fval.em{font-weight:700}
+
+/* ---- 数据条 §5:黑灰阶梯矩形精确排列 + 栅格规则线;轴用毛发线、不加箭头 ---- */
+.crow{position:absolute;left:0;width:2368px;height:72px}
+.crank{position:absolute;left:0;top:12px;width:168px;height:48px}
+.crank .n{display:block;font:400 24px/48px var(--fmono);color:var(--gray);text-align:center}
+.cname{position:absolute;left:200px;top:0;width:368px;height:72px;font:400 28px/72px var(--fsans);color:var(--ink)}
+.cname.em{font-weight:700}
+.ctrack{position:absolute;left:600px;top:0;width:1368px;height:72px}
+.bar{position:absolute;top:0;height:72px;background:var(--ink);width:0}
+.bar.s1{opacity:1}.bar.s2{opacity:.7}.bar.s3{opacity:.45}.bar.s4{opacity:.25}
+.cap{position:absolute;top:0;right:0;width:6px;height:72px}
+.cval2{position:absolute;left:2000px;top:0;width:368px;height:72px;text-align:right;
+  font:400 34px/72px var(--fmono);color:var(--ink)}
+.plotrule{position:absolute;top:-8px;height:536px;width:var(--hairw);background:var(--hair)}
+.axislab{height:24px}
+.axislab span{position:absolute;font:400 24px/1 var(--fmono);color:var(--gray);transform:translateX(-50%)}
+
+/* ---- 实录 §5:毛发线表格;栅格列 168 + 32 + 168 + 32 + 168 + 32 + 968 = 8 栏宽 ---- */
+.tline{display:grid;grid-template-columns:168px 168px 168px 968px;column-gap:32px;align-items:baseline;
+  height:80px;border-bottom:var(--hairw) solid var(--hair)}
+.tline.hd{height:48px;align-items:end;padding-bottom:8px;
+  font:400 26px/1 var(--fmono);color:var(--gray);letter-spacing:.12em}
+.tline.last{border-bottom:none}
+.c-idx{font:400 24px/1.4 var(--fmono);color:var(--gray)}
+.c-time{font:400 26px/1.4 var(--fmono);color:var(--gray)}
+.c-role{font:400 24px/1.4 var(--fmono);color:var(--ink);letter-spacing:.08em}
+.c-role.sys{color:var(--gray)}
+.c-txt{font:400 32px/1.4 var(--fsans);color:var(--ink)}
+
+/* ---- 分隔页 §6 ---- */
+.dname{font:700 140px/1.1 var(--fsans);color:var(--ink)}
+
+/* ---- 版权页 §7.5 ---- */
+.coli{display:grid;grid-template-columns:368px 768px;column-gap:32px;align-items:baseline;
+  height:48px;border-bottom:var(--hairw) solid var(--hair)}
+.coli.last{border-bottom:none}
+.coli .k{font:400 24px/1.4 var(--fmono);color:var(--gray);letter-spacing:.1em}
+.coli .v{font:400 28px/1.4 var(--fmono);color:var(--ink)}
+.spec{margin:0;font:400 24px/1.7 var(--fmono);color:var(--gray);letter-spacing:.04em}
+.spec b{font-weight:700;color:var(--ink)}
+.endbig{margin:16px 0 0;font:700 64px/1 var(--fmono);color:var(--ink)}
+.headl .kick{display:inline-block;margin-left:32px;vertical-align:12px}
+
+/* ---- 终场干净帧:纸白 + 页码,不允许任何谢幕文字 §7.5 ---- */
+#pull{position:absolute;left:-96px;top:-96px;width:2560px;height:1440px;z-index:50;display:flex;pointer-events:none}
+#pull i{flex:1;background:#000;transform:scaleY(0);transform-origin:50% 0;will-change:transform}
+html.exiting #hintbar{opacity:0;transition:opacity 200ms linear}
+#blank{position:absolute;inset:0;z-index:30;background:var(--paper);opacity:0;pointer-events:none}
+#blank.on{opacity:1}
+#blank .pg{position:absolute;right:96px;top:96px}
+
+/* ---- 键位提示条(?clean 隐藏,非录屏内容) ---- */
+#hintbar{position:absolute;left:96px;bottom:40px;z-index:8;
+  font:400 24px/1 var(--fmono);letter-spacing:.08em;color:var(--gray)}
+
+/* ---- 装饰层(新增):左缘进度尺 + 页眉章节标签 + 页码细线 + 退场毛线 + 终场底纹;?clean=1 保留,不压正文 ---- */
+#ruler{position:absolute;left:64px;top:96px;width:2px;height:0;background:var(--ink);z-index:2;
+  transition:height 240ms linear}
+.seclab{position:absolute;right:96px;top:0;height:48px;font:400 24px/48px var(--fmono);
+  color:var(--gray);letter-spacing:.08em;opacity:0}
+.pgul{position:absolute;right:0;top:56px;width:96px;height:2px;background:var(--ink);
+  transform:scaleX(0);transform-origin:0 50%}
+#yarn{position:absolute;left:96px;bottom:96px;width:2368px;height:1px;background:var(--ink);
+  transform:scaleX(0);transform-origin:0 50%;transition:transform 400ms var(--ease-push)}
+#yarn.on{transform:scaleX(1)}
+.sweep{position:absolute;left:88px;top:196px;width:6px;height:330px;background:var(--red);opacity:.9;transform:scaleY(0);transform-origin:top}
+.sweep.on{transform:scaleY(1);transition:transform 600ms var(--ease-push)}
+.h1.in{display:block}
+
+/* ---- 红移的强调态 §7.2(全片唯一强调动画):特异性须压过组件规则 ---- */
+.slide .rd.dim,.slide .rd.pre{color:var(--ink)}
+.slide .dot.rd.dim,.slide .dot.rd.pre,.slide .cap.dim,.slide .cap.pre{background-color:var(--ink)}
+
+/* ---- 降级 §7.7:落版与推格 1 帧直切,数据条直显终值,红移取静态终态 ---- */
+html.noanim *{transition:none!important;animation:none!important}
+
+/* ---- 图版页(新增):实拍与产品图;object-fit:contain 保证不拉伸变形 ---- */
+.fig{overflow:hidden;background:#fff;border:var(--hairw) solid var(--hair)}
+.fig img{display:block;width:100%;height:100%;object-fit:contain}
+.fnote{margin:0;font:400 32px/1.6 var(--fsans);color:var(--ink)}
+.fnm2{margin:0;font:400 24px/1.6 var(--fmono);color:var(--gray);letter-spacing:.02em}
+.fcap{margin:0;font:400 26px/1.5 var(--fmono);color:var(--gray);letter-spacing:.02em}
+
+/* ---- 密排表格页型(新增):3 列栅格 + 行间毛发线 + 表头 24px 灰字 + 数值右对齐等宽数字 ---- */
+.thd{display:flex;column-gap:32px;align-items:baseline;padding:0 0 16px;border-bottom:var(--hairw) solid var(--hair);
+  font:400 26px/1 var(--fmono);color:var(--gray);letter-spacing:.12em}
+.trow{display:flex;column-gap:32px;align-items:baseline;min-height:64px;padding:4px 0;
+  border-bottom:var(--hairw) solid var(--hair)}
+.trow.last{border-bottom:none}
+.tc1{font:400 32px/1.5 var(--fsans);color:var(--ink)}
+.tc2{font:400 32px/1.5 var(--fmono);color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+.tc3{font:400 28px/1.5 var(--fsans);color:var(--gray)}
+/* ---- 三级强调:em1 红点+红字+700(每页≤1) · em2 700+加深 #000 · 无类=普通 ---- */
+.em1{font-weight:700;color:var(--red)}
+.em2{font-weight:700;color:#000}
+.trow .dot{margin-right:16px}
+/* ---- 表内两段先后显示(swap):同位叠放,300ms 淡入淡出,与 rot 同一时间轴写法 ---- */
+.tblseg{position:absolute;left:0;top:0;width:100%;height:100%;opacity:0;visibility:hidden;transition:opacity 300ms linear}
+.tblbody{height:100%;display:flex;flex-direction:column}
+.tbrows{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.tblseg.on{opacity:1;visibility:visible}
+/* ---- 图片轮换(新增):同图位叠帧,300ms 淡入淡出,不重新入场;图注跟帧切换 ---- */
+.figrot{position:relative;overflow:hidden;background:#fff;border:var(--hairw) solid var(--hair)}
+.figrot img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;
+  opacity:0;transition:opacity 300ms linear}
+.figrot img.on{opacity:1}
+/* ---- 图版页右栏正文(密排 28px) ---- */
+.fln{margin:0 0 16px;font:400 32px/1.6 var(--fsans);color:var(--ink)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="slides"></div>
+  <div id="ruler"></div>
+  <div id="blank"><span class="pg num"></span><div id="yarn"></div></div>
+  <div id="hintbar"></div>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SHARED DECK v2 · 本地 27B 部署(两台 RTX 5060 Ti 16GB)
+   数字全部取自 article-draft.md(2026-10-17 数据包与实机核对),不自造。
+   15 页密排版:table 密排表格页型(3 列栅格 + 行间毛发线 + 等宽数字右对齐);
+   figure 页型 rot 同位轮换(2–4 帧 · 300ms 淡入淡出 · G 手动下一帧 · ?fig=N 钉帧)。
+   ============================================================ */
+var DECK={
+   meta:{style:"",doc:"",
+         ver:"LOCAL DEPLOY v2 · 2026-10-17",total:"00:00:00"}, /* TODO: 总时长待录屏完成后填写 */
+   slides:[
+     /* 01 封面 */
+     {type:"cover",mission:0,
+       kicker:"LOCAL DEPLOY · 2026-10",
+       title:"两台 RTX 5060 Ti 16GB 跑 27B",
+       lede:"本地 27B 部署的硬件清单与经验，赶在 Qwen4-27B 发布前总结。",
+       stats:[["显卡","2 卡"],["模型","27B"],["上下文","219,776 tok"],["decode 中位","99.9 tok/s"]],
+       band:["来源：全部数字取自 2026-10-17 数据包与实机核对。",
+             "口径：decode 为 n=130 真实 agent 请求的中位数。"],
+       legend:["符号 红＝上下文上限（核心数字）","TOC 只列章节页"]},
+
+     /* 02 章节 01 · 硬件、功耗与模型 */
+     {type:"divider",mission:1,mid:"H1",name:"硬件、功耗与模型",sub:"SECTION 01 · 硬件、功耗与模型",
+       band:["来源：口播稿第 2 节「硬件清单与选型逻辑」与第 3 节「功耗、温度与模型」。",
+             "口径：本页为章节页，无图表。"],
+       legend:["符号 红＝当前章节","编号圆为全方案唯一非矩形态"]},
+
+     /* 03 硬件清单 9 行 */
+     {type:"table",mission:1,mid:"H1",name:"硬件清单",
+       title:"硬件清单 · 9 项实机核对",
+       cols:["项","配置","核对方式"],widths:[4,5,3],
+       em:[[2,2],[7,2]],
+       rows:[["CPU","Intel Core Ultra 5 245K（核显）· 14 核/14 线程","Win32_Processor"],
+             ["主板","铭瑄 MS-iCraft Z890 Pacific","Win32_BaseBoard · AMI E2.2D"],
+             ["显卡","RTX 5060 Ti ×2 · PCIe 5.0 ×8 · 448 GB/s","nvidia-smi · 596.49 · 180W/卡"],
+             ["内存","2×16GB DDR5（4800+5600）双通道","Win32_PhysicalMemory · 频率未实测"],
+             ["电源","爱国者 aigo EV850 极客 850W 白金全模组","商品页与包装图"],
+             ["机箱","长城隐刃 H600 全塔 · 7 风扇正压","5 月文档 + 实拍侧板"],
+             ["散热","利民 PA120 SE 双塔风冷","5 月文档 + 实拍"],
+             ["磁盘","KIOXIA EXCERIA PLUS G3 2TB×2 · NVMe PCIe 4.0","Win32_DiskDrive · 官网 5000 MB/s"],
+             ["系统","Win 11 25H2 + WSL2 Ubuntu","Win32_OperatingSystem · CUDA 13.1"]],
+       note:"磁盘官网确认为 NVMe PCIe 4.0（5 月文档误记为 SATA）。",
+       band:["来源：2026-10-17 实机核对（PowerShell CIM + nvidia-smi）。"],
+       legend:["符号 红＝本页无","数值右对齐 · 等宽数字"]},
+
+     /* 04 选型逻辑 · rot 轮换 */
+     {type:"figure",mission:1,mid:"H1",name:"选型逻辑",
+       kick:"选型逻辑",
+       title:"先定卡，再配整机",
+       figs:[{src:"../assets/hardware/cropped/gpu-two-cards.jpg",
+              cap:"两张卡：索泰 5060 Ti 16GB 月影 OC 三风扇（白）+ 星夜 双风扇（黑），官方产品图"},
+             {src:"../assets/hardware/z890-pacific-front.jpg",
+              cap:"主板正面：铭瑄 iCraft Z890 Pacific，4 条 PCIe，第 1、3 槽直连 CPU（渲染图）"}],
+       rot:{ms:6000},
+       lines:["先定卡再配整机：5060 Ti 先定，其余配件围绕卡选。",
+              "主板 1、3 槽直连 CPU，拆分后双 PCIe 5.0 ×8，刚好跑满 5060 Ti 带宽。",
+              "CPU 必须带核显：桌面占用的显存在 TP 下会均分扣掉两卡，不均分又拖累速度。"],
+       band:["来源：口播稿第 2 节；图为商品图与实拍，均非本人拍摄。",
+             "口径：1、3 槽直连 CPU，单卡 PCIe 5.0 ×8。"],
+       legend:["图 轮换 · 6s/帧","白底 · 不变形"]},
+
+     /* 05 配套三件 · rot 轮换 */
+     {type:"figure",mission:1,mid:"H1",name:"配套三件",
+       kick:"配套三件",
+       title:"电源 · 机箱 · 散热",
+       figs:[{src:"../assets/hardware/cropped/case-h600-white.jpg",
+              cap:"长城隐刃 H600 全塔 · 前置三风扇进风（官方渲染图，白底）"},
+             {src:"../assets/hardware/cropped/cooler-pa120se-crop.jpg",
+              cap:"利民 PA120 SE 双塔风冷（官方产品图，白底裁剪）"},
+             {src:"../assets/hardware/cropped/dual-gpu-position.jpg",
+              cap:"机箱内部：两卡一上一下，底部风扇正对中间间隙"},
+             {src:"../assets/hardware/cropped/power-meter-crop.jpg",
+              cap:"米家智能插座 3：推理时当前功率 360 W（同时刻两卡合计约 230 W）"}],
+       rot:{ms:6000},
+       lines:["EV850 850W 白金全模组：双卡满载 360W（180W×2），整机峰值最多 600 余 W，留够余量。",
+              "长城隐刃 H600 全塔 · 7 风扇正压（上二/后一/前三/下一），风扇按机箱风道孔位买。",
+              "利民 PA120 SE 双塔；推理时两张卡占用 95–98% / 94–97%，温度 46–47℃ / 52–53℃，nvidia-smi 采样单卡 113–117 W（双卡合计约 230 W），同时刻米家插座整机 360 W。"],
+       band:["来源：实拍读数、nvidia-smi 采样与商品图（2026-10-18 复核）。",
+             "口径：温度与功耗为推理时实测；插座读数为整机，含 CPU、主板与电源转换损耗。"],
+       legend:["图 轮换 · 6s/帧","白底 · 不变形"]},
+
+     /* 06 模型参数 6 行 */
+     {type:"table",mission:1,mid:"H1",name:"模型参数",
+       title:"模型参数 · w4a4-w8a8 int8 KV",
+       stretch:true,
+       cols:["项","取值"],widths:[4,8],
+       em:[[1,1],[4,2]],
+       rows:[["权重格式","W4A4/W8A8"],
+             ["权重体积","20.8 GiB · 24.5 s 载入（约 868 MiB/s）"],
+             ["每卡权重","10.4 GiB（分片 9.88 + 复制 259.6 MiB + 本地约 0.3 GiB）"],
+             ["KV 精度","int8"],
+             ["上下文长度","219,776"],
+             ["视觉","开启 · 视觉塔钉卡 0 · 14 个 worker（cache 1.00 + live 2.00 GiB）"]],
+       note:"模型 Qwen3.8-27B-coder390 w4a4-w8a8（平均 6.1 bit/参数）；功耗与温度见上一页实测。",
+       band:["来源：口播稿第 3 节「功耗、温度与模型」。",
+             "口径：每卡权重含分片、复制与本地约 0.3 GiB。"],
+       legend:["符号 红＝权重体积（核心数字）","数值右对齐 · 等宽数字"]},
+
+     /* 07 章节 02 · 框架与速度 */
+     {type:"divider",mission:2,mid:"F1",name:"框架与速度",sub:"SECTION 02 · 框架与速度",
+       band:["来源：口播稿第 4 节「推理框架与关键开关」与第 5 节「实际速度」。",
+             "口径：本页为章节页，无图表。"],
+       legend:["符号 红＝当前章节","编号圆为全方案唯一非矩形态"]},
+
+     /* 08 关键开关 9 行 */
+     {type:"table",mission:2,mid:"F1",name:"关键开关",
+       title:"关键开关 · capy-flash · CUDA 13.1",
+       cols:["开关","取值","理由"],widths:[3,5,4],
+       rows:[["引擎","capy-flash（原 ninfer-tp2）· WSL2 · CUDA 13.1","社区双卡分支，基于上游 v3 底座"],
+             ["张量并行","--tp 2 --devices 0,1","权重与 KV 池各半分布在两卡 · 无 P2P"],
+             ["跨卡 all-reduce","pinned-host mailbox（自动）","probe 1.03 ms · slot 160 KiB · 无回退"],
+             ["投机解码","--spec dflash2 --draft-tokens 7","DFlash2 每步提案 7 token · lm-head-draft 打分"],
+             ["CUDA graphs","默认开启","捕获 decode 图 904 ms · 两卡各观察 58/56 MiB"],
+             ["prefill 分块","--prefill-chunk 1024","tp2 下每个 chunk 付一次跨卡交换"],
+             ["视觉","--vision --vision-device 0","视觉塔钉卡 0 · 避免跨卡集合通信"],
+             ["并发上限","--max-concurrency 2","并发 4 总吞吐一样但出现 4.9 s 排队"],
+             ["上下文","--max-context 219776 --kv-capacity 219776","刻意取相等 · 保单流最长"]],
+       em:[[1,2],[7,2],[8,1]],
+       band:["来源：**capy-flash** 启动参数（WSL2 · CUDA 13.1）。",
+             "口径：mailbox probe 1.03 ms 无回退（10-13 NVFP4 档 0.61–0.66 ms）。引擎为 **ValerioDolci/capy-flash**（原 ninfer-tp2），非上游官方发布。"],
+       legend:["符号 红＝本机取舍（单流最长）","开关等宽字体 · 理由灰字"]},
+
+     /* 09 P2P 上限 1.16× */
+     {type:"metric",mission:2,mid:"F1",name:"P2P 上限",
+       conclusion:{pre:"跨卡 all-reduce 占一步 14%",verb:"封顶",a:"14%",b:"1.16×"},
+       title:"投机解码摊薄同步开销更划算",
+       hero:{value:1.16,txt:"1.16",unit:"×"},
+       note:"128×47µs≈6.0 ms，占一步 14%；P2P 打通传输归零也就 1.16×（现实 1.10–1.17×），要真 Linux + 自编开源内核模块。",
+       tl:"拆解",tv:"取值",
+       rows:[["decode 一步","42.8 ms"],
+             ["跨卡集合通信","128 次/步 × 47 µs"],
+             ["合计开销","6.0 ms ≈ 14%"],
+             ["现实区间","1.10–1.17×"]],
+       band:["来源：decode 单步拆解 · 2026-10-17 实机。",
+             "口径：现实区间 1.10–1.17× · 真 P2P 需绑定同一 PCIe 根复合体。"],
+       legend:["符号 红＝结论","对比 表内只用字重 700"]},
+
+     /* 10 速度数字 + 小图 + 三格数字块 */
+     {type:"table",mission:2,mid:"F1",name:"速度数字",
+       title:"decode 分布与长上下文对照",
+       cols:["维度","数字"],widths:[3,4],span:7,
+       rows:[["decode 中位","99.9 tok/s"],
+             ["decode p90","131.1 tok/s"],
+             ["decode min·mean·max","71.4 / 105.3 / 176.8 tok/s"],
+             ["TTFT 中位·最大","337 ms / 971 ms"],
+             ["prefill","大 2.10k–2.73k · 短 300–670 tok/s"],
+             ["dflash2 接受率（K=7）","25.6%–69.0% · 多数 31%–61%"]],
+       em:[[0,1],[1,2],[3,2]],
+       fig:{src:"../assets/charts/decode-dist.png",w:4,
+            cap:"130 次真实 agent 请求的 decode 分布（min/中位/均值/p90/max），非受控基准"},
+       cells:[["58,863 长文","28.0 s","TTFT · decode 155.4 tok/s · accept 61.5%"],
+              ["150,459 长文","102.3 s","TTFT · decode 125.5 tok/s · accept 58.6%"],
+              ["prefix 命中","163 ms","TTFT 261 ms · 总耗时 610 / 658 ms"]],
+       band:["来源：ninfer-w4a8.log 的 req# done 行，awk 统计（n=130，窗口 11:10–13:03）。",
+             "口径：W4A4/W8A8 + int8 KV + 219,776；长上下文为 10-13 默认档。"],
+       legend:["符号 红＝decode 中位（核心数字）","两组口径 · tok/s 不直接比"]},
+
+     /* 11 章节 03 · 显存、坑与结论 */
+     {type:"divider",mission:3,mid:"V1",name:"显存、坑与结论",sub:"SECTION 03 · 显存、坑与结论",
+       band:["来源：口播稿第 6–8 节「显卡空间占比」「踩过的坑」「结论与建议」。",
+             "口径：本页为章节页，无图表。"],
+       legend:["符号 红＝当前章节","编号圆为全方案唯一非矩形态"]},
+
+     /* 12 显存账本 + embedding-host + 双流档（swap 两段先后显示,同一块区域,不左右并排） */
+     {type:"table",mission:3,mid:"V1",name:"显存账本",
+       title:"显存账本与 embedding-host",
+       swap:{ms:9000,at:[19550]},
+       segs:[{cols:["账目","每卡"],widths:[4,8],
+              em:[[0,1],[1,2]],
+              rows:[["权重","10.4 GiB = 分片 9.88 + 复制 259.6 MiB + 本地 282.0/245.0 MiB"],
+                    ["KV 池 / 运行时","4.33 GiB · 219,776 tokens · int8 · pages 3,434/6,868"],
+                    ["CUDA graphs","58.0 / 56.0 MiB · allowance 各 132.0 MiB"],
+                    ["视觉 cache","卡 0 · cache 1.00 + live 2.00 GiB · 14 个 worker"],
+                    ["host-mapped 权重","1.18 GiB pinned 主机内存，经 PCIe 原地读，不占显存"],
+                    ["空闲","free 136.0 MiB（219,840 差 47 KB 被拒）"]],
+              note:"权重、KV 池、graphs、视觉 cache 基本定死：不换量化档或模型，这里一个字节也调不出来。"},
+             {cols:["能动的地方","代价 / 收益"],widths:[4,8],
+              em:[[0,1],[2,2]],
+              rows:[["--embedding-host","1.185 GiB embedding 表挪到主机锁页，换回 7 万多 token 上下文"],
+                    ["KV 精度 int8 ↔ nvfp4","nvfp4 池子翻倍（393,216 / 每路 196,608），但精度掉得厉害；int8 是长任务底线"],
+                    ["不对称 KV","社区版不支持 k8v4，要的话得自己适配"],
+                    ["并发数","2 路单流 219,776；4 路总吞吐不涨，多 4.9 s 排队"]],
+              note:"策略：先把上下文吃满，再谈并发。"}],
+       band:["来源：启动日志第 9–20 行 · 容量测试日志 cap-int8-144448 / 219840。",
+             "口径：219,840 被拒差 47 KB · 双流档无速度实测。"],
+       legend:["符号 红＝KV 容量（段 1）· embedding-host（段 2）","数值右对齐 · 等宽数字"]},
+
+     /* 13 显存账本图 */
+     {type:"figure",mission:3,mid:"V1",name:"显存账本图",
+       kick:"显存账本图",
+       title:"每卡显存账本",
+       figs:[{src:"../assets/charts/vram-budget.png",
+              cap:"每卡显存账本：权重 10.40 GiB · KV/runtime 4.33 · graphs 0.06 = 14.79 GiB，两卡基本一样"}],
+       lines:["任务管理器 15,154 / 15,207 MiB 是 WDDM 口径：算进程提交的专用显存，含保留与被驱逐的页。",
+              "引擎与 nvidia-smi 看物理驻留：每卡 free 136.0 MiB，差的约 1 GiB 是保留量加共享回退。",
+              "int8 KV 已到顶：219,840（+64 token＝一页）差 47 KB 被拒，再涨一页都放不下。",
+              "host-mapped 1.18 GiB 在主机内存；「共享 1.3/18.0 GB」是同一条系统侧账目。"],
+       band:["来源：当前实例启动日志（2026-10-17）与任务管理器实拍。",
+             "口径：任务管理器＝WDDM 进程提交；引擎＝启动日志物理驻留（free 136.0 MiB）。"],
+       legend:["图 白底 · 不变形","host-mapped 不计入显存"]},
+
+     /* 14 mailbox 死锁实录 */
+     {type:"transcript",mission:3,mid:"V1",name:"mailbox 死锁",
+       title:"实录 · DFlash2 mailbox 死锁",
+       colTime:"阶段", noTime:true,
+       lines:[["提案","sys","提案阶段与 target forward 的 captured mailbox 交换交错"],
+              ["互等","sys","rank A 先自旋，rank B 的 pull 源被 A 的显存挡住，两 rank 互等"],
+              ["降级","sys","直到 kPeerSpinLimit 才降级；执行层随即落到 copies"],
+              ["修复 1","sys","59de3c1：draft 阶段的 collective 留在 staged copies"],
+              ["修复 2","sys","969d570：draft share 后两 rank 会合"],
+              ["验证","sys","30 请求 0 降级；两笔提交目前仍只在本机"]],
+       counter:{label:"修复后请求",value:30,unit:"req"},
+       note:"83 行补丁含 v1 修订，拆成两笔提交，2026-10-17 在仓库核实存在。",
+       band:["来源：补丁文件与仓库提交记录（2026-10-17 核实）。"],
+       legend:["符号 红＝本页无","字重 sys 以角色列区分"]},
+
+     /* 15 结论 */
+     {type:"final",mission:3,mid:"V1",name:"结论",
+       close:"显存优先于算力 / 量化档按上下文选 / 本机选单流",
+       credits:[["取舍一","显存优先于算力 · 两张 16GB 凑总量"],
+                ["取舍二","int8 KV 换 219,776 单流最长"],
+                ["取舍三","并发 2 就够 · 4 只排队 4.9 s"],
+                ["下一步一","MTP K 上限提上去（K=7 被 CLI 拒绝）"],
+                ["下一步二","中文 PPL 对比 · 量出 nvfp4 vs int8 质量差"],
+                ["下一步三","mailbox 死锁补丁往上游提（59de3c1 / 969d570）"]],
+       total:"00:06:28", /* v9 整轨 388.5 s，CUES 同源 */
+       band:["来源：全部数字取自 2026-10-17 数据包与实机核对，口径见各页脚注。",
+             "制作：单文件 HTML + 本地图片，2560×1440 实机录制。"],
+       legend:["符号 红＝当前","退场 红褪黑 → 抽条变黑 → 全黑定格"]}
+   ]
+};
+/* ======================= SHARED DECK 结束 ==================== */
+/* ---- 方案身份:不属于共享内容契约,各套自行声明 ---- */
+DECK.meta.style="02 SWISS GRID"; DECK.meta.doc="local-deploy-share · 2026-10-17";
+/* ======================= SHARED DECK 结束 ==================== */
+
+
+var T={push:520,swap:560,drop:420,shift:240,step:80,steps:5,cascade:70,parallax:60,dwell:3400,hold:1500};
+var P=new URLSearchParams(location.search);
+var NOANIM=P.has("noanim")||P.has("still");
+var AUTOEXIT=P.get("autoexit")==="1";         /* ?autoexit=1 恢复末页自动退场;默认停在结论页等主动触发 */
+var stage=document.getElementById("stage");
+var slidesEl=document.getElementById("slides");
+var blank=document.getElementById("blank");
+var blankPg=blank.querySelector(".pg");
+var hint=document.getElementById("hintbar");
+var ruler=document.getElementById("ruler");
+var yarn=document.getElementById("yarn");
+var cur=0,busy=0,wheelAcc=0,finished=false;
+
+if(NOANIM)document.documentElement.classList.add("noanim");
+if(P.has("clean"))document.documentElement.classList.add("clean");
+
+/* ---------- 格式化 ---------- */
+function fmt(n){
+  var neg=n<0,s=Math.abs(Math.round(n)).toString(),o="",c=0;
+  for(var i=s.length-1;i>=0;i--){o=s[i]+o;if((++c)%3===0&&i>0)o=","+o;}
+  return (neg?"−":"")+o;
+}
+function pad2(v){return (v<10?"0":"")+v;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+/* ---------- 栅格 §4.1:内容区 2368×1248,12 列(列宽 168 + 列距 32 = 步距 200),垂直基线模块 16px ---------- */
+var COL=200,MOD=16,BANDTOP=65;      /* 脚注带顶边 = 第 65 模块 = 1040 = 内容区 5/6(底部 1/6 为脚注带) */
+function gx(c){return (c-1)*COL;}   /* 第 c 栏左缘(相对 .slide) */
+function gw(c){return c*COL-32;}    /* 跨 c 栏的宽度 */
+function gy(r){return r*MOD;}
+function blk(c,r,span,cls,html,extra){
+  return blkat(gx(c),gy(r),gw(span),cls,html,extra);
+}
+function blkat(left,top,width,cls,html,extra){
+  return '<div class="g '+cls+'" style="left:'+left+'px;top:'+top+'px;width:'+width+'px'+(extra||'')+'">'+(html||'')+'</div>';
+}
+function hair(c,r,span){return blkat(gx(c),gy(r),gw(span),'hl','');}
+/* 通高毛发线:正文区与图表区的栏分隔,四边边距内 96→1040(59 模块) */
+function vrule(left,top,h){return '<div class="g colrule" style="left:'+left+'px;top:'+top+'px;height:'+h+'px"></div>';}
+
+/* ---------- 章节编号与页码 §3.3:格式 3.2 / 07/16,等宽数字挂栅格固定位 ---------- */
+var CH=[],TOTALN=DECK.slides.length;
+(function(){var seen={};                     /* 章节号 = 场号.该场页序,不补零:0.1 / 2.1 / 3.2 §3.3 */
+  DECK.slides.forEach(function(s){var c=s.mission||0;seen[c]=(seen[c]||0)+1;CH.push(c+"."+seen[c]);});
+})();
+function pgCode(i){return pad2(i+1)+"/"+pad2(TOTALN);}
+var SECT={1:"HARDWARE",2:"FRAMEWORK",3:"MEMORY"};   /* 页眉章节英文标签(装饰层),灰字不抢红 */
+function secLabel(i){
+  var m=parseInt(CH[i],10);
+  return m===0?"OPENING":"SECTION "+pad2(m)+" · "+(SECT[m]||"");
+}
+function header(i){
+  return blk(1,0,12,'hdr num','<span class="chap">'+CH[i]+'</span><span class="pg">'+pgCode(i)+'</span>'+
+    '<span class="seclab">'+secLabel(i)+'</span><span class="pgul"></span>')+hair(1,4,12);
+}
+
+/* ---------- 脚注带 §4.2 §5:来源与注释,并声明本页红的唯一语义 ---------- */
+function inline(t){
+  return esc(t).replace(/\*\*(.+?)\*\*/g,'<b class="em2">$1</b>');
+}
+function band(notes,legend){
+  var l=(notes||[]).map(function(t,i){return '<p class="fn"><span class="fnref">'+(i+1)+'</span>'+inline(t)+'</p>';}).join("");
+  var r=(legend||[]).map(function(t){return '<p class="fnm">'+inline(t)+'</p>';}).join("");
+  return blkat(0,gy(BANDTOP),gw(12),'band in','<div class="bl">'+l+'</div><div class="br">'+r+'</div>');
+}
+
+/* ---------- 页渲染 ---------- */
+function build(sl,i){
+  var d=document.createElement("div");
+  d.className="slide";d.dataset.i=i;d._seq=[];
+  if(sl.type==="cover")cover(d,sl,i);
+  else if(sl.type==="metric")metric(d,sl,i);
+  else if(sl.type==="ranking")ranking(d,sl,i);
+  else if(sl.type==="divider")divider(d,sl,i);
+  else if(sl.type==="transcript")transcript(d,sl,i);
+  else if(sl.type==="figure")figure(d,sl,i);
+  else if(sl.type==="table")tablepage(d,sl,i);
+  else finalpage(d,sl,i);
+  return d;
+}
+
+/* ---------- 封面 §6:跨栏巨题 + 页码 + 目录条,一处红点到即止,无图表 ---------- */
+function cover(d,s,i){
+  var cells=s.stats.map(function(k,n){
+    return '<div class="cell'+(n<3?' vr':'')+'" style="width:'+gw(3)+'px">'+
+      '<p class="clab">'+esc(k[0])+'</p>'+
+      '<p class="cval num'+(n===2?' rd':'')+'">'+esc(k[1])+'</p></div>';
+  }).join("");
+  /* 长 deck 适配:目录条只列章节页(3 分隔页 + 版权页) */
+  var ix='<div class="ixh"><span>章节</span><span>目录</span><span>页码</span></div>'+
+    DECK.slides.map(function(x,n){return {x:x,n:n};})
+      .filter(function(o){return o.x.type==="divider"||o.x.type==="final";})
+      .map(function(o){
+        var x=o.x;
+        var lab=x.title||(x.name?x.mid+' '+x.name:x.mid+' 版权页');
+        return '<div class="ixrow num"><span class="a">'+CH[o.n]+'</span>'+
+          '<span class="b">'+esc(lab)+'</span><span class="c">'+pgCode(o.n)+'</span></div>';
+      }).join("");
+  d.innerHTML=header(i)+
+    blk(1,6,6,'kick in',esc(s.kicker))+
+    blk(1,13,9,'h1 in',esc(s.title))+
+    blk(1,26,4,'lede in',esc(s.lede))+                     /* 正文 4 栏宽 */
+    blk(6,26,7,'idx in',ix)+
+    blkat(0,gy(52),gw(12),'stats in',cells)+
+    band(s.band,s.legend);
+  d._enter=function(r){drop(r,0);};
+}
+
+/* ---------- 数据页 §6:结论句标题 + 巨数 200px + 毛发线表格 + 编号圆步骤,红＝结论 ---------- */
+function metric(d,s,i){
+  var c=s.conclusion;
+  var rows=s.rows.map(function(r,n){
+    var em=r[0].indexOf(s.mid)===0;                        /* 对比用字重,不用颜色 §1.4 */
+    return '<div class="tr num'+(n===s.rows.length-1?' last':'')+(em?' em':'')+'">'+
+      '<span class="tl">'+esc(r[0])+'</span><span class="tv">'+esc(r[1])+'</span></div>';
+  }).join("");
+  d.innerHTML=header(i)+
+    blk(1,6,7,'kick',esc(s.mid+' · '+s.name+' · 结论'))+
+    blk(1,8,7,'h3 in',esc(s.title||(c.pre+'：'+c.a+' '+c.verb+' '+c.b)))+
+    hair(1,14,7)+
+    blkat(0,gy(17),gw(5),'hero in',
+      '<span class="big'+(s.hero.mid?' mid':'')+' num" id="hero">0</span><span class="unit'+(s.hero.sm?' sm':'')+'">'+esc(s.hero.unit)+'</span>'+
+      '<span class="rf rd">1</span>')+
+    blk(1,32,4,'lede in',esc(s.note))+
+    hair(1,45,5)+
+    blkat(0,gy(48),gw(5),'flow in',
+      '<span class="fidx num">01</span><span class="fval num">'+esc(c.a)+'</span>'+
+      '<span class="conn"></span><span class="dot rd num">02</span>'+
+      '<span class="fval em num">'+esc(c.b)+'</span>')+
+    vrule(gw(7),gy(6),944)+
+    blkat(gx(8),gy(8),gw(5),'tbl in','<div class="trh"><span>'+esc(s.tl||"项目")+'</span><span>'+esc(s.tv||"取值")+'</span></div>'+rows)+
+    band(s.band,s.legend);
+  d._enter=function(r){
+    drop(r,0);
+    stepNum(r.querySelector("#hero"),s.hero.value,d,s.hero.txt);
+  };
+}
+
+/* ---------- 密排表格页型(新增):3 列栅格毛发线表 + 可选右侧小图 + 底部数字格 + 右侧密排块;
+   swap 时 segs 两段同位叠放先后淡入淡出(复用 rot 时间轴),三级强调 em:[[行,级]] 级 1=红点红字 2=加深 ---------- */
+function tablepage(d,s,i){
+  function emLvl(seg,n){
+    var e=(seg.em||[]).filter(function(x){return x[0]===n;})[0];
+    return e?e[1]:0;
+  }
+  function tableHtml(seg){
+    var cols=seg.cols,w=seg.widths||(cols.length===3?[3,6,3]:[4,8]);
+    function cw(k){return gw(w[k]);}
+    var thd='<div class="thd num">'+cols.map(function(c,k){
+      return '<span style="width:'+cw(k)+'px'+(k===1?';text-align:right':'')+'">'+esc(c)+'</span>';
+    }).join("")+"</div>";
+    var rows=seg.rows.map(function(r,n){
+      var lvl=emLvl(seg,n);
+      var cells=r.map(function(v,k){
+        var cls=k===0?'tc1':(k===1?'tc2':'tc3');
+        return '<span class="'+cls+(lvl===1?' em1':lvl===2?' em2':'')+'" style="width:'+cw(k)+'px">'+
+          (lvl===1&&k===0?'<span class="dot rd num">·</span>':'')+esc(v)+'</span>';
+      }).join("");
+      return '<div class="trow num'+(n===seg.rows.length-1?' last':'')+'">'+cells+'</div>';
+    }).join("");
+    var html=thd+'<div class="tbrows">'+rows+'</div>';
+    if(seg.note)html+='<p class="note" style="margin:24px 0 0">'+esc(seg.note)+'</p>';
+    return html;
+  }
+  function sideHtml(seg){                                  /* 段内多块密排:块间空 3 模块 */
+    var out="";
+    seg.side.forEach(function(b,k){
+      var rs=b.rows.map(function(r,n){
+        return '<div class="tr num'+(n===b.rows.length-1?' last':'')+'">'+
+          '<span class="tl">'+esc(r[0])+'</span><span class="tv">'+esc(r[1])+'</span></div>';
+      }).join("");
+      out+=(k?'<div style="height:48px"></div>':'')+
+        '<p class="fcap">'+(b.dot?'<span class="dot rd num" style="display:inline-block;width:24px;height:24px;line-height:24px;font-size:16px;vertical-align:-6px;margin-right:8px">·</span>':'')+esc(b.t)+'</p>'+rs;
+    });
+    return out;
+  }
+  var left,right="";
+  if(s.segs){
+    left=blkat(0,gy(18),gw(12),'tblswap in',s.segs.map(function(seg,k){
+      return '<div class="tblseg'+(k===0?' on':'')+'" data-k="'+k+'">'+
+        (seg.cols?'<div class="tblbody">'+tableHtml(seg)+'</div>':sideHtml(seg))+'</div>';
+    }).join("")+'',';height:752px');
+    d._segs=s.segs.length;
+  } else {
+    var span=s.span||12;
+    var _body=tableHtml(s);
+    if(s.stretch)_body='<div class="tblbody">'+_body+'</div>';
+    left=blkat(0,gy(18),gw(span),'tbl in',_body,s.stretch?';height:752px':undefined);
+    if(s.fig){
+      var fw=s.fig.w?s.fig.w:(12-span);
+      right=blkat(gx(span+1),gy(18),gw(fw),'fig in','<img src="'+esc(s.fig.src)+'" alt="">',';height:432px')+
+        blkat(gx(span+1),gy(46),gw(fw),'','<p class="fcap">'+esc(s.fig.cap)+'</p>');
+    }
+    if(s.side){
+      var y=18;
+      s.side.forEach(function(b){
+        var rs=b.rows.map(function(r,n){
+          return '<div class="tr num'+(n===b.rows.length-1?' last':'')+'">'+
+            '<span class="tl">'+esc(r[0])+'</span><span class="tv">'+esc(r[1])+'</span></div>';
+        }).join("");
+        right+=blkat(gx(span+1),gy(y),gw(12-span),'sideblk in',
+          '<p class="fcap">'+(b.dot?'<span class="dot rd num" style="display:inline-block;width:24px;height:24px;line-height:24px;font-size:16px;vertical-align:-6px;margin-right:8px">·</span>':'')+esc(b.t)+'</p>'+rs);
+        y+=b.rows.length*4+4;
+      });
+    }
+  }
+  var cellsHtml="";
+  if(s.cells){
+    cellsHtml=blkat(0,gy(52),gw(12),'stats in',s.cells.map(function(k,n){
+      return '<div class="cell'+(n<s.cells.length-1?' vr':'')+'" style="width:'+gw(4)+'px">'+
+        '<p class="clab">'+esc(k[0])+'</p><p class="cval num">'+esc(k[1])+'</p>'+
+        '<p class="cmid">'+esc(k[2])+'</p></div>';
+    }).join(""));
+  }
+  d.innerHTML=header(i)+
+    blk(1,6,12,'kick',esc(s.mid+' · '+s.name))+
+    blk(1,8,8,'h2 in',esc(s.title))+
+    hair(1,16,12)+
+    left+right+cellsHtml+
+    band(s.band,s.legend);
+  d._enter=function(r){drop(r,0);};
+}
+
+/* ---------- 对比页 §5:黑灰阶梯矩形的精确排列,红只标本机(当前),每屏 2 处 ---------- */
+function ranking(d,s,i){
+  var lo=s.domain[0],hi=s.domain[1],W=gw(7),U=W/(hi-lo),x0=-lo*U,ZX=gx(4)+x0;
+  var order=s.bars.map(function(b,n){return n;}).sort(function(a,b){return s.bars[b].v-s.bars[a].v;});
+  var rankOf={},LAD=[1,2,3,4,4],stepOf={};                 /* 灰度阶梯 100/70/45/25 黑 §2.2 */
+  order.forEach(function(n,k){rankOf[n]=k+1;stepOf[n]=LAD[k]||4;});
+  var rules="",c;
+  for(c=5;c<=10;c++)rules+='<span class="plotrule" style="left:'+gx(c)+'px"></span>';
+  rules+='<span class="plotrule" style="left:'+ZX.toFixed(2)+'px"></span>';   /* 基线 0:毛发线,无箭头 */
+  var rows=s.bars.map(function(b,n){
+    var v=b.v,L=x0-Math.max(0,-v)*U,Wb=Math.abs(v)*U,local=b.role==="local",rk=pad2(rankOf[n]);
+    return '<div class="crow" style="top:'+(n*112)+'px">'+
+      '<div class="crank">'+(local?'<span class="dot rd num">'+rk+'</span>':'<span class="n num">'+rk+'</span>')+'</div>'+
+      '<div class="cname'+(local?' em':'')+'">'+esc(b.n)+'</div>'+
+      '<div class="ctrack"><div class="bar s'+stepOf[n]+'" data-z="'+x0.toFixed(2)+'" data-fx="'+L.toFixed(2)+
+        '" data-w="'+Wb.toFixed(2)+'" data-dir="'+(v<0?-1:1)+'" style="left:'+x0.toFixed(2)+'px">'+
+        (local?'<span class="cap"></span>':'')+'</div></div>'+
+      '<div class="cval2 num">'+(b.txt||fmt(v))+'</div></div>';
+  }).join("");
+  d.innerHTML=header(i)+
+    blk(1,6,12,'kick',esc(s.mid+' · '+s.name))+
+    blk(1,8,8,'h2 in',esc(s.title))+
+    hair(1,16,12)+
+    blkat(0,gy(20),gw(12),'chart in',rules+rows,';height:520px')+
+    blk(1,54,12,'axislab num','')+
+    blk(1,57,8,'note in',esc(s.note))+
+    band(s.band,s.legend);
+  d._enter=function(r){
+    drop(r,0);
+    var ax=r.querySelector(".axislab");
+    if(ax)ax.innerHTML='<span style="left:0px">'+fmt(lo)+'</span>'+
+      '<span style="left:'+ZX.toFixed(2)+'px">0</span>'+
+      '<span style="left:'+(gx(4)+W)+'px">'+fmt(hi)+'</span>';
+    stepBars(Array.prototype.slice.call(r.querySelectorAll(".bar")),d);   /* §7.4 每 80ms 一跳共 5 跳 */
+  };
+}
+
+/* ---------- 章节分隔页 §6:整页只留章节名 + 编号圆 + 章节条,红＝当前章节 ---------- */
+function divider(d,s,i){
+  var seen={},list=[];
+  DECK.slides.forEach(function(x){if(x.mission&&!seen[x.mission]){seen[x.mission]=1;list.push(x);}});
+  list.sort(function(a,b){return a.mission-b.mission;});          /* 章节条按场号排序 */
+  var cells=list.map(function(x,n){
+    return '<div class="cell'+(n<list.length-1?' vr':'')+(x.mission===s.mission?' em':'')+'" style="width:'+gw(4)+'px">'+
+      '<p class="cmid">'+esc(x.mid)+'</p><p class="cname2">'+esc(x.name)+'</p></div>';
+  }).join("");
+  d.innerHTML=header(i)+
+    blkat(0,gy(19),48,'dotwrap in','<span class="dot rd num">'+pad2(s.mission)+'</span>')+
+    blk(2,16,8,'dname in',esc(s.name))+
+    blk(2,29,8,'kick in',esc(s.sub))+
+    blkat(0,gy(52),gw(12),'chstrip in',cells)+
+    band(s.band,s.legend);
+  d._enter=function(r){drop(r,0);};
+}
+
+/* ---------- 实录页 §5:毛发线表格 + 等宽时刻;红＝否定(标注损失回合那一条) ---------- */
+function transcript(d,s,i){
+  var rows=s.lines.map(function(l,n){
+    var neg=l[1]==="sys"&&l[2].indexOf("损失")>=0;         /* 失误照实标注 */
+    return '<div class="tline num'+(n===s.lines.length-1?' last':'')+'">'+
+      '<span class="c-idx'+(neg?' rd':'')+'">'+pad2(n+1)+'</span>'+
+      '<span class="c-time">'+esc(l[0])+'</span>'+
+      '<span class="c-role '+esc(l[1])+'">'+esc(l[1])+'</span>'+
+      '<span class="c-txt">'+esc(l[2])+'</span></div>';
+  }).join("");
+  d.innerHTML=header(i)+
+    blk(1,6,8,'kick',esc(s.mid+' · '+s.name+' · 实录'))+
+    blk(1,8,6,'h2 in',esc(s.title))+
+    hair(1,16,12)+
+    blkat(0,gy(20),gw(8),'tbl in','<div class="tline hd"><span>序</span><span>'+(s.colTime||'时刻')+'</span><span>角色</span><span>实录</span></div>'+rows)+
+    vrule(gw(8),gy(6),944)+
+    blkat(gx(9),gy(20),gw(4),'kick',esc(s.counter.label))+
+    blkat(gx(9),gy(22),gw(4),'cnt in','<span class="big mid num" id="cnt">0</span>'+
+      '<span class="unit sm">'+esc(s.counter.unit)+'</span><span class="rf">1</span>')+
+    blkat(gx(9),gy(34),gw(4),'note in',esc(s.note))+
+    blkat(gx(9),gy(44),gw(4),'',
+      '<div class="hl" style="margin-bottom:16px"></div>'+
+      '<p class="spec"><b>条数</b> '+s.lines.length+'</p>'+
+      (s.noTime?'':'<p class="spec"><b>起</b> '+esc(s.lines[0][0])+'</p>'+
+                    '<p class="spec"><b>止</b> '+esc(s.lines[s.lines.length-1][0])+'</p>'))+
+    band(s.band,s.legend);
+  d._enter=function(r){
+    drop(r,0);
+    stepNum(r.querySelector("#cnt"),s.counter.value,d);
+  };
+}
+
+/* ---------- 图版页(新增 §6 变体):kicker + 插图(object-fit:contain 不变形)+ 右侧或下方图注 ---------- */
+function figure(d,s,i){
+  var f=s.figs;
+  var main="",side="";
+  if(s.rot){
+    var imgs=f.map(function(x,k){return '<img class="'+(k===0?'on':'')+'" src="'+esc(x.src)+'" alt="">';}).join("");
+    var lines=(s.lines||[]).map(function(t){return '<p class="fln">'+esc(t)+'</p>';}).join("");
+    main=blkat(gx(1),gy(19),gw(4),'figrot in',imgs,';height:640px');
+    side=blkat(gx(5),gy(19),gw(8),'capcol in',
+      '<div class="hl" style="margin-bottom:24px"></div>'+lines+
+      '<div class="hl" style="margin:32px 0 16px"></div>'+
+      '<p class="fcap" id="fcap">'+esc(f[0].cap)+'</p>');
+    d._caps=f.map(function(x){return x.cap;});
+  } else if(f.length===1){                                 /* 单图大图版:图 8 栏宽,图注置图下,文字收成右栏 3 栏 */
+    var ln=(s.lines||[]).map(function(t){return '<p class="fln">'+esc(t)+'</p>';}).join("");
+    main=blkat(gx(1),gy(19),gw(8),'fig in','<img src="'+esc(f[0].src)+'" alt="">',';height:680px')+
+      blkat(gx(1),gy(19)+688,gw(8),'','<p class="fcap">'+esc(f[0].cap)+'</p>');
+    side=blkat(gx(9),gy(19),gw(3),'capcol in',
+      '<div class="hl" style="margin-bottom:24px"></div>'+ln);
+  } else if(f.length===2){
+    main=blkat(gx(1),gy(19),gw(5),'fig in','<img src="'+esc(f[0].src)+'" alt="">',';height:504px')+
+         blkat(gx(6),gy(19),gw(5),'fig in','<img src="'+esc(f[1].src)+'" alt="">',';height:504px');
+    side=blkat(gx(1),gy(52),gw(5),'','<p class="fcap">'+esc(f[0].cap)+'</p>')+
+         blkat(gx(6),gy(52),gw(5),'','<p class="fcap">'+esc(f[1].cap)+'</p>');
+  } else {
+    main=blkat(gx(1),gy(19),1000,'fig in','<img src="'+esc(f[0].src)+'" alt="">',';height:600px')+
+         blkat(gx(1),gy(58),gw(8),'','<p class="fcap">'+esc(f[0].cap)+(s.note?'<br>'+esc(s.note):'')+'</p>');
+    side=blkat(gx(7),gy(19),gw(5),'fig in','<img src="'+esc(f[1].src)+'" alt="">',';height:252px')+
+         blkat(gx(7),gy(35),gw(5),'','<p class="fcap">'+esc(f[1].cap)+'</p>')+
+         blkat(gx(7),gy(42),gw(5),'fig in','<img src="'+esc(f[2].src)+'" alt="">',';height:252px')+
+         blkat(gx(7),gy(58),gw(5),'','<p class="fcap">'+esc(f[2].cap)+'</p>');
+  }
+  d.innerHTML=header(i)+
+    blk(1,6,12,'kick',esc(s.mid+' · '+s.kick))+
+    blk(1,8,8,'h2 in',esc(s.title))+
+    hair(1,16,12)+
+    main+side+
+    band(s.band,s.legend);
+  d._enter=function(r){drop(r,0);};
+}
+
+/* ---------- 结束页 §7.5:版权页停格 colophon,页码照常落位,克制到底 ---------- */
+function finalpage(d,s,i){
+  var extra=[["规范",DECK.meta.doc],["版本",DECK.meta.ver],["风格",DECK.meta.style]];
+  var all=s.credits.concat(extra);
+  var rows=all.map(function(k,n){
+    return '<div class="coli num'+(n===all.length-1?' last':'')+'">'+
+      '<span class="k">'+esc(k[0])+'</span><span class="v">'+esc(k[1])+'</span></div>';
+  }).join("");
+  var close=esc(s.close).replace("。","。<br>");            /* 结论句按句号断行,字符不改 */
+  var cut=close.indexOf(" / ");                            /* 大标题两行间隔 80ms:按首个斜杠断开,文字不变 */
+  var lines=cut>0?[close.slice(0,cut+2),close.slice(cut+3)]:[close];
+  d.innerHTML='<div class="pull" id="pull">'+new Array(32).fill('<i></i>').join('')+'</div>'+'<div class="sweep"></div>'+header(i)+
+    blkat(0,gy(8),gw(6),'headl in','<span class="dot rd num">'+pad2(s.mission)+'</span>'+
+      '<span class="kick">'+esc(s.mid)+' · 收尾 · COLOPHON</span>')+
+    blk(1,12,10,'',lines.map(function(t){return '<span class="h1 in">'+t+'</span>';}).join(""))+
+    hair(1,31,12)+
+    blkat(0,gy(34),gw(6),'tbl in',rows)+
+    blkat(gx(8),gy(34),gw(5),'specbox in',
+      '<p class="kick" style="margin:0">总时长</p><p class="endbig num" id="tot">'+esc(s.total)+'</p>'+
+      '<div class="hl" style="margin:32px 0"></div>'+
+      '<p class="spec"><b>栅格</b> 12 列 · 列距 32 · 边距 96</p>'+
+      '<p class="spec"><b>字号</b> 120 · 64 · 30 · 26 · 24</p>'+
+      '<p class="spec"><b>色阶</b> 纸白 · 墨黑 · 灰 · 瑞士红</p>'+
+      '<p class="spec"><b>动效</b> 落版 420 · 红移 240 · 推格 520</p>')+
+    band(s.band,s.legend);
+  d._enter=function(r){
+    var dl=0;                                              /* 标题两行间隔 80ms,其余级联 70ms */
+    Array.prototype.slice.call(r.querySelectorAll(".in")).slice(0,6).forEach(function(el,k){
+      dropEl(el,dl);
+      dl+=(k===1?80:T.cascade);
+    });
+    var sw=r.querySelector(".sweep");
+    if(sw)at(d,0,function(){sw.classList.add("on");});     /* 红块 clip-path 从左扫过,600ms 后停在 opacity .08 作底纹 */
+    rollTime(r.querySelector("#tot"),s.total,d);
+    var rows=Array.prototype.slice.call(r.querySelectorAll(".coli"));
+    if(!NOANIM)rows.forEach(function(row,n){               /* colophon 表行 40ms 级联淡入 */
+      row.style.opacity="0";
+      setTimeout(function(){
+        row.style.transition="opacity 300ms linear";
+        row.style.opacity="1";
+      },2*T.cascade+80+n*40);
+    });
+    if(AUTOEXIT)playExit(r,d);                              /* ?autoexit=1 恢复自动退场;默认停在结论页等主动触发 */
+  };
+  d._reset=function(){                                     /* 终场定格可解除:还原褪掉的红与抽走的条 */
+    (d._seq||[]).forEach(clearTimeout);d._seq=[];
+    Array.prototype.slice.call(d.querySelectorAll(".rd,.cap")).forEach(function(e){e.classList.remove("dim");});
+    d.style.transition="none";d.style.transform="";
+    Array.prototype.slice.call(d.querySelectorAll('#pull i')).forEach(function(b){
+      b.style.transition="none";b.style.transform="scaleY(0)";});
+    document.documentElement.classList.remove("exiting");
+    d._seen=0;
+  };
+}
+function at(d,ms,fn){d._seq.push(setTimeout(fn,ms));}
+/* 退场三步 §7.5:①最后一处红褪黑 240ms ②整页沿栅格向下推格出画 360ms ③纸白空页定格;默认由末页 →/Space 主动触发 */
+function playExit(r,d){
+  at(d,0,function(){
+    Array.prototype.slice.call(r.querySelectorAll(".rd,.cap")).forEach(function(e){e.classList.add("dim");});
+  });
+  /* 抽丝剥茧 §7.5:32 根几何条自左向右依次向下抽出,抽走处变纯黑,全程约 1.3s */
+  at(d,T.shift,function(){
+    document.documentElement.classList.add("exiting");
+    var bars=r.querySelectorAll('#pull i');
+    for(var k=0;k<bars.length;k++){
+      bars[k].style.transition="transform 420ms linear "+k*28+"ms";
+      bars[k].style.transform="scaleY(1)";
+    }
+  });
+  at(d,T.shift+32*28+460,function(){ finished=true; });
+}
+
+/* ---------- 动效原语 ---------- */
+/* 排版落版 §7.2:从上方 32px 落下 + 透明度 0→1,420ms,cubic-bezier(.16,1,.3,1);级联间隔 70ms、最多 6 项 §7.1 */
+function dropEl(el,delay){
+  if(NOANIM){el.style.opacity="";el.style.transform="";el.style.transition="";return;}
+  el.style.transition="none";
+  el.style.opacity="0";el.style.transform="translateY(-32px)";
+  setTimeout(function(){
+    el.style.transition="opacity "+T.drop+"ms var(--ease-drop),transform "+T.drop+"ms var(--ease-drop)";
+    el.style.opacity="1";el.style.transform="translateY(0)";
+  },(delay||0));
+}
+function drop(root,delay){
+  var els=Array.prototype.slice.call(root.querySelectorAll(".in")).slice(0,6);
+  els.forEach(function(el,k){dropEl(el,(delay||0)+k*T.cascade);});
+}
+/* 数据步进 §7.4:每 80ms 一跳、共 5 跳,量化感,不连续;txt 给小数巨数(20.8/99.9/1.16)直显终值,避免 fmt 取整失真 */
+function stepNum(el,target,d,txt){
+  if(!el)return;
+  if(txt){el.textContent=txt;return;}
+  if(NOANIM){el.textContent=fmt(target);return;}
+  var k=0;el.textContent=fmt(0);
+  var iv=setInterval(function(){
+    k++;el.textContent=fmt(target*k/T.steps);
+    if(k>=T.steps){clearInterval(iv);el.textContent=fmt(target);}
+  },T.step);
+  if(d)d._seq.push(iv);
+}
+/* 终场总时长滚动:沿用 stepNum 的 80ms×5 步进与 _seq 收口;占位 00:00:00 或 NOANIM 直显终值 */
+function rollTime(el,txt,d){
+  if(!el)return;
+  var m=String(txt).match(/^(\d+):(\d{1,2}):(\d{1,2})$/);
+  var secs=m?(+m[1]*3600 + +m[2]*60 + +m[3]):0;
+  if(NOANIM||!secs){el.textContent=txt;return;}
+  function t2(v){v=Math.round(v);return pad2(Math.floor(v/3600))+":"+pad2(Math.floor(v%3600/60))+":"+pad2(v%60);}
+  el.textContent=t2(0);
+  var k=0;
+  var iv=setInterval(function(){
+    k++;el.textContent=t2(secs*k/T.steps);
+    if(k>=T.steps){clearInterval(iv);el.textContent=t2(secs);}
+  },T.step);
+  if(d)d._seq.push(iv);
+}
+function stepBars(bars,d){
+  var geo=bars.map(function(b){
+    return {b:b,w:parseFloat(b.dataset.w),fx:parseFloat(b.dataset.fx),
+            z:parseFloat(b.dataset.z),dir:parseFloat(b.dataset.dir)};
+  });
+  function put(o,p){o.b.style.width=p+"px";o.b.style.left=(o.dir<0?(o.z-p):o.fx)+"px";}
+  if(NOANIM){geo.forEach(function(o){put(o,o.w);});return;}
+  var k=0;
+  var iv=setInterval(function(){
+    k++;geo.forEach(function(o){put(o,o.w*k/T.steps);});
+    if(k>=T.steps){clearInterval(iv);geo.forEach(function(o){put(o,o.w);});}
+  },T.step);
+  if(d)d._seq.push(iv);
+}
+
+/* ---------- 红移 §7.2:全片唯一的强调动画(旧红褪黑、新黑变红,交叉 240ms) ---------- */
+function redShift(a,b){
+  if(NOANIM)return;
+  var sel=".rd,.cap";
+  var olds=a?Array.prototype.slice.call(a.querySelectorAll(sel)):[];
+  var news=Array.prototype.slice.call(b.querySelectorAll(sel));
+  olds.forEach(function(e){e.classList.add("dim");});
+  news.forEach(function(e){e.classList.add("pre");});
+  frame().then(function(){news.forEach(function(e){e.classList.remove("pre");});});
+  setTimeout(function(){olds.forEach(function(e){e.classList.remove("dim");});},T.shift);
+}
+function frame(){return new Promise(function(res){requestAnimationFrame(function(){requestAnimationFrame(res);});});}
+
+/* ---------- 转场 §7.3(白名单两种:推格 520ms / 整版更换 560ms,缓动 cubic-bezier(.22,.61,.36,1)) ---------- */
+/* 推格:旧页推出至 2600px 并 scale(.985)+透明度 .85,新页自 2560+60px 视差滑入;
+   整版更换:纵向推格 + 交叉淡入(透明度错开 120ms);?noanim 仍直切 */
+/* 装饰层更新:左缘进度尺按 (cur+1)/15 填充,章节标签淡入,页码细线生长;?clean=1 保留,NOANIM 直显终态 */
+function decorate(b){
+  ruler.style.height=((cur+1)/TOTALN*944)+"px";            /* 2px 竖尺:x=64,自 y=1040 向上,240ms 过渡 */
+  var lab=b.querySelector(".seclab");
+  if(lab){
+    if(NOANIM){lab.style.transition="";lab.style.opacity="1";}
+    else{
+      lab.style.transition="none";lab.style.opacity="0";
+      frame().then(function(){
+        lab.style.transition="opacity 300ms linear";
+        lab.style.opacity="1";
+      });
+    }
+  }
+  var ul=b.querySelector(".pgul");
+  if(ul){
+    if(NOANIM){ul.style.transition="";ul.style.transform="scaleX(1)";}
+    else{
+      ul.style.transition="none";ul.style.transform="scaleX(0)";
+      frame().then(function(){
+        ul.style.transition="transform 300ms var(--ease-push)";
+        ul.style.transform="scaleX(1)";
+      });
+    }
+  }
+}
+function anim(from,to,dir,vert){
+  var a=nodes[from],b=nodes[to];
+  var dur=vert?T.swap:T.push;
+  a.classList.remove("cur");a.classList.add("out");
+  b.style.transition="none";
+  if(vert){b.style.transform="translateY(-1440px)";b.style.opacity="0";}
+  else b.style.transform="translateX("+(-(2560+T.parallax)*dir)+"px)";
+  b.classList.add("cur");                                  /* 页眉随页走:章节编号同步翻牌 */
+  redShift(a,b);
+  if(b._enter&&!b._seen){b._seen=1;b._enter(b);}
+  decorate(b);
+  frame().then(function(){
+    if(vert){
+      a.style.transition="transform "+dur+"ms var(--ease-push),opacity "+dur+"ms linear";
+      a.style.opacity="0";
+      b.style.transition="transform "+dur+"ms var(--ease-push),opacity "+dur+"ms linear 120ms";
+      b.style.opacity="1";
+    }else{
+      a.style.transition="transform "+dur+"ms var(--ease-push),opacity "+dur+"ms linear";
+      a.style.opacity=".85";
+      b.style.transition="transform "+dur+"ms var(--ease-push)";
+    }
+    a.style.transform=vert?"translateY(1440px)":"translateX("+(2600*dir)+"px) scale(.985)";
+    b.style.transform="translate(0,0)";
+  });
+  setTimeout(function(){
+    a.classList.remove("out");
+    a.style.transition=b.style.transition="";
+    a.style.transform=b.style.transform="";
+    a.style.opacity=b.style.opacity="";
+  },dur+30);
+}
+function cut(from,to){
+  nodes[from].classList.remove("cur");
+  var b=nodes[to];b.style.transform="";b.classList.add("cur");
+  decorate(b);
+  if(b._enter&&!b._seen){b._seen=1;b._enter(b);}
+}
+function secOf(i){return CH[i].split(".")[0];}             /* 章节号首段 = 场(章节);次段 = 该场页序 */
+function kindOf(a,b){return secOf(a)===secOf(b)?"push":"swap";}  /* 同章节＝推格,跨章节＝整版更换 §7.3 */
+
+/* ---------- 装配 ---------- */
+var nodes=DECK.slides.map(function(s,i){var el=build(s,i);slidesEl.appendChild(el);return el;});
+function go(to,dir){
+  to=Math.max(0,Math.min(TOTALN-1,to));
+  if(busy){if(cueRun)cueBusyRetry();return;}               /* 自动翻页撞上转场锁:按新转场时长重试,不叠翻不卡死 */
+  if(to===cur){
+    if(finished||blank.classList.contains("on")){unblack();show(cur);}   /* 定格后同向输入:撤罩层 + 还原元素 + 就地重播 */
+    else if(cur===TOTALN-1&&DECK.slides[cur].type==="final")playExit(nodes[cur],nodes[cur]);  /* 默认末页按 →/Space 主动退场 */
+    return;
+  }
+  unblack();
+  rotStop(nodes[cur]);                                 /* 只有激活页在轮换:离场停轮 */
+  var vert=kindOf(cur,to)==="swap";
+  var d=dir||(to>cur?1:-1);
+  if(!NOANIM){busy=1;setTimeout(function(){busy=0;},(vert?T.swap:T.push)+40);}
+  if(NOANIM)cut(cur,to);else anim(cur,to,d,vert);
+  cur=to;hint.textContent=keys();
+  rotStart(nodes[to],DECK.slides[to]);                /* 翻页复位第 1 帧重新计时;钉帧则只钉不轮 */
+  cueReArm();                                        /* 手动翻页后按新页时长重排 */
+}
+/* 解除终场定格:①撤掉罩层 ②还原被退场褪掉/移走的元素 ③回末页可重播整套退场 */
+function unblack(){
+  if(!finished&&!blank.classList.contains("on"))return;
+  blank.classList.remove("on");
+  finished=false;
+  var f=nodes[nodes.length-1];
+  if(f._reset)f._reset();
+}
+function keys(){return (cur+1)+" / "+TOTALN+
+  "   ·   → 下一页   ← 上一页   滚轮   G 下一帧/段   点两侧翻页   Home / End   F 纯净屏"+(NOANIM?"   A 开启动效":"   A 降级 noanim");}
+function show(i){
+  var el=nodes[i];el.style.transform="";el.classList.add("cur");
+  blank.classList.remove("on");
+  hint.textContent=keys();
+  decorate(el);
+  if(el._enter&&!el._seen){el._seen=1;el._enter(el);}
+  rotStart(el,DECK.slides[i]);
+}
+
+/* ---------- rot 同位轮换 + swap 两段:只激活页轮换/切换;翻页复位第 1 帧/段;?fig=N(0 基)钉帧、?tab=N(1 基)钉段;G 手动下一帧/段 ---------- */
+var FIGP=null,TABP=null;
+if(P.has("fig")){var _fv=parseInt(P.get("fig"),10);if(!isNaN(_fv))FIGP=_fv;}
+if(P.has("tab")){var _tv=parseInt(P.get("tab"),10);if(!isNaN(_tv))TABP=_tv-1;}
+function rotSet(el){
+  var i=el._rotI||0,imgs=el.querySelectorAll(".figrot img"),cap=el.querySelector("#fcap");
+  Array.prototype.slice.call(imgs).forEach(function(m,k){m.classList.toggle("on",k===i);});
+  if(cap&&el._caps)cap.textContent=el._caps[i];
+}
+function swapSet(el){
+  var i=el._segI||0;
+  Array.prototype.slice.call(el.querySelectorAll(".tblseg")).forEach(function(m){
+    m.classList.toggle("on",parseInt(m.dataset.k,10)===i);
+  });
+}
+function rotStop(el){
+  if(!el)return;
+  if(el._rotIv){clearInterval(el._rotIv);el._rotIv=null;}
+  if(el._tms){(el._tms||[]).forEach(function(t){clearTimeout(t);});el._tms=null;}
+}
+function rotStart(el,sl){
+  rotStop(el);
+  if(!el||!sl)return;
+  if(el._segs){                                          /* swap 两段先后显示:与 rot 同一时间轴写法 */
+    el._segI=(TABP!=null)?((TABP%el._segs)+el._segs)%el._segs:0;
+    swapSet(el);
+    if(TABP!=null)return;                                /* 钉段:只显示不轮换 */
+    if(sl.swap.at){                                      /* 节拍:按口播时间轴切换,各打一次 */
+      el._tms=sl.swap.at.map(function(ms,k){
+        return setTimeout(function(){el._segI=(k+1)%el._segs;swapSet(el);},ms);
+      });
+      return;
+    }
+    el._rotIv=setInterval(function(){el._segI=(el._segI+1)%el._segs;swapSet(el);},sl.swap.ms);
+    return;
+  }
+  if(!el._caps||!sl.rot)return;
+  var n=el._caps.length;
+  el._rotI=(FIGP!=null)?((FIGP%n)+n)%n:0;
+  rotSet(el);
+  if(FIGP!=null)return;                        /* 钉帧:只显示不轮换 */
+  if(sl.rot.at){                               /* 节拍:按口播时间轴轮换,各打一次 */
+    el._tms=sl.rot.at.map(function(ms,k){
+      return setTimeout(function(){el._rotI=(k+1)%n;rotSet(el);},ms);
+    });
+    return;
+  }
+  el._rotIv=setInterval(function(){el._rotI=(el._rotI+1)%n;rotSet(el);},sl.rot.ms);
+}
+
+var jump=P.has("slide")?parseInt(P.get("slide"),10):0;
+cur=isNaN(jump)?0:Math.max(0,Math.min(TOTALN-1,jump));
+show(cur);
+
+/* 鼠标翻页:滚轮累计过 40px 阈值才翻一次(触控板惯性滚动不连跳);点两侧 28% 翻页,中间 44% 安全区 */
+addEventListener("wheel",function(e){
+  if(busy){wheelAcc=0;return;}
+  wheelAcc+=e.deltaY||e.detail||0;
+  if(Math.abs(wheelAcc)<40)return;
+  var d=wheelAcc>0?1:-1;wheelAcc=0;go(cur+d,d);
+},{passive:true});
+stage.addEventListener("click",function(e){
+  var x=e.clientX/innerWidth;
+  if(x<0.28)go(cur-1,-1);else if(x>0.72)go(cur+1,1);
+});
+
+addEventListener("keydown",function(e){
+  var k=e.key;
+  if(k==="ArrowRight"||k==="PageDown"||k===" "){e.preventDefault();go(cur+1,1);}
+  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();go(cur-1,-1);}
+  else if(k==="Home")go(0,-1);
+  else if(k==="End")go(TOTALN-1,1);
+  else if(k==="g"||k==="G"){
+    var el=nodes[cur];
+    if(el&&el._segs){
+      el._segI=(el._segI+1)%el._segs;
+      if(TABP!=null)TABP=el._segI;            /* 手动切换更新钉段 */
+      swapSet(el);
+      var sls=DECK.slides[cur];
+      if(TABP==null&&el._rotIv){
+        clearInterval(el._rotIv);
+        el._rotIv=setInterval(function(){el._segI=(el._segI+1)%el._segs;swapSet(el);},sls.swap.ms);
+      }
+    } else if(el&&el._caps){
+      var n=el._caps.length;
+      el._rotI=(el._rotI+1)%n;
+      if(FIGP!=null)FIGP=el._rotI;            /* 手动切换更新钉帧 */
+      rotSet(el);
+      var sl=DECK.slides[cur];
+      if(FIGP==null&&el._rotIv){
+        clearInterval(el._rotIv);
+        el._rotIv=setInterval(function(){el._rotI=(el._rotI+1)%n;rotSet(el);},sl.rot.ms);
+      }
+    }
+  }
+  else if(k==="f"||k==="F")document.documentElement.classList.toggle("clean");
+  else if(k==="a"||k==="A")location.search=NOANIM?"":"noanim=1";
+});
+
+/* ---------- cues 自动翻页:每页一个时长,播完自动 go(cur+1) ----------
+   时长来自 narration/口播稿-分页.md 的估算(目标秒 + 句间 0.6s + 换页 1.0s),TTS 出 cues.json 后替换本数组;
+   ?cue=1 立刻按时间轴跑;?cue=1&wait=1 挂起,等 window.__startCue();?cuerate=N 整体加速(N 倍,调试用);?audio=1 与 __startCue() 同时播放 ../narration/full.wav。 */
+var CUES=[32320,2500,7280,34640,59200,11840,2500,27840,41680,21520,2500,44400,18320,48480,33040];
+var CUEON=P.has("cue"),CUERATE=(function(){var r=parseFloat(P.get("cuerate"));return (r&&r>0)?r:1;})();
+var cueT=null,cueRun=false;
+function cueClear(){if(cueT){clearTimeout(cueT);cueT=null;}}
+function cueArm(){
+  cueClear();
+  if(!cueRun||!CUEON)return;
+  if(cur>=TOTALN-1){cueRun=false;return;}
+  cueT=setTimeout(function(){
+    if(!cueRun||cur>=TOTALN-1){cueRun=false;return;}
+    go(cur+1,1);
+  },(CUES[cur]||30000)/CUERATE);
+}
+function cueReArm(){if(cueRun)cueArm();}
+/* 自动翻页撞上转场 busy 锁:80ms 间隔重试至锁释放,避免 dwell 被锁吞掉后卡死 */
+function cueBusyRetry(){
+  cueT=setTimeout(function(){
+    if(!cueRun||cur>=TOTALN-1)return;
+    if(busy)return cueBusyRetry();
+    go(cur+1,1);
+  },80);
+}
+var CUEDAUD=P.has("audio")?new Audio("../narration/full.wav"):null;
+window.__startCue=function(){
+  cueRun=true;
+  if(CUEDAUD){try{CUEDAUD.currentTime=0;var pp=CUEDAUD.play();if(pp&&pp.catch)pp.catch(function(){});}catch(e){}}
+  cueArm();return cur;
+};
+window.__stopCue=function(){cueRun=false;cueClear();};
+window.__cueState=function(){return {cue:CUEON,run:cueRun,cur:cur,total:TOTALN,ms:CUES[cur]||0,rate:CUERATE};};
+window.__cueJump=function(i){go(i,1);return cur;};
+if(CUEON&&!P.has("wait"))setTimeout(function(){window.__startCue();},1200);
+
+function fit(){stage.style.setProperty("--s",Math.min(innerWidth/2560,innerHeight/1440));}
+addEventListener("resize",fit);fit();
+window.__ready=true;                 /* 供截图/录屏脚本判活 */
+})();
+</script>
+</body>
+</html>

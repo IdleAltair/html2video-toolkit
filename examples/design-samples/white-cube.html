@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>白盒画廊 WHITE CUBE · 模板样例 · llm-html2video</title>
+<!--
+  设计语言 06 白盒画廊 · 单文件模板
+  规范源: ../docs/design-language-white-cube.md   v1.0 2026-10-14
+  立意:   内容是被策展的展品。一件展品、一枚展签、一面空墙。
+  用法:   white-cube.html            正常播放(2560x1440 自适应缩放)
+          ?noanim        降级:导览推移 1 帧直切、亮灯直呈亮态、展签三行同帧
+          ?clean=1       录屏:隐藏鼠标与左下角键位提示条(等价按 F)
+          ?slide=3       直接定位到第 4 页
+  键位:   → / Space / PageDown 下页   ← / PageUp 上页   Home / End   F 纯净屏   A 切换 ?noanim
+  退场:   末页自动闭馆(亮灯逆运算→展签逆序→展线擦除→空墙凝视 2s→整墙熄灯 1.5s)
+          定格后任何翻页输入都会重新开灯、还原展品,回到末页可重播整套退场。
+-->
+<style>
+/* ---- 色板 token · 规范 §2.1,逐字照抄(不自创高饱和色 §2.2) ---- */
+:root{
+  --wall:  #F5F4F0;  /* 展墙白:中性微暖 */
+  --ink:   #1A1A18;  /* 墨黑:正文 */
+  --cap:   #6B6B66;  /* 展签灰:注释、图注 */
+  --plinth:#E3E1DA;  /* 展台灰:面板与分隔 */
+  --solo:  #1F4D8F;  /* 点题藏青:全片唯一彩色,仅结论数字与一条展线 */
+  --fserif:"Noto Serif SC","SimSun","Songti SC",serif;
+  --fsans:"Noto Sans SC","Microsoft YaHei","PingFang SC",sans-serif;
+  --fmono:"Cascadia Code","JetBrains Mono",Consolas,monospace;
+  --col:1020px;                                   /* 栏宽 30 字 × 34px;展线长度 = 栏宽(§3.3/§4.3) */
+  --ease:cubic-bezier(.25,0,0,1);                 /* 导览缓动(§7.1) */
+}
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+html.clean,html.clean *{cursor:none!important}
+html.clean #hintbar{display:none}
+#stage{position:fixed;left:50%;top:50%;width:2560px;height:1440px;
+  transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:center center;
+  background:var(--wall);overflow:hidden;font-family:var(--fsans);color:var(--ink)}
+
+/* ---- 页容器:安全边距四边各 128px,内容区 2304×1184(§4.1) ---- */
+#slides{position:absolute;inset:0;z-index:3}
+.slide{position:absolute;inset:128px;visibility:hidden;will-change:transform}
+.slide.cur,.slide.mv{visibility:visible}
+.wall,.fg{position:absolute;inset:0;will-change:transform}
+
+/* ---- 母题 1:展线(§4.3) 1px 墨水平线,长度 = 栏宽,悬挂标题 ---- */
+.exhline{width:var(--col);height:1px;background:var(--ink);margin-top:46px;
+  transform-origin:100% 50%;transition:transform 400ms linear}
+.exhline.solo{background:var(--solo)}
+
+/* ---- 母题 2:展台(§4.3) --plinth 平涂矩形托起展品,无框无影 ---- */
+/* 展品亮灯:展台区域亮度 +4% 渐起 800ms(§7.2,本方案特批的"慢");退场为逆运算 */
+.plinth{position:absolute;background:var(--plinth);filter:brightness(1);
+  transition:filter 800ms linear}
+.slide.lit .plinth{filter:brightness(1.04)}
+
+/* ---- 字体阶梯(§3.1/§3.2):标题衬线 600 字距 +0.08em;正文黑体 400;数字等宽 tabular ---- */
+.kicker{font:400 24px/1.4 var(--fmono);letter-spacing:.16em;color:var(--cap)}
+.ttl{margin:14px 0 0;font:600 60px/1.24 var(--fserif);letter-spacing:.08em;
+  color:var(--ink);max-width:1500px}
+.ttl.first{margin-top:0}
+.dsub{margin-top:34px;font:400 24px/1 var(--fmono);letter-spacing:.2em;color:var(--cap)}
+.exhibit{position:absolute;text-align:center;font:400 120px/1 var(--fmono);
+  letter-spacing:.01em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.exhibit.solo{color:var(--solo)}                       /* 一件展品:结论数字以藏青静默呈现(§7.4) */
+.unit{font-family:var(--fsans);font-weight:400;color:var(--cap);letter-spacing:.04em;margin-left:14px}
+
+/* ---- 母题 3:钉距刻度(§4.3) 展签左侧 4 枚 2px 方点纵向排列 ---- */
+.pin{position:absolute;left:0;top:10px}
+.pin i{display:block;width:2px;height:2px;background:var(--ink);margin:0 0 25px}
+
+/* ---- 展签格式固定(§3.3):序号/题目/三行以内说明/数据,位置内容区左下 ---- */
+.label{position:absolute;left:0;bottom:0;padding-left:40px;max-width:1100px}
+.lno{font:400 24px/1.5 var(--fmono);letter-spacing:.14em;color:var(--cap)}
+.lttl{margin-top:20px;font:600 36px/1.3 var(--fserif);letter-spacing:.06em;color:var(--ink)}
+.ldesc{margin-top:18px;font:400 28px/1.8 var(--fsans);color:var(--cap);max-width:800px}
+.ldata{margin-top:26px}
+.dr{display:flex;gap:30px;align-items:baseline;height:52px}
+.dr t{flex:none;width:300px;font:400 24px/1.5 var(--fmono);letter-spacing:.1em;color:var(--cap)}
+.dr b{font:400 28px/1.5 var(--fmono);color:var(--ink);font-variant-numeric:tabular-nums;font-weight:400}
+
+/* ---- 长文页正文栏:34px / 行高 1.9 / 栏宽 ≤ 30 字(§3.1) ---- */
+.trlist{position:absolute;left:0;top:272px;width:1204px}
+.tr{display:flex;gap:28px;align-items:baseline}
+.tr t{flex:none;width:150px;font:400 24px/1.9 var(--fmono);color:var(--cap);font-variant-numeric:tabular-nums}
+.tr span{font:400 34px/1.9 var(--fsans);color:var(--ink)}
+.tr span.sys{color:var(--cap)}
+
+/* ---- 展墙序列(§5 时间/流程;排行=一字排开的展台,无箭头) ---- */
+.seq{position:absolute;left:0;top:300px;width:2304px;height:520px}
+.axis{position:absolute;left:0;right:0;top:360px;height:1px;background:var(--ink)}
+.axt{position:absolute;right:0;top:326px;font:400 24px/1 var(--fmono);color:var(--cap);font-variant-numeric:tabular-nums}
+.cell{position:absolute;width:300px}
+.cell .bar{position:absolute;left:0;width:300px;background:var(--plinth);border-top:1px solid var(--ink)}
+.cell .bar.neg{border-top:0;border-bottom:1px solid var(--ink)}
+.cell .vv{position:absolute;left:0;width:300px;text-align:center;
+  font:400 30px/1 var(--fmono);color:var(--ink);font-variant-numeric:tabular-nums}
+.cell .vv.local{font-size:96px;color:var(--solo)}      /* 全页唯一藏青 = 本机结论值 */
+.cell .nm{position:absolute;left:0;top:470px;width:300px;text-align:center;
+  font:400 28px/1.35 var(--fsans);color:var(--ink)}
+
+/* ---- 空墙凝视层(§7.5 退场第 4 步):镜头最后停在一面无元素的展墙上 ---- */
+#wallhold{position:absolute;inset:0;background:var(--wall);opacity:0;z-index:25;
+  pointer-events:none;transition:opacity 600ms linear}
+/* ---- 闭馆熄灯:整墙明度缓降至全黑 1500ms(§7.5 第 5 步,全方案最慢,特批不许压缩) ---- */
+#blackout{position:absolute;inset:0;background:#000;opacity:0;z-index:40;
+  pointer-events:none;transition:opacity 1500ms linear}
+
+/* ---- 键位提示条(?clean 隐藏,非录屏内容) ---- */
+#hintbar{position:absolute;left:128px;bottom:56px;z-index:8;
+  font:400 24px/1 var(--fmono);letter-spacing:.1em;color:var(--cap)}
+
+/* ---- 降级(§7.7):导览推移 1 帧直切、亮灯直呈亮态、展签三行同帧;信息完整 ---- */
+html.noanim .slide,html.noanim .wall,html.noanim .fg,html.noanim .plinth,
+html.noanim .exhline,html.noanim #wallhold,html.noanim #blackout{transition:none!important}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="slides"></div>
+  <div id="wallhold"></div>
+  <div id="hintbar"></div>
+  <div id="blackout"></div>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SHARED DECK v1 · 示例内容(7 套设计语言模板必须逐字一致)
+   数字为模板占位示例，非实测成绩;替换本块即可套真实内容。
+   ============================================================ */
+var DECK={
+  meta:{style:"",doc:"",
+        ver:"TEMPLATE v1 · 2026-10-17",total:"00:42:15"},
+  slides:[
+    {type:"cover",mission:0,
+      kicker:"TELEMETRY ARCHIVE · 2026-10-17",
+      title:"本地 27B 的三场任务",
+      lede:"三场任务跑完，名次停在第 15。",
+      stats:[["任务","3 场"],["参赛","15 队"],["页面","27 页"],["时长","42:15"]]},
+
+    {type:"metric",mission:2,mid:"M2",name:"炸弹人",
+      conclusion:{pre:"翻盘发生在第 12 分钟",verb:"变",a:"−346",b:"−52"},
+      hero:{value:-52,unit:"分",neg:true},
+      note:"一次回防把分差从 346 压回 52，本场净负 52。",
+      rows:[["M1 圈地","+1,842","volt"],["M2 炸弹人","−52","neg"],
+            ["M3 夺旗","6:4",""],["累计 token","27,318",""]]},
+
+    {type:"ranking",mission:1,mid:"M1",name:"圈地",
+      title:"占地率终榜 · 本机排第二",
+      domain:[-400,2600],
+      bars:[{n:"云端旗舰",v:2480,role:"cloud"},
+            {n:"本地 27B",v:1842,role:"local"},
+            {n:"对手 K-09",v:910,role:"rival"},
+            {n:"对手 R-03",v:186,role:"rival"},
+            {n:"对手 X-21",v:-260,role:"neg"}],
+      note:"数值以文字标注在条端；基线为 0，负值向左。"},
+
+    {type:"divider",mission:3,mid:"M3",name:"夺旗",sub:"SECTION 03 · 6:4 收台"},
+
+    {type:"transcript",mission:3,mid:"M3",name:"夺旗",
+      title:"实录 · 最后一次进攻",
+      lines:[["00:37:02","sys","<system> 敌旗在 (14,9)，最近路径被两个箱子堵死"],
+             ["00:37:09","out","先把左箱推到 (12,7)，腾出走道"],
+             ["00:37:21","out","绕下路，顺手把右箱拖到旗点前"],
+             ["00:37:34","sys","<system> 你被正面撞见，损失 1 回合"],
+             ["00:37:40","out","不追了，退到旗点另一侧卡住"],
+             ["00:38:05","out","举旗，原路撤"]],
+      counter:{label:"已耗 token",value:27318,unit:"tok"},
+      note:"失误照实标注，不避讳失败。"},
+
+    {type:"final",mission:3,mid:"M3",
+      close:"三场都跑完了。名次不是结论，日志才是。",
+      credits:[["任务","圈地 / 炸弹人 / 夺旗"],["本机","本地 27B · Q5_K_XL"],
+               ["页面","27 页 · 单文件 HTML"],["录制","2560×1440@60 实机"]],
+      total:"00:42:15"}
+  ]
+};
+/* ======================= SHARED DECK 结束 ==================== */
+/* ---- 方案身份:不属于共享内容契约,各套自行声明 ---- */
+DECK.meta.style="06 WHITE CUBE"; DECK.meta.doc="design-language-white-cube.md";
+/* ======================= SHARED DECK 结束 ==================== */
+
+/* ---- 时长预算(§7.1):元素淡入 400 / 翻页 600 / 亮灯 800(特批) / 熄灯 1500(特批) ---- */
+var T={pan:600,par:120,parZone:240,zoneOut:240,zoneHold:400,
+       fade:400,light:800,cascade:90,erase:400,gaze:2000,dim:1500,
+       exitStart:2700,travel:2560,barH:300};
+var EASE="cubic-bezier(.25,0,0,1)";
+var P=new URLSearchParams(location.search);
+var NOANIM=P.has("noanim")||P.has("still");
+var stage=document.getElementById("stage");
+var slidesEl=document.getElementById("slides");
+var wallhold=document.getElementById("wallhold"),blackout=document.getElementById("blackout");
+var hint=document.getElementById("hintbar");
+var cur=0,busy=0,finished=false,wheelAcc=0,timers=[];
+
+if(NOANIM)document.documentElement.classList.add("noanim");
+if(P.has("clean"))document.documentElement.classList.add("clean");
+
+/* ---------- 格式化 ---------- */
+function fmt(n){var s=Math.abs(Math.round(n)).toString(),o="",c=0;
+  for(var i=s.length-1;i>=0;i--){o=s[i]+o;if((++c)%3===0&&i>0)o=","+o;}
+  return (n<0?"−":"")+o;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function setX(el,x){el.style.transform="translateX("+x+"px)";}
+function resetX(el){el.style.transition="none";el.style.transform="none";void el.offsetWidth;el.style.transition="";}
+
+/* ---------- 版式积木 ---------- */
+/* 上部:展厅标题 + 展线(挂在墙面上,即视差里的慢层) */
+function wallBlock(o){
+  var h="";
+  if(o.kicker)h+='<div class="kicker in">'+esc(o.kicker)+'</div>';
+  h+='<h1 class="ttl in'+(o.kicker?'':' first')+'" style="font-size:'+o.size+'px">'+esc(o.title)+'</h1>';
+  h+='<div class="exhline in'+(o.lineSolo?' solo':'')+'"></div>';
+  if(o.sub)h+='<div class="dsub in">'+esc(o.sub)+'</div>';
+  return h;
+}
+/* 左下:展签(序号 / 题目 / ≤3 行说明 / 数据)+ 钉距刻度 */
+function labelBlock(o){
+  return '<div class="label"><span class="pin"><i></i><i></i><i></i><i></i></span>'+
+    '<div class="lno ln">'+esc(o.no)+'</div>'+
+    '<div class="lttl ln">'+esc(o.title)+'</div>'+
+    (o.desc?'<div class="ldesc ln">'+esc(o.desc)+'</div>':'')+
+    '<div class="ldata same">'+o.data.map(function(r){
+      return '<div class="dr"><t>'+esc(r[0])+'</t><b>'+esc(r[1])+'</b></div>';}).join("")+
+    '</div></div>';
+}
+/* 中部:展台平涂托起一件展品(一图一数,§5) */
+function exhibitHtml(o){
+  return '<div class="plinth" style="'+o.ps+'"></div>'+
+    '<div class="exhibit in'+(o.solo?' solo':'')+'" style="'+o.ns+';font-size:'+o.size+'px">'+
+    esc(o.value)+(o.unit?'<span class="unit" style="font-size:'+o.usize+'px">'+esc(o.unit)+'</span>':'')+
+    '</div>';
+}
+
+/* ---------- 页渲染(§6 页型骨架) ---------- */
+function build(sl){
+  var d=document.createElement("div");
+  d.className="slide";d._seq=[];
+  var wh="",fh="";
+  if(sl.type==="cover"){
+    /* 封面:展厅标题 + 一条展线;无展台(§6) */
+    wh=wallBlock({title:sl.title,size:84,lineSolo:true});
+    fh=labelBlock({no:sl.kicker,title:sl.title,desc:sl.lede,data:sl.stats});
+  }else if(sl.type==="metric"){
+    /* 展品页:展台 + 展品数字(藏青) + 展签;rows 收进展签数据位 */
+    var c=sl.conclusion;
+    wh=wallBlock({kicker:sl.mid+" · "+sl.name+" · 结论",
+      title:c.pre+"："+c.a+" "+c.verb+" "+c.b,size:60});
+    fh=exhibitHtml({ps:"right:0;top:372px;width:900px;height:300px",
+        ns:"right:0;top:190px;width:900px",size:160,usize:56,
+        value:fmt(sl.hero.value),unit:sl.hero.unit,solo:true})+
+      labelBlock({no:sl.mid,title:sl.name,desc:sl.note,data:sl.rows});
+  }else if(sl.type==="ranking"){
+    /* 排行 = 一字排开的展台序列,每个展台只讲一个数,无箭头(§5) */
+    wh=wallBlock({kicker:sl.mid+" · "+sl.name,title:sl.title,size:60});
+    var k=T.barH/sl.domain[1],axis=360;
+    var cells=sl.bars.map(function(b,i){
+      var h=Math.max(22,Math.round(Math.abs(b.v)*k)),neg=b.v<0,local=b.role==="local";
+      var top=neg?axis:axis-h, numTop=neg?axis+h+18:top-(local?114:44);
+      return '<div class="cell" style="left:'+(i*501)+'px">'+
+        '<div class="bar'+(neg?' neg':'')+'" style="top:'+top+'px;height:'+h+'px"></div>'+
+        '<div class="vv'+(local?' local':'')+' in" style="top:'+numTop+'px">'+fmt(b.v)+'</div>'+
+        '<div class="nm in">'+esc(b.n)+'</div></div>';
+    }).join("");
+    fh='<div class="seq"><div class="axis"></div><div class="axt in">0</div>'+cells+'</div>'+
+      labelBlock({no:sl.mid,title:sl.name,desc:sl.note,
+        data:sl.bars.filter(function(b){return b.role==="local"||b.role==="cloud";})
+          .reverse().map(function(b){return [b.n,fmt(b.v)];})});
+  }else if(sl.type==="divider"){
+    /* 展区切换:整面墙只留展区名与一条展线 */
+    wh=wallBlock({kicker:sl.mid,title:sl.name,size:84,lineSolo:true,sub:sl.sub});
+    fh="";
+  }else if(sl.type==="transcript"){
+    /* 实录:正文栏 + 展台一件 + 展签(图注即来历) */
+    wh=wallBlock({kicker:sl.mid+" · "+sl.name,title:sl.title,size:60});
+    fh='<div class="trlist">'+sl.lines.map(function(l){
+        return '<div class="tr in"><t>'+esc(l[0])+'</t><span class="'+l[1]+'">'+esc(l[2])+'</span></div>';
+      }).join("")+'</div>'+
+      exhibitHtml({ps:"right:0;top:316px;width:880px;height:230px",
+        ns:"right:0;top:186px;width:880px",size:110,usize:44,
+        value:fmt(sl.counter.value),unit:sl.counter.unit,solo:true})+
+      labelBlock({no:sl.mid,title:sl.name,desc:sl.note,
+        data:[[sl.counter.label,fmt(sl.counter.value)+" "+sl.counter.unit]]});
+  }else{
+    /* 结束页:最后一面展墙——一枚展台、一句结语、一枚展签(§7.5) */
+    wh=wallBlock({title:sl.close,size:60});
+    fh=exhibitHtml({ps:"right:0;top:376px;width:900px;height:280px",
+        ns:"right:0;top:240px;width:900px",size:120,usize:44,
+        value:sl.total,solo:true})+
+      labelBlock({no:"END OF ARCHIVE · "+sl.mid,title:"闭馆",
+        desc:"最后一面展墙:一枚展台、一句结语、一枚展签。",
+        data:[["总时长",sl.total]].concat(sl.credits)});
+  }
+  d.innerHTML='<div class="wall">'+wh+'</div><div class="fg">'+fh+'</div>';
+  d._fg=d.querySelector(".fg");
+  /* §7.7:降级版不自动闭馆,末页信息保持完整(服务截图与印刷导出) */
+  d._enter=function(r){enter(r);if(sl.type==="final"&&!NOANIM)scheduleClose(r);};
+  return d;
+}
+
+/* ---------- 动效原语(§7) ---------- */
+/* 元素淡入 400ms 线性,同帧起,不做多余位移 */
+function fadeAll(r){
+  [].slice.call(r.querySelectorAll(".in")).forEach(function(el){
+    el.style.transition="none";el.style.opacity="0";});
+  void r.offsetWidth;
+  [].slice.call(r.querySelectorAll(".in")).forEach(function(el){
+    el.style.transition="opacity "+T.fade+"ms linear";el.style.opacity="1";});
+}
+/* 展签翻牌(§7.4):三行依次 90ms 间隔淡入,无位移;数据与第三行同帧(§7.1 不做更多级联) */
+function flipCard(r){
+  var ls=[].slice.call(r.querySelectorAll(".ln"));
+  ls.forEach(function(el){el.style.transition="none";el.style.opacity="0";});
+  var pin=r.querySelector(".pin");
+  if(pin){pin.style.transition="none";pin.style.opacity="0";}
+  void r.offsetWidth;
+  ls.forEach(function(el,i){
+    setTimeout(function(){
+      el.style.transition="opacity "+T.fade+"ms linear";el.style.opacity="1";},i*T.cascade);});
+  if(pin)setTimeout(function(){                        /* 刻度表序号,与序号行同帧 */
+    pin.style.transition="opacity "+T.fade+"ms linear";pin.style.opacity="1";},0);
+  var dt=r.querySelector(".same");
+  if(dt){dt.style.transition="none";dt.style.opacity="0";void dt.offsetWidth;
+    setTimeout(function(){dt.style.transition="opacity "+T.fade+"ms linear";dt.style.opacity="1";},
+      (ls.length-1)*T.cascade);}
+}
+/* 展品亮灯(§7.2):展台区域亮度 +4% 渐起 800ms */
+function lightOn(r){setTimeout(function(){r.classList.add("lit");},T.fade/2);}
+
+function enter(r){
+  if(NOANIM){r.classList.add("lit");return;}   /* §7.7 降级:亮灯直呈亮态,展签同帧 */
+  fadeAll(r);flipCard(r);lightOn(r);
+}
+
+/* ---------- 退场 · 闭馆空墙(§7.5,按序执行;特批时长不许压缩) ---------- */
+function scheduleClose(d){
+  var seq=d._seq,E=T.exitStart;                       // E: 末页先给人读结语的时间,再开始闭馆
+  function at(ms,fn){seq.push(setTimeout(fn,ms+E));}
+  /* 进场序:序号(+钉距刻度) → 题目 → 说明(+数据);退场按逆序,仍是三行 90ms 级联 */
+  var ln=[].slice.call(d.querySelectorAll(".ln")),dt=d.querySelector(".same");
+  var groups=ln.slice().reverse().map(function(el,i){return i===0&&dt?[el,dt]:[el];});
+  var pin=d.querySelector(".pin");
+  if(pin&&groups.length)groups[groups.length-1].push(pin);
+  var cardAt=T.light, cardEnd=cardAt+2*T.cascade+T.fade;
+  var lineAt=cardEnd, panAt=lineAt+T.erase;
+  var gazeAt=panAt+T.pan, dimAt=gazeAt+T.gaze, blackAt=dimAt+T.dim;
+  at(0,function(){d.classList.remove("lit");});                        // 1 亮灯逆运算 800ms
+  groups.forEach(function(g,i){                                        // 2 展签按进场逆序淡出
+    at(cardAt+i*T.cascade,function(){
+      g.forEach(function(el){
+        el.style.transition="opacity "+T.fade+"ms linear";el.style.opacity="0";});});});
+  at(lineAt,function(){                                                // 3 展线从右向左擦除 400ms
+    var l=d.querySelector(".exhline");if(l)l.style.transform="scaleX(0)";
+    var ex=d.querySelector(".exhibit");                                // 6 最后一点藏青先褪成墨黑
+    if(ex){ex.style.transition="color 400ms linear";ex.style.color="var(--ink)";}});
+  at(panAt,function(){                                                 // 4 镜头最后一次横移,停在空墙
+    d.style.transition="transform "+T.pan+"ms "+EASE;
+    d._fg.style.transition="transform "+T.pan+"ms "+EASE;
+    setX(d,-(T.travel-T.par));setX(d._fg,-T.par);
+    wallhold.style.opacity="1";});
+  at(dimAt,function(){                                                 // 5 空墙凝视 2s 后整墙明度缓降至全黑 1500ms
+    blackout.style.transition="opacity "+T.dim+"ms linear";blackout.style.opacity="1";});
+  at(blackAt+40,function(){                                            // 6 全黑停 ≥1s,供录屏切尾
+    finished=true;hint.textContent="闭馆 · 定格(按任意翻页键重新开灯)";});
+}
+
+/* 解除终场定格:撤罩层 + 还原被退场熄灭/移走的元素 + 允许回末页重播 */
+function unblack(){
+  var f=nodes[nodes.length-1];
+  if(f._reset)f._reset();
+  wallhold.style.transition="opacity 400ms linear";wallhold.style.opacity="0";
+  blackout.style.transition="opacity 300ms linear";blackout.style.opacity="0";   /* 开灯比熄灯快 */
+  finished=false;
+}
+
+/* ---------- 转场(§7.3 白名单:导览推移 / 展区切换) ---------- */
+/* 导览推移:背景慢、内容快的双层横移;旧页向左退场,新页同时从右入(一面墙换一面墙) */
+function glide(from,to,dir,dur,par,hold){
+  var a=nodes[from],b=nodes[to],bg=T.travel-par,sgn=dir>=0?1:-1;
+  a.classList.add("mv");
+  a.style.transition="transform "+dur+"ms "+EASE;
+  a._fg.style.transition="transform "+dur+"ms "+EASE;
+  setX(a,-bg*sgn);setX(a._fg,-par*sgn);
+  b.classList.add("mv");
+  b.style.transition="none";b._fg.style.transition="none";
+  setX(b,bg*sgn);setX(b._fg,par*sgn);
+  function swap(){
+    a.classList.remove("cur");a.classList.remove("mv");resetX(a);resetX(a._fg);
+    b.classList.remove("mv");b.classList.add("cur");
+    if(b._enter&&!b._seen){b._seen=1;b._enter(b);}
+    hint.textContent=keys();
+  }
+  function moveIn(){
+    requestAnimationFrame(function(){
+      b.style.transition="transform "+dur+"ms "+EASE;
+      b._fg.style.transition="transform "+dur+"ms "+EASE;
+      setX(b,0);setX(b._fg,0);
+      timers.push(setTimeout(function(){
+        b.style.transition="";b._fg.style.transition="";},dur));
+    });
+  }
+  if(hold){                                  /* 展区切换:空墙停留后再入 */
+    timers.push(setTimeout(function(){swap();moveIn();},dur+hold));
+  }else{
+    if(b._enter&&!b._seen){b._seen=1;b._enter(b);}   /* 展品随镜头滑入时淡入 */
+    moveIn();
+    timers.push(setTimeout(swap,dur));
+  }
+}
+function kindOf(from,to,dir){
+  var b=DECK.slides[to];
+  if(b.type==="divider"&&dir>0)return "zone";    /* 拐过展厅转角才用展区切换 */
+  return "pan";
+}
+
+/* ---------- 页序 ---------- */
+function show(i,instant){
+  var el=nodes[i];
+  el.classList.add("cur");
+  if(el._enter&&!el._seen){el._seen=1;el._enter(el);}
+  if(instant){resetX(el);resetX(el._fg);}
+}
+function hide(i){nodes[i].classList.remove("cur");}
+/* 上一段转场的收尾动画未走完就来新输入:先把画面定回原位,不叠加 */
+function settle(){
+  timers.forEach(clearTimeout);timers=[];
+  nodes.forEach(function(n){
+    n.classList.remove("mv");
+    n.style.transition="";n._fg.style.transition="";
+    n.style.transform="";n._fg.style.transform="";
+  });
+}
+function go(to,dir){
+  to=Math.max(0,Math.min(DECK.slides.length-1,to));
+  if(busy)return;
+  if(to===cur){unblack();return;}   /* 末页已在闭馆中:任何翻页输入都重新开灯、还原展品 */
+  unblack();settle();
+  var kind=kindOf(cur,to,dir||(to>cur?1:-1));
+  var lock=NOANIM?0:(kind==="zone"?T.zoneOut+T.zoneHold+T.zoneIn+30:T.pan+30);
+  if(!NOANIM)busy=1;
+  if(NOANIM){hide(cur);show(to,1);}
+  else glide(cur,to,dir||(to>cur?1:-1),
+    kind==="zone"?T.zoneOut:T.pan,kind==="zone"?T.parZone:T.par,kind==="zone"?T.zoneHold:0);
+  if(lock)timers.push(setTimeout(function(){busy=0;},lock));
+  cur=to;hint.textContent=keys();
+}
+function keys(){return (cur+1)+" / "+DECK.slides.length+
+  "   ·   → 下一页   ← 上一页   滚轮   点两侧翻页   Home / End   F 纯净屏"+(NOANIM?"   A 开启动效":"   A 降级 noanim");}
+
+/* ---------- 装配 ---------- */
+var nodes=DECK.slides.map(function(s){
+  var el=build(s);slidesEl.appendChild(el);return el;});
+nodes[nodes.length-1]._reset=function(){
+  (this._seq||[]).forEach(clearTimeout);this._seq=[];
+  this.classList.add("lit");this.classList.remove("closed");
+  [].slice.call(this.querySelectorAll(".in,.ln,.same,.pin")).forEach(function(el){
+    el.style.transition="none";el.style.opacity="1";});
+  var l=this.querySelector(".exhline");if(l){l.style.transition="none";l.style.transform="none";void l.offsetWidth;l.style.transition="";}
+  var ex=this.querySelector(".exhibit");if(ex){ex.style.transition="none";ex.style.color="";}
+  this.style.transition="none";resetX(this);this._fg.style.transition="none";resetX(this._fg);
+  this._seen=0;
+};
+var jump=P.has("slide")?parseInt(P.get("slide"),10):0;
+cur=isNaN(jump)?0:Math.max(0,Math.min(DECK.slides.length-1,jump));
+show(cur);
+if(NOANIM){nodes.forEach(function(n){n.classList.add("lit");});}
+hint.textContent=keys();
+
+/* 鼠标翻页:滚轮累计过 40px 阈值才翻(触控板惯性滚动不连跳);点两侧 28%,中间 44% 安全区 */
+addEventListener("wheel",function(e){
+  if(busy){wheelAcc=0;return;}
+  wheelAcc+=e.deltaY||e.detail||0;
+  if(Math.abs(wheelAcc)<40)return;
+  var d=wheelAcc>0?1:-1;wheelAcc=0;go(cur+d,d);
+},{passive:true});
+stage.addEventListener("click",function(e){
+  var x=e.clientX/innerWidth;
+  if(x<0.28)go(cur-1,-1);else if(x>0.72)go(cur+1,1);
+});
+
+addEventListener("keydown",function(e){
+  var k=e.key;
+  if(k==="ArrowRight"||k==="PageDown"||k===" "){e.preventDefault();go(cur+1,1);}
+  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();go(cur-1,-1);}
+  else if(k==="Home")go(0,-1);
+  else if(k==="End")go(DECK.slides.length-1,1);
+  else if(k==="f"||k==="F")document.documentElement.classList.toggle("clean");
+  else if(k==="a"||k==="A")location.search=NOANIM?"":"noanim=1";
+});
+
+function fit(){stage.style.setProperty("--s",Math.min(innerWidth/2560,innerHeight/1440));}
+addEventListener("resize",fit);fit();
+window.__ready=true;                 // 供截图/录屏脚本判活
+})();
+</script>
+</body>
+</html>

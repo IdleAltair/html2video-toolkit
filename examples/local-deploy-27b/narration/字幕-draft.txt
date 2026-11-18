@@ -1,0 +1,88 @@
+# 草稿：TTS 前的时间码，出音频后由 cues 覆盖
+# 口径：4.5 字/秒估句长，句间 0.6s、换页 1.0s；一行一句，行序即句序（85 句 / 15 页）
+# 用法：逐行喂 TTS 合成，实测后以 cues.json 的逐句 start 覆盖本文件
+0s 这两台 5060 Ti 16GB，跑着一个 27B 的模型。
+7s 主机是 618 前配的，当时 Windows 上基本只有 llama.cpp 和 vLLM。
+18s 几个月下来，ninfer、dflash2 冒出来，本地部署开始实用。
+26s 片子是硬件清单与经验的总结，赶在 Qwen4-27B 发布前。
+35s 先说硬件，10 月 17 号实机核对的清单。
+40s 每项都是 PowerShell 或 nvidia-smi 读的数。
+49s CPU 是 Ultra 5 245K，14 核 14 线程，主板铭瑄 Z890 Pacific。
+1min0s 显卡两张 5060 Ti 16GB，PCIe 5.0 ×8 带宽 448 GB/s，上限 180W。
+1min12s 内存 32GB DDR5，混速双通道。
+1min17s 电源爱国者 EV850，850W 白金全模组。
+1min23s 机箱长城隐刃 H600 全塔，七把风扇正压。
+1min28s 散热 PA120 SE，两块 2TB NVMe。
+1min34s 系统 Windows 11 25H2 加 WSL2 Ubuntu。
+1min43s 选型的顺序是先定卡，再围绕卡配整机。
+1min48s 手里有两条 DDR5、两块 2T 固态，主板挑四槽位平台。
+1min55s 1、3 槽直连 CPU，拆出两条 PCIe 5.0 ×8，刚好喂满 5060 Ti。
+2min5s CPU 必须带核显：桌面显存会均分扣掉另一张卡一份。
+2min12s 电源、机箱、散热是配套项。
+2min15s 电源 850W 白金，双卡满载 360W，插座实测推理时 480W。
+2min24s 机箱七把风扇正压，上二后一前三下一。
+2min28s 双风扇在下、三风扇在上，下一把正对两卡间隙吹。
+2min34s 推理时两卡占用 95–98% 和 94–97%，温度 46–47℃ 和 52–53℃，nvidia-smi 采样单卡约 130 瓦（双卡合计 260 瓦上下）。
+2min47s 模型是 Qwen3.8-27B coder390，W4A4-W8A8 量化。
+2min56s 权重 20.8 GiB，载入 24.5 秒，约 868 MiB/s。
+3min2s 每卡 10.4 GiB，分片 9.88 加复制 259.6 MiB。
+3min10s KV 用 int8，上下文 219,776。
+3min15s 视觉钉在卡 0，14 个 worker。
+3min22s 接着是推理框架，用的不是官方版。
+3min26s 社区改版 capy-flash，原名 ninfer-tp2，把双卡张量并行和 dflash2 接在 v3 底座上。
+3min39s 跑在 WSL2 里，CUDA 13.1。
+3min45s 张量并行 tp 2，权重和 KV 池各半分布在两卡。
+3min51s 两卡没有 P2P，all-reduce 走 pinned 主机 mailbox。
+4min1s 投机解码 dflash2，每步提案 7 个 token，lm head 打分。
+4min10s CUDA graphs 默认开启，prefill 按 1024 分块。
+4min19s 视觉钉卡 0，并发上限取 2，并发 4 多 4.9 秒排队。
+4min26s 上下文和 KV 容量取相等 219,776，保单流最长。
+4min34s 两卡没有 P2P，每步 all-reduce 走主机内存。
+4min41s 实测 decode 一步 42.8 毫秒。
+4min46s 跨卡通信每步 128 次 × 47 微秒，合计 6.0 毫秒，占 14%。
+4min55s 打通 P2P、传输归零，上限也就 1.16 倍。
+5min1s 要打通得换原生 Linux、自编内核模块。
+5min6s 性价比更高的是投机解码：一步多出多个 token，摊薄固定开销。
+5min14s 这正是 dflash2 做的事。
+5min19s 数字来自 130 条真实请求的日志。
+5min23s decode 中位 99.9，p90 131.1 tok/s。
+5min31s TTFT 中位 337 毫秒，最大 971 毫秒。
+5min37s prefill 大 prompt 2.10k 到 2.73k。
+5min45s 58,863 token 长文，首测 28.0 秒、155.4。
+5min52s 150,459 token 长文，首测 102.3 秒、125.5。
+6min0s decode 从 155.4 掉到 125.5。
+6min6s 重发同一 prefix 命中 100%，TTFT 163 和 261 毫秒。
+6min16s 最后一节：显存、坑与结论。
+6min20s 显存账本是全片最重要的一页。
+6min25s KV 容量 219,776，int8，共 6,868 页。
+6min32s runtime 显存 4.33 GiB，每卡 free 136 MB。
+6min40s 这是日志原文，没逐项归属，不按 16 GiB 加总。
+6min46s embedding 表 1.185 GiB，开 embedding-host 放主机锁页。
+6min57s 每卡省 1.185，不开的话 int8 档只有 144,448。
+7min5s 双流档把 KV 换成 nvfp4：容量 393,216，每路 196,608。
+7min14s 池子接近 400K，两条流各跑满。
+7min18s 代价是每路上下文从 219,776 退到 196,608。
+7min26s 看这张显存账本图。
+7min29s 权重 10.4，KV 加 runtime 4.33，graphs 0.06，每卡 14.79 GiB。
+7min41s 两张卡基本一样。
+7min43s host-mapped 的 1.18 GiB 在主机内存，不占显存。
+7min51s 任务管理器读数 15,154 和 15,207 兆。
+7min59s 今年最深的坑是 dflash2 的 mailbox 死锁。
+8min6s 提案和 target forward 的 mailbox 交换交错。
+8min14s rank A 先自旋，rank B 的 pull 源被挡住，两 rank 互等。
+8min24s 直到 kPeerSpinLimit 才降级。
+8min29s 修法是 83 行补丁，分两笔提交。
+8min33s 59de3c1 把 draft 的 collective 留在 staged copies。
+8min44s 969d570 让 draft share 后两 rank 会合。
+8min52s 修复后 30 个请求零降级，两笔提交目前只在本机。
+8min59s 三条取舍总结。
+9min1s 第一，显存优先于算力：单卡装不下，两张凑总量。
+9min7s 总量决定能不能跑，算力决定多快，预算内前者更稀缺。
+9min13s 第二，量化档怎么选：最长上下文选 int8 KV 的 219,776 单流。
+9min22s 双满载选 NVFP4 档，393,216 每路 196,608，两档 tok/s 不可比。
+9min33s 第三，单流最长与双并发，本机选了前者。
+9min38s 下一步：把 MTP 的 K 上限提上去。
+9min43s 做中文 PPL 对比，量出两档质量差。
+9min48s 把 mailbox 死锁补丁往上游提。
+9min52s 总体情况就是这样了。
+9min55s 想本地跑 27B，可以参考我的经验。

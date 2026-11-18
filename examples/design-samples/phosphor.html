@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>磷光终端 PHOSPHOR · 模板样例 · llm-html2video</title>
+<!--
+  设计语言 03 磷光终端 · 单文件模板
+  规范源: ../docs/design-language-phosphor.md   v1.0 2026-10-14
+  用法:   phosphor.html              正常播放(2560x1440 自适应缩放)
+          ?noanim          降级:打字机直显全文、清屏 1 帧直切、字符条直显终值(游标闪烁与走时保留)
+          ?clean=1         录屏:隐藏鼠标与左下角键位提示条(等价按 F)
+          ?slide=3         直接定位到第 4 页
+  键位:   → / Space / PageDown 下页   ← / PageUp 上页   Home / End   F 纯净屏   A 切换 ?noanim
+  纪律:   显像管黑底 + 琥珀单色(除 alert 无第二色相);一切对齐字符格(ch);全篇唯一等宽字族;
+          图形全部字符绘制;翻页=清屏重载;退场=CRT 关机。
+-->
+<style>
+/* ---- 色板 token · 规范 §2.1,逐字照抄 ---- */
+:root{
+  --tube:    #0A0806;  /* 显像管黑:极轻暖相 */
+  --phos:    #FFB000;  /* 琥珀磷光:主色,一切文字与图形 */
+  --phos-hi: #FFD25F;  /* 高亮磷光:当前行、结论值 */
+  --phos-lo: #7A5200;  /* 衰减低磷:注释、坐标轴、已读内容 */
+  --alert:   #FF3C1E;  /* 告警红橙:仅错误/负值,每屏 ≤ 2 处 */
+}
+/* ---- 字族 · §3.1 唯一等宽政策;中文用等宽黑体对齐字符格(2ch 一字) ---- */
+:root{
+  --fmono:"Cascadia Code","JetBrains Mono","IBM Plex Mono",Consolas,monospace;
+  --fsans:"Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC";
+  /* 终端栈:等宽在前、等宽黑体在后,全篇只用这一个字族(无衬线黑体标题禁止) */
+  --term:"Cascadia Code","JetBrains Mono","IBM Plex Mono",Consolas,"Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC",monospace;
+  --row:48px;   /* 1 基准行 = 32px × 行高 1.5;一切纵向间距以整行计(§3.3) */
+}
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+html.clean,html.clean *{cursor:none!important}
+html.clean #hintbar{display:none}
+#stage{position:fixed;left:50%;top:50%;width:2560px;height:1440px;
+  transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:center center;
+  background:#000;overflow:hidden;font-family:var(--term);font-size:32px;line-height:1.5;
+  color:var(--phos);letter-spacing:0;text-shadow:0 0 8px currentColor}  /* §2.2 微辉光:全方案唯一发光 */
+
+/* ---- 显像管画面层:关机时整体收缩(§7.5 步骤 2–3) ---- */
+#tube{position:absolute;inset:0;background:var(--tube);transform-origin:50% 50%;
+  transition:transform 200ms linear}
+#tube.hline{transform:scaleY(.004)}
+#tube.hdot{transition:transform 150ms linear;transform:scaleY(.004) scaleX(.02)}
+#tube.off{visibility:hidden}
+
+/* ---- 玻璃层:扫描线 1px 每 3px 一条、8%、固定不平移;四角 8% 黑径向暗角(§2.2/§4.3) ---- */
+#scan{position:absolute;inset:0;z-index:50;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,.08) 0 1px,rgba(0,0,0,0) 1px 3px)}
+#vig{position:absolute;inset:0;z-index:51;pointer-events:none;
+  background:radial-gradient(75% 75% at 50% 50%,rgba(0,0,0,0) 58%,rgba(0,0,0,.08) 100%)}
+
+/* ---- 页容器:安全边距四边各 64px(§4.1),左边距 2ch(§3.3) ---- */
+#slides{position:absolute;inset:0;z-index:3}
+.slide{position:absolute;inset:64px;padding-left:2ch;opacity:0;visibility:hidden}
+.slide.cur{opacity:1;visibility:visible}
+
+/* ---- 行栅格:每个行元件的总高恰为整数个基准行 ---- */
+.r{display:block;white-space:pre;height:var(--row);box-sizing:border-box;
+  line-height:1.5;font-size:32px;padding-top:calc((var(--row) - 1.5em)/2)}
+.r.sm{font-size:24px}
+.r.r2{font-size:64px;height:calc(var(--row)*2);padding-top:calc((var(--row)*2 - 1.5em)/2)}
+.r.r3{font-size:96px;height:calc(var(--row)*3);padding-top:calc((var(--row)*3 - 1.5em)/2)}
+.r.sp{padding-top:0}
+.blk{position:absolute}
+.rc{display:inline-block;width:max-content}   /* 行内容包一层,便于自检量宽是否整格对齐 */
+.cj{display:inline-block;width:2ch;text-align:center}  /* 汉字/全角钉在 2ch 字符格上(§3.1) */
+.hi{color:var(--phos-hi)}
+.lo{color:var(--phos-lo)}
+.al{color:var(--alert)}
+
+/* ---- 每页顶部一行状态栏:REC ● 00:04:12 ▮ TTY1 80×25(§3.3,--phos-lo,通栏) ---- */
+.sb{position:relative;font-size:24px;color:var(--phos-lo)}
+.sb .sbr{position:absolute;right:0;top:0;padding-top:calc((var(--row) - 1.5em)/2)}
+.dot{opacity:1}
+body.recoff .dot{opacity:.15}
+
+/* ---- 游标 ▮:常驻当前行尾,530ms 闪烁(§3.3 签名元素)。零宽:只画不占格,
+        绝不把线框的右边界挤偏一列。 ---- */
+.cursor{color:var(--phos-hi);opacity:1;display:inline-block;width:0;overflow:visible}
+body.cursoroff .cursor{opacity:.15}   /* 关位留 15% 余辉:显像管不会瞬时全灭 */
+
+/* ---- 磷光余辉:亮起 --phos-hi 后 1.2s 指数衰减回落(§7.4 明文特批) ---- */
+.ag{color:var(--phos-hi)}
+.agf{transition:color 1200ms cubic-bezier(.04,.74,.16,1)}
+
+/* ---- 字符条形图(§5):█ 已采样 ░ 未达 │ 零基线 ---- */
+.bar i{font-style:normal}
+.bar i.e{color:var(--phos-lo)}
+.bar i.a{color:var(--phos-lo)}
+.bar i.a.off{opacity:0}
+.bar i.f{color:var(--phos)}
+.bar i.f.loc{color:var(--phos-hi)}
+.bar i.f.al{color:var(--alert)}
+.bar i.f.riv{color:var(--phos-lo)}
+
+/* ---- 示波轨迹(§4.3.3):1px、--phos-lo、8s 周期缓移(§7.6 许可循环) ---- */
+.osc{display:inline-block;vertical-align:top;line-height:0;overflow:hidden;color:var(--phos-lo);
+  filter:drop-shadow(0 0 8px currentColor)}
+.osc path{stroke:currentColor;stroke-width:1;fill:none;transform-box:fill-box}
+.osc.drift path{animation:oscdrift 8s linear infinite}
+@keyframes oscdrift{from{transform:translateX(0)}to{transform:translateX(-60px)}}
+
+/* ---- 翻页转场(§7.3 白名单:清屏重载 / 垂直回扫) ---- */
+#blackout{position:absolute;inset:0;z-index:45;background:#000;opacity:0;transition:opacity 80ms linear;pointer-events:none}
+#clearmsg{position:absolute;left:calc(64px + 2ch);top:calc(64px + var(--row)*13);z-index:46;
+  font-family:var(--term);font-size:24px;line-height:1.5;color:var(--phos-lo);
+  opacity:0;pointer-events:none;text-shadow:0 0 8px currentColor}
+#retrace{position:absolute;left:0;top:0;width:2560px;height:1440px;z-index:44;display:none;
+  pointer-events:none;color:var(--phos);opacity:.22;
+  background:repeating-linear-gradient(to bottom,currentColor 0 1px,rgba(0,0,0,0) 1px 4px)}
+#retrace.on{display:block;animation:retrace 200ms linear 1}
+@keyframes retrace{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+
+/* ---- CRT 关机亮点(§7.5 步骤 3–4):余辉指数衰减 1.2s 至全黑(明文特批) ---- */
+#spot{position:absolute;left:50%;top:50%;width:300px;height:2px;margin:-1px 0 0 -150px;z-index:46;
+  background:var(--phos-hi);display:none;text-shadow:0 0 8px currentColor}
+#spot.on{display:block;animation:spotdecay 1200ms cubic-bezier(.04,.74,.16,1) 1}
+@keyframes spotdecay{
+  0%{opacity:1;transform:scaleX(1)}
+  12%{opacity:.86;transform:scaleX(.42)}
+  34%{opacity:.44;transform:scaleX(.24)}
+  68%{opacity:.16;transform:scaleX(.14)}
+  100%{opacity:0;transform:scaleX(.08)}
+}
+
+/* ---- 键位提示条(?clean 隐藏,非录屏内容) ---- */
+#hintbar{position:absolute;left:64px;bottom:24px;z-index:8;font-size:24px;line-height:1.5;
+  color:var(--phos-lo);letter-spacing:0;text-shadow:0 0 8px currentColor}
+
+/* ---- ?noanim 降级(§7.7):直显全文、1 帧直切、字符条终值;游标闪烁与走时保留 ---- */
+html.noanim #tube,html.noanim #tube.hdot{transition:none}
+html.noanim #blackout{transition:none}
+html.noanim #retrace.on{animation:none;display:none}
+html.noanim .osc.drift path{animation:none}
+html.noanim .agf{transition:none}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="tube"><div id="slides"></div></div>
+  <div id="hintbar"></div>
+  <div id="retrace"></div>
+  <div id="blackout"></div>
+  <div id="clearmsg">CLEAR</div>
+  <div id="spot"></div>
+  <div id="scan"></div>
+  <div id="vig"></div>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SHARED DECK v1 · 示例内容(7 套设计语言模板必须逐字一致)
+   数字为模板占位示例，非实测成绩;替换本块即可套真实内容。
+   ============================================================ */
+var DECK={
+  meta:{style:"",doc:"",
+        ver:"TEMPLATE v1 · 2026-10-17",total:"00:42:15"},
+  slides:[
+    {type:"cover",mission:0,
+      kicker:"TELEMETRY ARCHIVE · 2026-10-17",
+      title:"本地 27B 的三场任务",
+      lede:"三场任务跑完，名次停在第 15。",
+      stats:[["任务","3 场"],["参赛","15 队"],["页面","27 页"],["时长","42:15"]]},
+
+    {type:"metric",mission:2,mid:"M2",name:"炸弹人",
+      conclusion:{pre:"翻盘发生在第 12 分钟",verb:"变",a:"−346",b:"−52"},
+      hero:{value:-52,unit:"分",neg:true},
+      note:"一次回防把分差从 346 压回 52，本场净负 52。",
+      rows:[["M1 圈地","+1,842","volt"],["M2 炸弹人","−52","neg"],
+            ["M3 夺旗","6:4",""],["累计 token","27,318",""]]},
+
+    {type:"ranking",mission:1,mid:"M1",name:"圈地",
+      title:"占地率终榜 · 本机排第二",
+      domain:[-400,2600],
+      bars:[{n:"云端旗舰",v:2480,role:"cloud"},
+            {n:"本地 27B",v:1842,role:"local"},
+            {n:"对手 K-09",v:910,role:"rival"},
+            {n:"对手 R-03",v:186,role:"rival"},
+            {n:"对手 X-21",v:-260,role:"neg"}],
+      note:"数值以文字标注在条端；基线为 0，负值向左。"},
+
+    {type:"divider",mission:3,mid:"M3",name:"夺旗",sub:"SECTION 03 · 6:4 收台"},
+
+    {type:"transcript",mission:3,mid:"M3",name:"夺旗",
+      title:"实录 · 最后一次进攻",
+      lines:[["00:37:02","sys","<system> 敌旗在 (14,9)，最近路径被两个箱子堵死"],
+             ["00:37:09","out","先把左箱推到 (12,7)，腾出走道"],
+             ["00:37:21","out","绕下路，顺手把右箱拖到旗点前"],
+             ["00:37:34","sys","<system> 你被正面撞见，损失 1 回合"],
+             ["00:37:40","out","不追了，退到旗点另一侧卡住"],
+             ["00:38:05","out","举旗，原路撤"]],
+      counter:{label:"已耗 token",value:27318,unit:"tok"},
+      note:"失误照实标注，不避讳失败。"},
+
+    {type:"final",mission:3,mid:"M3",
+      close:"三场都跑完了。名次不是结论，日志才是。",
+      credits:[["任务","圈地 / 炸弹人 / 夺旗"],["本机","本地 27B · Q5_K_XL"],
+               ["页面","27 页 · 单文件 HTML"],["录制","2560×1440@60 实机"]],
+      total:"00:42:15"}
+  ]
+};
+/* ======================= SHARED DECK 结束 ==================== */
+/* ---- 方案身份:不属于共享内容契约,各套自行声明 ---- */
+DECK.meta.style="03 PHOSPHOR"; DECK.meta.doc="design-language-phosphor.md";
+/* ======================= SHARED DECK 结束 ==================== */
+
+/* ---------- 时长预算(§7.1;磷光余辉 1.2s 与 CRT 关机 1.2s 为 §7.4/§7.5 明文特批) ---------- */
+var T={rate:Math.round(1000/60),   /* 打字机 60 字/秒(§7.2 区间上限) */
+       lineGap:80, segGap:160,     /* 行间停顿 80ms、段间 160ms(§7.2) */
+       col:40,                     /* 字符条逐列 40ms(§7.4) */
+       clear:80, black:80,         /* CLEAR → 黑屏 80ms(§7.3) */
+       retrace:200,                /* 垂直回扫 200ms(§7.3) */
+       glow:1200,                  /* 余辉衰减(§7.4) */
+       collapse:200, spot:150, decay:1200};   /* 关机(§7.5) */
+
+var P=new URLSearchParams(location.search);
+var NOANIM=P.has("noanim")||P.has("still");
+var stage=document.getElementById("stage");
+var tube=document.getElementById("tube");
+var slidesEl=document.getElementById("slides");
+var blackout=document.getElementById("blackout");
+var clearmsg=document.getElementById("clearmsg");
+var retrace=document.getElementById("retrace");
+var spot=document.getElementById("spot");
+var hint=document.getElementById("hintbar");
+var clockStart=Date.now(),cur=0,finished=false,busy=0,wheelAcc=0;
+
+if(NOANIM)document.documentElement.classList.add("noanim");
+if(P.has("clean"))document.documentElement.classList.add("clean");
+
+/* ---------- 字符格宽度:汉字/全角 = 2ch,其余 = 1ch(§3.1) ---------- */
+function wide(c){
+  return (c>=0x1100&&c<=0x115F)||(c>=0x2E80&&c<=0x303E)||(c>=0x3041&&c<=0x33FF)||
+         (c>=0x3400&&c<=0x4DBF)||(c>=0x4E00&&c<=0x9FFF)||(c>=0xA000&&c<=0xA4CF)||
+         (c>=0xAC00&&c<=0xD7A3)||(c>=0xF900&&c<=0xFAFF)||(c>=0xFE30&&c<=0xFE6F)||
+         (c>=0xFF01&&c<=0xFF60)||(c>=0xFFE0&&c<=0xFFE6);
+}
+function dw(s){var n=0,i,c;for(i=0;i<s.length;i++){c=s.codePointAt(i);n+=wide(c)?2:1;if(c>0xFFFF)i++}return n}
+function sp(n){return n>0?new Array(n+1).join(" "):""}
+function padR(s,n){var d=n-dw(s);return d>0?s+sp(d):s}
+function padL(s,n){var d=n-dw(s);return d>0?sp(d)+s:s}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function pad2(v){return (v<10?"0":"")+v}
+function fmt(n){var s=Math.abs(Math.round(n)).toString(),o="",c=0;
+  for(var i=s.length-1;i>=0;i--){o=s[i]+o;if((++c)%3===0&&i>0)o=","+o}
+  return (n<0?"−":"")+o}
+
+/* ---------- 行与面板:图形母题全部字符绘制(§4.2 / §4.3) ---------- */
+function row(inner,cls){return '<div class="r'+(cls?" "+cls:"")+'"><span class="rc">'+inner+'</span></div>'}
+/* 打字行(非线框):text 逐字符打出 */
+function tr(text,cls,size){return row(render(tseg(text,cls)),size)}
+function gap(n){var o="",i;for(i=0;i<(n||1);i++)o+='<div class="r sp"></div>';return o}
+function seg(s,c){return {s:s,c:c||""}}                        /* 直显单元 */
+function tseg(s,c,k){return {s:s,c:c||"",tp:1,k:k?1:0}}         /* 打字单元 */
+function raw(h,n){return {raw:h,w:n}}                            /* 字符图形单元,宽度以格计 */
+/* CJK 补偿:环境无等宽 CJK 字体时,把汉字/全角标点钉成正好 2ch(§3.1 中文 2ch 一字) */
+function runs(s){
+  var out="",buf="",i,ch;
+  for(i=0;i<s.length;i++){
+    ch=s.charAt(i);
+    if(wide(ch.charCodeAt(0))){
+      if(buf){out+=esc(buf);buf=""}
+      out+='<span class="cj">'+esc(ch)+'</span>';
+    }else buf+=ch;
+  }
+  if(buf)out+=esc(buf);
+  return out;
+}
+function render(o){
+  var body=o.raw?o.raw:(o.tp
+    ?'<span class="tx" data-full="'+esc(o.s)+'"'+(o.k?' data-key="1"':"")+'></span>'
+    :runs(o.s));
+  return o.c?'<span class="'+o.c+'">'+body+'</span>':body;
+}
+function segw(o){return o.raw?o.w:dw(o.s)}
+function lineHTML(segs){return segs.map(render).join("")}
+function multOf(cls){return /r3/.test(cls||"")?3:/r2/.test(cls||"")?2:1}
+/* 线框一行:│ 内容(补齐到 inner 格)│ —— inner 按字号倍数折算,框线上下严格对齐 */
+function prow(segs,pw,cls){
+  var m=multOf(cls),inner=Math.floor(pw/m)-4;
+  var used=segs.reduce(function(a,o){return a+segw(o)},0);
+  return row('<span>│ </span>'+lineHTML(segs)+sp(Math.max(0,inner-used))+'<span> │</span>',cls);
+}
+/* 嵌套一层的子终端行:║ │ 内容 │ ║(§6 实录页) */
+function nrow(segs,iw){
+  var inner=iw-4,used=segs.reduce(function(a,o){return a+segw(o)},0);
+  return row('<span>║ │ </span>'+lineHTML(segs)+sp(Math.max(0,inner-used))+'<span> │ ║</span>');
+}
+function frameTop(pw,label){
+  var lead="┌ "+(label?label+" ":""),rest=Math.max(1,pw-dw(lead)-1);
+  return row('<span>┌ </span><span class="lo">'+(label?runs(label)+" ":"")+
+    '</span><span>'+esc("─".repeat(rest))+'┐</span>');
+}
+function frameBot(pw){return row('<span>└'+esc("─".repeat(Math.max(1,pw-2)))+'┘</span>')}
+function dframeTop(pw,label){
+  var lead="╔ "+(label?label+" ":""),rest=Math.max(1,pw-dw(lead)-1);
+  return row('<span>╔ </span><span class="lo">'+(label?runs(label)+" ":"")+
+    '</span><span>'+esc("═".repeat(rest))+'╗</span>');
+}
+function dframeBot(pw){return row('<span>╚'+esc("═".repeat(Math.max(1,pw-2)))+'╝</span>')}
+/* ═══ 标题行:═ 双线夹标题,同一字号以保宽度对齐(§4.2) */
+function titleRow(text,isTyped,cls,flank){
+  var f="═".repeat(flank||4);
+  return row('<span class="hi">'+f+' </span>'+
+    (isTyped?'<span class="tx" data-full="'+esc(text)+'" data-key="1"></span>':runs(text))+
+    '<span class="hi"> '+f+'</span>',cls);
+}
+function blk(col,rowN,html){
+  return '<div class="blk" style="left:'+col+'ch;top:calc(var(--row)*'+rowN+')">'+html+'</div>';
+}
+/* 状态栏:REC ● 走时 ▮ TTY1 80×25 + 右侧页码/本场(§3.3) */
+function statusRow(s,i){
+  var mid=s.mission?(s.mid+(s.name?" "+s.name:"")):"ARCHIVE";
+  var right="PAGE "+pad2(i+1)+"/"+pad2(DECK.slides.length)+" · "+mid;
+  return '<div class="r sb"><span>REC <b class="dot">●</b> <span class="clk">00:00:00</span> ▮ TTY1 80×25</span>'+
+    '<span class="sbr">'+runs(right)+'</span></div>';
+}
+/* 示波轨迹:1px 正弦,8s 周期缓移(§4.3.3)。宽度以 ch 给出,永远落在字符格上;
+   波长固定 60 用户单位,漂移量等于波长 → 循环无缝,包围盒只多一个波长,不出画。 */
+function oscSVG(cells,h,amp){
+  var W=cells*20,d="",x,y;
+  for(x=0;x<=W+60;x+=2){y=h/2-amp*Math.sin(x*Math.PI*2/60);d+=(x?"L":"M")+x.toFixed(1)+" "+y.toFixed(1)+" "}
+  return '<svg class="osc drift" style="width:'+cells+'ch;height:'+h+'px" viewBox="0 0 '+W+' '+h+
+    '" preserveAspectRatio="none"><path d="'+d.trim()+'"/></svg>';
+}
+/* 火花线:数值序列 → ▁▂▄▆█(§5 趋势) */
+var LV=["▁","▂","▄","▆","█"];
+function sparkHTML(vals,cls){
+  var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals),rng=(hi-lo)||1;
+  var out=vals.map(function(v){
+    return LV[Math.max(0,Math.min(4,Math.round((v-lo)/rng*4)))];
+  }).join("");
+  return '<span class="'+(cls||"")+'">'+esc(out)+'</span>';
+}
+
+/* ---------- 游标(§3.3 签名元素) ---------- */
+var cursor=document.createElement("span");
+cursor.className="cursor";
+cursor.textContent="▮";
+var cursorRest=null;
+function moveCursor(el){
+  var host=el||cursorRest;
+  if(!host||!host.parentNode)return;
+  host.parentNode.insertBefore(cursor,host.nextSibling);
+}
+
+/* ---------- 机器运转:游标 530ms / REC 1s / 走时 1s(§7.6 许可的循环) ---------- */
+setInterval(function(){document.body.classList.toggle("cursoroff")},530);
+/* REC 圆点 1s 闪烁:规范只在实录页点名(§6),其余页状态栏静止,以守 §7.6「其余一律静止」 */
+setInterval(function(){
+  var live=DECK.slides[cur]&&DECK.slides[cur].type==="transcript";
+  document.body.classList.toggle("recoff",live&&document.body.classList.contains("recoff")===false);
+  if(!live)document.body.classList.remove("recoff");
+},1000);
+function tickClock(){
+  var s=Math.floor((Date.now()-clockStart)/1000);
+  return pad2(Math.floor(s/3600))+":"+pad2(Math.floor(s/60)%60)+":"+pad2(s%60);
+}
+setInterval(function(){
+  var c=document.querySelector(".slide.cur .clk");
+  if(c)c.textContent=finished?DECK.meta.total:tickClock();
+},1000);
+
+/* ---------- 定时链(整页可撤销,支持终场重播) ---------- */
+var GLOBAL=[];
+function K(fn,ms){var id=setTimeout(fn,ms);GLOBAL.push(id);return id}
+function killAll(){GLOBAL.forEach(clearTimeout);GLOBAL=[]}
+
+/* ---------- 打字机(§7.2:逐字符 30–60 字/秒 + 行间停顿 80ms) ---------- */
+function put(L,n){L.innerHTML=runs((L.dataset.full||"").slice(0,n))}
+function afterglow(el){                           /* §7.4:亮起 --phos-hi → 1.2s 指数衰减回落 */
+  if(!el)return;
+  if(NOANIM){el.classList.add("hi");return;}
+  el.classList.add("ag");
+  requestAnimationFrame(function(){
+    el.classList.add("agf");
+    el.classList.remove("ag");
+    setTimeout(function(){el.classList.remove("agf")},T.glow+60);
+  });
+}
+function typeLines(el,lines,done){
+  var li=0,ci=0;
+  function step(){
+    if(li>=lines.length){
+      cursorRest=el._rest||lines[lines.length-1];
+      moveCursor(cursorRest);
+      if(done)done();
+      return;
+    }
+    var L=lines[li],full=L.dataset.full||"";
+    cursorRest=L;moveCursor(L);
+    if(ci<full.length){ci++;put(L,ci);K(step,T.rate)}
+    else{
+      if(L.dataset.key)afterglow(L.parentNode);   /* 关键数字打出后整行亮一档(§7.2) */
+      li++;ci=0;
+      K(step,(li%6===0)?T.segGap:T.lineGap);      /* 每 6 行一段,段间 160ms(§7.2) */
+    }
+  }
+  step();
+}
+function showAll(el,lines,silent){
+  lines.forEach(function(L){put(L,(L.dataset.full||"").length)});
+  if(silent)return;
+  cursorRest=el._rest||lines[lines.length-1];
+  moveCursor(cursorRest);
+}
+function linesOf(el){return [].slice.call(el.querySelectorAll(".tx"))}
+function staticHi(el){
+  [].slice.call(el.querySelectorAll('[data-key]')).forEach(function(L){L.parentNode.classList.add("hi")});
+}
+function enter(el,rest,done){                     /* 进场:?noanim 直显全文,正常模式从头打字 */
+  var lines=linesOf(el);
+  el._rest=rest||lines[lines.length-1];
+  if(NOANIM){showAll(el,lines);staticHi(el);if(done)done();return;}
+  typeLines(el,lines,done);
+}
+
+/* ================= 页渲染 ================= */
+function build(sl,i){
+  var d=document.createElement("div");
+  d.className="slide";
+  if(sl.type==="cover")cover(d,sl,i);
+  else if(sl.type==="metric")metric(d,sl,i);
+  else if(sl.type==="ranking")ranking(d,sl,i);
+  else if(sl.type==="divider")divider(d,sl,i);
+  else if(sl.type==="transcript")transcript(d,sl,i);
+  else finalPage(d,sl,i);
+  return d;
+}
+
+/* ---- 封面(§6:═ 双线大标题 + 状态栏,游标停在标题行尾) ---- */
+function cover(d,s,i){
+  var PW=44,SW=48;
+  var vals=s.stats.map(function(k){return parseFloat(String(k[1]))||0});
+  var stats=s.stats.map(function(k){
+    var v=k[1];
+    return prow([seg(padR(k[0],12)),seg(sp(Math.max(0,20-dw(k[0])-dw(v)))),tseg(v)],PW);
+  }).join("");
+  d.innerHTML=statusRow(s,i)+
+    blk(2,3,
+      tr("LOADING MODULE... OK","lo","sm")+
+      tr(s.kicker,"lo","sm")+
+      gap(1)+
+      titleRow(s.title,1,"r2",6)+
+      gap(1)+
+      tr(s.lede)+
+      gap(1)+
+      row('<span class="lo">PHOSPHOR TERMINAL · AMBER MONOCHROME · 1CH GRID</span>',"sm"))+
+    blk(2,13,
+      frameTop(PW,"RUN STATS")+stats+frameBot(PW)+
+      gap(1)+
+      row('<span class="lo">SCOPE</span> '+oscSVG(14,24,7)+'<span class="lo"> 1PX 8S</span>'))+
+    blk(56,13,
+      frameTop(SW,"SIGNAL")+
+      prow([seg("LEVEL "),raw(sparkHTML(vals,"hi"),vals.length),seg("   RANGE 0 .. "+vals[vals.length-1],"lo")],SW)+
+      prow([seg("METER "),raw('<span class="lo">'+"█".repeat(10)+"░".repeat(6)+'</span>',16)],SW)+
+      prow([raw(oscSVG(18,28,9),18),seg("  TRACE · 8S","lo")],SW)+
+      prow([seg("TTY1 80×25","lo")],SW)+
+      frameBot(SW));
+  d._enter=function(el){enter(el,el.querySelector('[data-full="'+esc(s.title)+'"]'))};
+}
+
+/* ---- 结论页(§5 对比 = diff 前缀、本机行亮一档;负值 --alert + ! 前缀;§4.3 数值旁附示波轨迹) ---- */
+function metric(d,s,i){
+  var c=s.conclusion,PW=32;
+  var rows=s.rows.map(function(r){
+    var local=r[0].indexOf(s.mid)>=0;
+    var sign=r[2]==="volt"?"+ ":r[2]==="neg"?"- ":"  ";
+    var val=r[1],neg=r[2]==="neg",vv=neg?"!"+val:val,cls=neg?"al":"";
+    return prow([seg(sign,local?"hi":""),seg(padR(r[0],12),local?"hi":""),
+      seg(sp(Math.max(0,9-dw(vv)))),tseg(vv,cls)],PW);
+  }).join("");
+  var concl=c.pre+"："+c.a+" "+c.verb+" "+c.b;
+  d.innerHTML=statusRow(s,i)+
+    blk(2,1,
+      tr(s.mid+" · "+s.name+" · 结论","lo","sm")+
+      titleRow(concl,1,"r2",1)+
+      gap(1)+
+      row([seg("!",'al'),tseg(fmt(s.hero.value),"",1),seg(" "+s.hero.unit,"lo")].map(render).join(""),"r3")+
+      gap(4)+
+      tr(s.note,"lo")+
+      gap(1)+
+      row('<span class="lo">SCOPE</span> '+oscSVG(17,32,11)+
+          '<span class="lo"> 1PX 8S · SIGNAL OK</span>',"sm"))+
+    blk(80,1,
+      frameTop(PW,s.mid+" / RESULT")+rows+frameBot(PW)+
+      gap(1)+
+      row('<span class="lo">-/+ DIFF · </span><span class="hi">HI = 本机</span>',"sm")+
+      row('<span class="lo">! = ALERT</span>',"sm"));
+  d._enter=function(el){enter(el)};
+}
+
+/* ---- 排行页(§5:字符条 ████░░ + 数值右对齐;§7.4 逐列点亮 40ms/列) ---- */
+var BAR={L:2,R:15};                          /* 零基线左 2 列 / 右 15 列 = 18 列 → 15 步 × 40ms = 600ms */
+function barField(v,per,cls){
+  var cells="",i,pos=v>=0?Math.round(v*per):0,neg=v<0?Math.round(-v*per):0;
+  for(i=0;i<BAR.L;i++){                      /* 负值自零基线向左生长 */
+    var on=i>=BAR.L-neg;
+    cells+='<i class="'+(on?"f "+cls:"e")+'"'+(on?' data-on="1" data-p="'+(BAR.L-1-i)+'"':"")+'>'+
+      (on?"█":"░")+'</i>';
+  }
+  cells+='<i class="a">│</i>';
+  for(i=0;i<BAR.R;i++){
+    var on2=i<pos;
+    cells+='<i class="'+(on2?"f "+cls:"e")+'"'+(on2?' data-on="1" data-p="'+i+'"':"")+'>'+
+      (on2?"█":"░")+'</i>';
+  }
+  return '<span class="bar">'+cells+'</span>';
+}
+function ranking(d,s,i){
+  var lo=s.domain[0],hi=s.domain[1],PW=52,per=BAR.R/hi,BW=BAR.L+1+BAR.R;
+  var rows=s.bars.map(function(b){
+    var cls=b.role==="local"?"loc":b.role==="neg"?"al":b.role==="rival"?"riv":"";
+    var val=b.v<0?"!"+fmt(b.v):fmt(b.v);
+    return prow([seg(padR(b.n,12)),seg(" "),raw(barField(b.v,per,cls),BW),seg(" "),
+      seg(padL(val,8),b.v<0?"al":"")],PW);
+  }).join("");
+  var axis=raw('<span class="lo">'+"░".repeat(BAR.L)+'│'+"░".repeat(BAR.R)+'</span>',BW);
+  var dom=s.bars.map(function(b){return b.v});
+  d.innerHTML=statusRow(s,i)+
+    blk(2,1,
+      tr(s.mid+" · "+s.name,"lo","sm")+
+      titleRow(s.title,1,"r2",2))+
+    blk(2,6,
+      row('<span class="lo">DOMAIN '+esc(fmt(lo))+' .. '+esc(fmt(hi))+'</span>'+
+          '<span class="lo">    SCALE '+BW+' COL · 40MS/COL</span>',"sm")+
+      frameTop(PW,s.mid+" · "+s.name)+
+      prow([seg(padR("NAME",12),"lo"),seg(" "),axis,seg(" "),seg(padL("VALUE",8),"lo")],PW)+
+      rows+
+      frameBot(PW)+
+      gap(1)+
+      row('<span class="lo">SERIES </span>'+sparkHTML(dom,"hi"),"sm")+
+      gap(1)+
+      tr(s.note,"lo"))+
+    blk(58,6,
+      frameTop(46,"LEGEND")+
+      prow([seg("█ "),seg(padR("本机",7),"lo"),seg("█ "),seg(padR("最高",7),"lo"),seg("█ "),seg("他者","lo")],46)+
+      prow([seg("░ ","lo"),seg(padR("未采样",9),"lo"),seg("│ ","lo"),seg("零基线","lo")],46)+
+      prow([seg("! "),seg("负值 / 错误","lo")],46)+
+      prow([seg("▁▂▄▆█ ","hi"),seg("火花线","lo")],46)+
+      prow([raw(oscSVG(13,24,7),13),seg(" 示波轨迹","lo")],46)+
+      prow([seg("▮ 游标 530MS","lo")],46)+
+      prow([seg("40MS/COL · 1.2S PERSIST","lo")],46)+
+      frameBot(46));
+  d._enter=function(el){
+    if(NOANIM){enter(el);setBarsFinal(el);return;}
+    enter(el,null,function(){baselineFlash(el,function(){light(el)})});
+  };
+}
+function setBarsFinal(el){
+  [].slice.call(el.querySelectorAll(".bar i")).forEach(function(c){
+    if(c.dataset.on){c.classList.remove("e");c.classList.add("f")}
+  });
+}
+function resetBars(el){
+  [].slice.call(el.querySelectorAll(".bar i")).forEach(function(c){
+    if(c.dataset.on){c.classList.remove("f");c.classList.remove("on");c.classList.add("e")}
+  });
+}
+/* 零基线先闪 2 次再常亮(每段 200ms) */
+function baselineFlash(el,done){
+  var ax=[].slice.call(el.querySelectorAll(".bar .a")),n=0;
+  (function go(){
+    if(n++>=2){ax.forEach(function(a){a.classList.remove("off")});K(done,40);return;}
+    ax.forEach(function(a){a.classList.add("off")});
+    K(function(){ax.forEach(function(a){a.classList.remove("off")});K(go,200)},200);
+  })();
+}
+/* 逐列点亮:各行并行,自零基线向两侧,每列 40ms(§7.4 像采样) */
+function light(el){
+  var bars=[].slice.call(el.querySelectorAll(".bar")),max=0;
+  resetBars(el);
+  [].slice.call(el.querySelectorAll(".bar i")).forEach(function(c){
+    if(c.dataset.on)max=Math.max(max,+c.dataset.p);
+  });
+  var k=-1;
+  (function col(){
+    k++;
+    bars.forEach(function(b){
+      [].slice.call(b.children).forEach(function(c){
+        if(c.dataset.on&&+c.dataset.p<=k){c.classList.remove("e");c.classList.add("f","on")}
+      });
+    });
+    if(k<max)K(col,T.col);
+    else{
+      var loc=el.querySelector(".bar .f.loc");
+      if(loc)afterglow(loc.parentNode.parentNode);   /* 本机行落定 → 整行磷光余辉 */
+    }
+  })();
+}
+
+/* ---- 段落分隔页(§6:整页只留段落名) ---- */
+function divider(d,s,i){
+  d.innerHTML=statusRow(s,i)+
+    blk(2,7,
+      titleRow(s.name,1,"r3",4)+
+      gap(1)+
+      tr(s.sub,"lo","sm")+
+      gap(1)+
+      row('<span class="lo">PRESS → TO CONTINUE</span>',"sm"));
+  d._enter=function(el){enter(el,linesOf(el)[0])};
+}
+
+/* ---- 实录页(§6:嵌套子终端线框 + 内层再打一遍字;REC 圆点 1s 闪烁;示波轨迹) ---- */
+function transcript(d,s,i){
+  var maxw=Math.max.apply(null,s.lines.map(function(l){return dw(l[2])}));
+  var iw=maxw+2+dw(s.lines[0][0]+" ")+4,ow=iw+4,PW=42;
+  var body=s.lines.map(function(l){
+    var err=l[1]==="sys"&&/损失|失败|撞见/.test(l[2]);
+    return nrow([seg(err?"! ":"  ",err?"al":""),seg(l[0]+" ","lo"),tseg(l[2],l[1]==="sys"?"lo":"")],iw);
+  }).join("");
+  d.innerHTML=statusRow(s,i)+
+    blk(2,1,
+      tr(s.mid+" · "+s.name,"lo","sm")+
+      titleRow(s.title,1,"r2",2))+
+    blk(2,5,
+      dframeTop(ow,"SUB-SHELL · "+s.mid+" "+s.name)+body+dframeBot(ow)+
+      gap(1)+
+      tr(s.note,"lo"))+
+    blk(ow+8,5,
+      frameTop(PW,s.counter.label)+
+      prow([tseg(fmt(s.counter.value),"",1),seg(" "+s.counter.unit,"lo")],PW,"r3")+
+      prow([raw(oscSVG(16,28,9),16),seg(" SCOPE 8S","lo")],PW)+
+      prow([seg("REC ● 1S","lo")],PW)+
+      frameBot(PW));
+  d._enter=function(el){enter(el)};
+}
+
+/* ---- 结束页:logout 画面 + CRT 关机(§7.5) ---- */
+function finalPage(d,s,i){
+  var PW=56;
+  var credits=s.credits.map(function(k){
+    return prow([seg(padR(k[0],9),"lo"),seg(" "),seg(padL(k[1],42))],PW);
+  }).join("");
+  d.innerHTML=statusRow(s,i)+
+    blk(2,1,
+      tr("END OF ARCHIVE","lo","sm")+
+      titleRow(s.close,1,"r2",2))+
+    blk(2,6,
+      tr("LOGOUT")+
+      tr("SESSION TERMINATED")+
+      row([seg("TOTAL ","hi"),tseg(s.total,"",1)].map(render).join("")))+
+    blk(2,12,
+      frameTop(PW,"RUNTIME")+credits+frameBot(PW))+
+    blk(2,20,
+      row('<span class="lo">SESSION CLOSED · '+esc(DECK.meta.ver)+' · TTY1 80×25</span>',"sm"));
+  d._seq=[];
+  function markEnd(el){
+    finished=true;
+    blackout.style.opacity="1";                      /* 干净帧 = 全黑 */
+    var c=el.querySelector(".clk");if(c)c.textContent=DECK.meta.total;
+  }
+  function shutdown(el){                             /* §7.5 退场五步,按序执行 */
+    var n=0;
+    (function blink(){                               /* 1. 游标闪 3 次 */
+      document.body.classList.toggle("cursoroff");
+      if(++n<6){el._seq.push(setTimeout(blink,120));return;}
+      document.body.classList.remove("cursoroff");
+      el._seq.push(setTimeout(function(){
+        tube.classList.add("hline");                 /* 2. 垂直收缩成一条水平亮线 200ms */
+        el._seq.push(setTimeout(function(){
+          tube.classList.add("hdot");                /* 3. 亮线缩成一个亮点 150ms */
+          el._seq.push(setTimeout(function(){
+            tube.classList.add("off");
+            spot.classList.add("on");                /* 4. 亮点余辉指数衰减 1.2s 至全黑 */
+            el._seq.push(setTimeout(function(){
+              spot.classList.remove("on");
+              markEnd(el);                           /* 5. 全黑定格 ≥1s,供录屏切尾 */
+            },T.decay));
+          },T.spot));
+        },T.collapse));
+      },120));
+    })();
+  }
+  d._enter=function(el){
+    el._seq=[];
+    enter(el,null,function(){
+      if(NOANIM){el._seq.push(setTimeout(function(){markEnd(el)},1400));return;}
+      el._seq.push(setTimeout(function(){shutdown(el)},1200));
+    });
+  };
+  d._reset=function(){                               /* 终场定格可解除:撤罩层 + 还原退场元素 */
+    (d._seq||[]).forEach(clearTimeout);d._seq=[];
+    tube.classList.remove("hline");tube.classList.remove("hdot");tube.classList.remove("off");
+    spot.classList.remove("on");
+    blackout.style.opacity="0";
+    clearmsg.style.opacity="0";
+    finished=false;
+    showAll(d,linesOf(d),1);                         /* 静默补全文字,不抢游标 */
+    d._seen=0;                                       /* 再翻回末页可重播整套关机 */
+  };
+}
+
+/* ---------- 翻页调度(§7.3:清屏重载默认,段落切换加垂直回扫) ---------- */
+function show(i){
+  var el=nodes[i];
+  el.classList.add("cur");
+  if(el._enter&&!el._seen){el._seen=1;el._enter(el)}
+  else if(el._rest)moveCursor(el._rest);
+}
+function hide(i){
+  var el=nodes[i];
+  el.classList.remove("cur");
+  if(el._finish)el._finish();
+}
+function clearReload(from,to){
+  if(NOANIM){hide(from);show(to);return;}
+  hide(from);
+  clearmsg.style.opacity="1";
+  K(function(){
+    clearmsg.style.opacity="0";
+    blackout.style.opacity="1";
+    K(function(){blackout.style.opacity="0";show(to)},T.black);
+  },T.clear);
+}
+function transition(from,to,kind){
+  if(kind==="retrace"&&!NOANIM){
+    retrace.classList.remove("on");void retrace.offsetWidth;retrace.classList.add("on");
+    K(function(){retrace.classList.remove("on");clearReload(from,to)},T.retrace);
+    return;
+  }
+  clearReload(from,to);
+}
+function kindOf(from,to){
+  var a=DECK.slides[from],b=DECK.slides[to];
+  if(b.type==="divider"||a.type==="divider"||b.type==="final"||a.type==="final")return "retrace";
+  return "clear";
+}
+/* 解除终场定格:撤全屏罩层 → 还原被退场熄灭/移走的元素 → 允许重播 */
+function unblack(){
+  var f=nodes[nodes.length-1];
+  if(f._reset)f._reset();
+  else{
+    blackout.style.opacity="0";
+    tube.classList.remove("hline");tube.classList.remove("hdot");tube.classList.remove("off");
+    spot.classList.remove("on");finished=false;
+  }
+  clearmsg.style.opacity="0";
+  if(blackout.style.opacity==="1")blackout.style.opacity="0";
+}
+function go(to){
+  to=Math.max(0,Math.min(DECK.slides.length-1,to));
+  if(busy)return;
+  if(to===cur){if(blackout.style.opacity==="1")unblack();return;}
+  killAll();
+  unblack();
+  var kind=kindOf(cur,to);
+  busy=1;
+  K(function(){busy=0},kind==="retrace"?(T.retrace+T.clear+T.black+40):(T.clear+T.black+40));
+  transition(cur,to,kind);
+  cur=to;hint.textContent=keys();
+}
+function keys(){return (cur+1)+" / "+DECK.slides.length+
+  "   ·   → 下一页   ← 上一页   滚轮   点两侧翻页   Home / End   F 纯净屏"+
+  (NOANIM?"   A 开启动效":"   A 降级 noanim");}
+
+/* ---------- 装配 ---------- */
+var nodes=DECK.slides.map(function(s,i){var el=build(s,i);slidesEl.appendChild(el);return el});
+nodes.forEach(function(el){
+  el._finish=function(){                             /* 离场不留半行:信息完整(§7.7 精神) */
+    var lines=linesOf(el);
+    var part=lines.some(function(L){return (L.dataset.full||"").length!==L.textContent.length});
+    if(part&&el._seen)showAll(el,lines,1);
+  };
+});
+var jump=P.has("slide")?parseInt(P.get("slide"),10):0;
+cur=isNaN(jump)?0:Math.max(0,Math.min(DECK.slides.length-1,jump));
+show(cur);
+hint.textContent=keys();
+
+/* 鼠标:滚轮累计过 40px 阈值才翻一次(触控板惯性不连跳);点两侧 28%,中间 44% 安全区 */
+addEventListener("wheel",function(e){
+  if(busy){wheelAcc=0;return;}
+  wheelAcc+=e.deltaY||e.detail||0;
+  if(Math.abs(wheelAcc)<40)return;
+  var d=wheelAcc>0?1:-1;wheelAcc=0;go(cur+d);
+},{passive:true});
+stage.addEventListener("click",function(e){
+  var x=e.clientX/innerWidth;
+  if(x<0.28)go(cur-1);else if(x>0.72)go(cur+1);
+});
+addEventListener("keydown",function(e){
+  var k=e.key;
+  if(k==="ArrowRight"||k==="PageDown"||k===" "){e.preventDefault();go(cur+1)}
+  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();go(cur-1)}
+  else if(k==="Home")go(0);
+  else if(k==="End")go(DECK.slides.length-1);
+  else if(k==="f"||k==="F")document.documentElement.classList.toggle("clean");
+  else if(k==="a"||k==="A")location.search=NOANIM?"":"noanim=1";
+});
+
+function fit(){stage.style.setProperty("--s",Math.min(innerWidth/2560,innerHeight/1440))}
+addEventListener("resize",fit);fit();
+window.__ready=true;
+})();
+</script>
+</body>
+</html>

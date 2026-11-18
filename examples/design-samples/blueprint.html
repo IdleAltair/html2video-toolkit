@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>蓝图 BLUEPRINT · 模板样例 · llm-html2video</title>
+<!--
+  设计语言 01 蓝图 · 单文件模板
+  规范源: ../docs/design-language-blueprint.md   v1.0 2026-10-14
+  用法:   blueprint.html              正常播放(2560x1440 自适应缩放)
+          ?noanim          降级:绘制直呈完成态、翻页 1 帧直切、排线给完成剖面、圈注与竣工章直呈
+          ?clean=1         录屏:隐藏鼠标与左下角键位提示条(等价按 F)
+          ?slide=3         直接定位到第 4 页
+  键位:   → / Space / PageDown 下页   ← / PageUp 上页   Home / End   F 纯净屏   A 切换 ?noanim
+  语法:   图框(§4.1 四边 64px)+ 96px 网格(§4.2)+ 尺寸标注丈量每个数字(§4.3.3)+ 洋红红笔(§2.2)
+          翻页=换图向下平移(§7.3) · 退场=归档入柜(§7.5) · 干净帧=图纸蓝底+网格、无文字
+-->
+<style>
+/* ---- 色板 token · 规范 §2.1,逐字照抄 ---- */
+:root{
+  --paper:   #14407A;  /* 图纸蓝:晒图纸底,哑光,平涂 */
+  --paper-2: #0F3468;  /* 面板底:深一档 */
+  --line:    #DCE8F5;  /* 制图线白:主要线条与文字 */
+  --line-dim:#7FA0C4;  /* 次要线:网格、刻度、注释 */
+  --mark:    #FF4FA3;  /* 审阅洋红:圈注、修订标记、关键值 */
+  --ok:      #7DF0C8;  /* 验收青:通过/正确/达标,仅状态语义 */
+  --fmono:"Cascadia Code","JetBrains Mono","IBM Plex Mono",Consolas,monospace;
+  --fsans:"Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif;
+}
+html,body{margin:0;height:100%;background:var(--paper-2);overflow:hidden}
+html.clean,html.clean *{cursor:none!important}
+html.clean #hintbar{display:none}
+
+#stage{position:fixed;left:50%;top:50%;width:2560px;height:1440px;
+  transform:translate(-50%,-50%) scale(var(--s,1));transform-origin:center center;
+  background:var(--paper);overflow:hidden;font-family:var(--fsans);color:var(--line)}
+
+/* ---- 母题 2:背景网格(§4.2 96px 方格 / 1px --line-dim / 18%,每 4 格加粗) ---- */
+#grid{position:absolute;left:0;top:0;z-index:1;opacity:.18;animation:breath 20s linear infinite}
+#grid line{stroke:var(--line-dim)}
+#grid line.mj{stroke-width:2}
+#grid line.mn{stroke-width:1}
+/* §7.6 全套唯一许可的循环:网格呼吸 18%↔19%,周期 20s */
+@keyframes breath{0%,100%{opacity:.18}50%{opacity:.19}}
+
+/* ---- 页容器:图纸本体 ---- */
+#slides{position:absolute;inset:0;z-index:3}
+.slide{position:absolute;inset:0;visibility:hidden;will-change:transform}
+.slide.cur,.slide.mv{visibility:visible}
+/* §7.3 换图:整页平移 400ms 线性,禁止淡入淡出 */
+.slide.gone{transform:translateY(1440px);transition:transform 400ms linear}
+.gfx{position:absolute;left:0;top:0;z-index:1}
+
+/* ---- 线条语汇(§4.3 母题白名单 / §2.3 线宽与用色) ---- */
+.ln{stroke:var(--line);stroke-width:1.5;fill:none}
+.ln2{stroke:var(--line);stroke-width:2;fill:none}
+.ln-dim{stroke:var(--line-dim);stroke-width:1;fill:none}
+/* 虚线语义固定 = 隐藏 / 推断(§4.3.4) */
+.ln-hid{stroke:var(--line-dim);stroke-width:1;fill:none;stroke-dasharray:14 11}
+/* 45° 剖面线语义固定 = 截断面(§4.3.4 / §5 柱状、排行) */
+.hatch{stroke:var(--line-dim);stroke-width:1;fill:none}
+.hatch.d1{stroke:var(--line);stroke-width:1.2}
+.mark{stroke:var(--mark);stroke-width:2;fill:none}
+.ah{fill:var(--line);stroke:none}
+.ahd{fill:var(--line-dim);stroke:none}
+.ahm{fill:var(--mark);stroke:none}
+.pnl{fill:var(--paper-2);stroke:none}
+.okdot{fill:var(--ok);stroke:none}
+
+/* ---- 文字(§3.2 字号阶梯;最小 24px,正文 ≥28px) ---- */
+.t{position:absolute;z-index:2;white-space:nowrap;opacity:0;color:var(--line);
+  font-family:var(--fsans);font-variant-numeric:tabular-nums}
+.t.on{opacity:1}
+.wrap{white-space:normal}
+.kicker{font:400 26px/1.4 var(--fmono);letter-spacing:.16em;color:var(--line-dim)}
+.dt{font:700 72px/1.18 var(--fsans)}
+.dt80{font:700 80px/1.18 var(--fsans)}
+.dt64{font:700 64px/1.18 var(--fsans)}
+.body{font:500 32px/1.7 var(--fsans)}
+.row{font:500 28px/1.5 var(--fsans)}
+.dim{color:var(--line-dim)}
+.note{font:400 28px/1.6 var(--fsans);color:var(--line-dim)}
+.ptitle{font:700 36px/1.3 var(--fsans)}
+.fig{font:400 24px/1 var(--fmono);letter-spacing:.1em;color:var(--line-dim)}
+.plate{font:400 24px/1.35 var(--fmono);letter-spacing:.05em}
+.plate .lab{color:var(--line-dim);letter-spacing:.1em}
+.tbname{font:700 28px/1.25 var(--fsans)}
+.cellv{font:400 28px/1.3 var(--fmono)}
+.th{font:400 24px/1.3 var(--fmono);letter-spacing:.14em;color:var(--line-dim)}
+.scale{font:400 24px/1.3 var(--fmono);color:var(--line-dim)}
+.dimn{font:400 24px/1 var(--fmono);color:var(--line)}
+.dimn.mk{color:var(--mark)}
+.stat{font:400 40px/1 var(--fmono)}
+.hero{font:400 144px/1 var(--fmono);letter-spacing:-.01em}
+.hero.h120{font-size:120px}
+.hero .unit{font-size:30px;color:var(--line-dim);letter-spacing:.1em;margin-left:16px}
+.dg{font-family:var(--fmono)}
+.key{color:var(--line)}
+.lg{font:400 26px/1.4 var(--fsans);color:var(--line)}
+.stamp{position:absolute;z-index:2;opacity:0}
+.gstamp{opacity:0}
+.stamp.on,.gstamp.on{opacity:1}
+.stampno{font:700 48px/1 var(--fsans);color:var(--mark);letter-spacing:.1em}
+.stampl{font:400 24px/1 var(--fmono);letter-spacing:.16em;color:var(--mark)}
+
+/* ---- 标注数字弹定:steps(2) 跳到位,1 次 60ms 顿感(§7.4) ---- */
+.num.on{animation:pop 120ms steps(2,end) 1}
+@keyframes pop{0%{opacity:0}50%{opacity:.4}100%{opacity:1}}
+/* 退场第 1 步:竣工章 steps(2) 跳盖(§7.5.1) */
+.stamp.on,.gstamp.on{animation:drop 180ms steps(2,end) 1}
+@keyframes drop{0%{opacity:0}50%{opacity:.45}100%{opacity:1}}
+
+#hintbar{position:absolute;left:64px;bottom:12px;z-index:8;
+  font:400 24px/1 var(--fmono);letter-spacing:.08em;color:var(--line-dim)}
+
+/* ---- ?noanim 降级(§7.7):绘制直呈、翻页 1 帧直切、排线给完成剖面、章与圈注直呈 ---- */
+html.noanim .slide,html.noanim .slide.gone{transition:none}
+html.noanim .num.on,html.noanim .stamp.on,html.noanim .gstamp.on{animation:none}
+html.noanim #grid{animation:none;opacity:.18}
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="grid" viewBox="0 0 2560 1440" width="2560" height="1440"></svg>
+  <div id="slides"></div>
+  <div id="hintbar"></div>
+</div>
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SHARED DECK v1 · 示例内容(7 套设计语言模板必须逐字一致)
+   数字为模板占位示例，非实测成绩;替换本块即可套真实内容。
+   ============================================================ */
+var DECK={
+  meta:{style:"",doc:"",
+        ver:"TEMPLATE v1 · 2026-10-17",total:"00:42:15"},
+  slides:[
+    {type:"cover",mission:0,
+      kicker:"TELEMETRY ARCHIVE · 2026-10-17",
+      title:"本地 27B 的三场任务",
+      lede:"三场任务跑完，名次停在第 15。",
+      stats:[["任务","3 场"],["参赛","15 队"],["页面","27 页"],["时长","42:15"]]},
+
+    {type:"metric",mission:2,mid:"M2",name:"炸弹人",
+      conclusion:{pre:"翻盘发生在第 12 分钟",verb:"变",a:"−346",b:"−52"},
+      hero:{value:-52,unit:"分",neg:true},
+      note:"一次回防把分差从 346 压回 52，本场净负 52。",
+      rows:[["M1 圈地","+1,842","volt"],["M2 炸弹人","−52","neg"],
+            ["M3 夺旗","6:4",""],["累计 token","27,318",""]]},
+
+    {type:"ranking",mission:1,mid:"M1",name:"圈地",
+      title:"占地率终榜 · 本机排第二",
+      domain:[-400,2600],
+      bars:[{n:"云端旗舰",v:2480,role:"cloud"},
+            {n:"本地 27B",v:1842,role:"local"},
+            {n:"对手 K-09",v:910,role:"rival"},
+            {n:"对手 R-03",v:186,role:"rival"},
+            {n:"对手 X-21",v:-260,role:"neg"}],
+      note:"数值以文字标注在条端；基线为 0，负值向左。"},
+
+    {type:"divider",mission:3,mid:"M3",name:"夺旗",sub:"SECTION 03 · 6:4 收台"},
+
+    {type:"transcript",mission:3,mid:"M3",name:"夺旗",
+      title:"实录 · 最后一次进攻",
+      lines:[["00:37:02","sys","<system> 敌旗在 (14,9)，最近路径被两个箱子堵死"],
+             ["00:37:09","out","先把左箱推到 (12,7)，腾出走道"],
+             ["00:37:21","out","绕下路，顺手把右箱拖到旗点前"],
+             ["00:37:34","sys","<system> 你被正面撞见，损失 1 回合"],
+             ["00:37:40","out","不追了，退到旗点另一侧卡住"],
+             ["00:38:05","out","举旗，原路撤"]],
+      counter:{label:"已耗 token",value:27318,unit:"tok"},
+      note:"失误照实标注，不避讳失败。"},
+
+    {type:"final",mission:3,mid:"M3",
+      close:"三场都跑完了。名次不是结论，日志才是。",
+      credits:[["任务","圈地 / 炸弹人 / 夺旗"],["本机","本地 27B · Q5_K_XL"],
+               ["页面","27 页 · 单文件 HTML"],["录制","2560×1440@60 实机"]],
+      total:"00:42:15"}
+  ]
+};
+/* ======================= SHARED DECK 结束 ==================== */
+/* ---- 方案身份:不属于共享内容契约,各套自行声明 ---- */
+DECK.meta.style="01 BLUEPRINT"; DECK.meta.doc="design-language-blueprint.md";
+/* ======================= SHARED DECK 结束 ==================== */
+
+var SPEED=800;            /* §7.2 绘制恒速 800px/s ⇒ 0.8px/ms */
+var SEG=640;              /* 单段 ≤800ms ⇒ 每段 ≤640px;长线分段绘制(§7.1) */
+var MPP=1000/SPEED;
+var T0=760;               /* 图框绘制完成后的内容起笔时刻 */
+var DWGTOT=27;            /* 全套张数,取自内容「页面 27 页」 */
+var REV="REV A";          /* 图签栏四项必填:图号 / 比例 / 修订 / 日期(§3.3) */
+var SCALE="1:1";
+
+var T={sheet:400,plate:180,circle:600,erase:1200,hold:400,grid:600,stamp:2300,eraseAt:3000};
+var P=new URLSearchParams(location.search);
+var NOANIM=P.has("noanim")||P.has("still");
+var stage=document.getElementById("stage");
+var slidesEl=document.getElementById("slides");
+var hint=document.getElementById("hintbar");
+var cur=0,busy=0,wheelAcc=0,frozen=false,SHEETN=0;
+
+if(NOANIM)document.documentElement.classList.add("noanim");
+if(P.has("clean"))document.documentElement.classList.add("clean");
+
+/* ---------- 格式化 ---------- */
+function fmt(n){var s=Math.abs(Math.round(n)).toString(),o="",c=0;
+  for(var i=s.length-1;i>=0;i--){o=s[i]+o;if((++c)%3===0&&i>0)o=","+o;}
+  return (n<0?"\u2212":"")+o;}
+function pad2(v){return (v<10?"0":"")+v;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function sp(cls,t){return '<span class="'+cls+'">'+esc(t)+'</span>';}
+function num(s){var m=String(s).match(/[\d][\d,]*/);return m?parseFloat(m[0].replace(/,/g,"")):0;}
+var DATE=(function(){var m=String(DECK.meta.ver).match(/\d{4}-\d{2}-\d{2}/);return m?m[0]:"\u2014";})();
+function dwg(i){return "DWG-"+pad2(i+1)+"/"+DWGTOT;}
+
+/* ---------- 背景网格(§4.2) ---------- */
+(function buildGrid(){
+  var g=document.getElementById("grid"),NS2="http://www.w3.org/2000/svg",x,y,e;
+  function ln(x1,y1,x2,y2,major){
+    e=document.createElementNS(NS2,"line");
+    e.setAttribute("x1",x1);e.setAttribute("y1",y1);e.setAttribute("x2",x2);e.setAttribute("y2",y2);
+    e.setAttribute("class",major?"mj":"mn");g.appendChild(e);
+  }
+  for(x=0;x<=2560;x+=96)ln(x,0,x,1440,(x/96)%4===0);
+  for(y=0;y<=1440;y+=96)ln(0,y,2560,y,(y/96)%4===0);
+})();
+
+/* ============================================================
+   图纸绘制引擎
+   §7.2 线条以 stroke-dashoffset 从全虚到实进场,恒速 800px/s;
+        长线拆成 ≤640px 的分段同步走笔,保证单段 ≤800ms。
+        虚线的 dasharray 是语义(隐藏/推断),不得挪作绘制动画,
+        故虚线用等速线性揭示,速度同为 800px/s。
+        文字在其所属线条画完后 ≤100ms 内直呈,不做自己的动画;
+        标注数字以 steps(2) 弹定(§7.4)。
+   ============================================================ */
+var NS="http://www.w3.org/2000/svg";
+function sheet(){
+  var d=document.createElement("div");
+  d.className="slide";
+  var svg=document.createElementNS(NS,"svg");
+  svg.setAttribute("class","gfx");svg.setAttribute("viewBox","0 0 2560 1440");
+  svg.setAttribute("width","2560");svg.setAttribute("height","1440");
+  d.appendChild(svg);
+  var S={d:d,svg:svg,ops:[],texts:[],pan:[],uid:0,keep:false,parent:null,cl:"",
+    sid:"s"+(SHEETN++)+"-"};
+
+  S.mk=function(name,a,cls){
+    var e=document.createElementNS(NS,name),k;
+    for(k in a)e.setAttribute(k,a[k]);
+    if(cls)e.setAttribute("class",cls);
+    (S.parent||svg).appendChild(e);
+    return e;
+  };
+  S.op=function(e,len,start,dur,rx){
+    dur=dur||Math.max(40,Math.min(800,len*MPP));
+    S.ops.push({e:e,len:len,s0:start,dur:dur,keep:S.keep,rx:rx||0,fill:len<=1});
+    return start+dur;
+  };
+  S.line=function(x1,y1,x2,y2,cls,start){           /* 实线,800px/s 绘制 */
+    var len=Math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+    var n=Math.max(1,Math.ceil(len/SEG)),end=start,i,a,b,e;
+    for(i=0;i<n;i++){
+      a=i/n;b=(i+1)/n;
+      e=S.mk("line",{x1:x1+(x2-x1)*a,y1:y1+(y2-y1)*a,x2:x1+(x2-x1)*b,y2:y1+(y2-y1)*b},cls||"ln");
+      end=Math.max(end,S.op(e,len/n,start,0,Math.max(x1,x2)));
+    }
+    return end;
+  };
+  S.dline=function(x1,y1,x2,y2,cls,start){          /* 虚线:线性揭示 */
+    cls=cls||"ln-hid";
+    var bw=Math.abs(x2-x1),bh=Math.abs(y2-y1),horiz=bw>=bh;
+    var cid=S.sid+"cw"+(S.uid++);
+    var oldp=S.parent;
+    var cp=S.mk("clipPath",{id:cid}),r;
+    S.parent=cp;
+    r=S.mk("rect",{x:Math.min(x1,x2)-2,y:Math.min(y1,y2)-2,width:horiz?0:bw+4,height:horiz?bh+4:0});
+    S.parent=oldp;
+    var el=S.mk("line",{x1:x1,y1:y1,x2:x2,y2:y2},cls);
+    el.setAttribute("clip-path",'url(#'+cid+")");
+    var len=Math.sqrt(bw*bw+bh*bh),dur=Math.max(40,Math.min(800,len*MPP));
+    S.ops.push({e:el,len:len,s0:start,dur:dur,keep:S.keep,rx:Math.max(x1,x2),r:r,
+      wipe:{r:r,h:horiz,wf:bw+4,hf:bh+4,f:horiz?bw+4:bh+4}});
+    return start+dur;
+  };
+  S.circle=function(cx,cy,rx,ry,start){             /* 洋红圈注:600ms 匀速(§7.4) */
+    var el=S.mk("path",{d:"M "+cx+" "+(cy-ry)+" a "+rx+" "+ry+" 0 1 0 0.05 0 z"},S.cl||"mark");
+    return S.op(el,el.getTotalLength(),start,T.circle,cx+rx);
+  };
+  S.arrow=function(x,y,deg,cls,start){
+    var a=deg*Math.PI/180,r=15,w=5.5;
+    var bx=x-r*Math.cos(a),by=y-r*Math.sin(a);
+    var el=S.mk("path",{d:"M "+x+" "+y+" L "+(bx+w*Math.cos(a+Math.PI/2))+" "+(by+w*Math.sin(a+Math.PI/2))+
+      " L "+(bx+w*Math.cos(a-Math.PI/2))+" "+(by+w*Math.sin(a-Math.PI/2))+" Z"},cls||"ah");
+    S.op(el,1,start,40,x);
+    return start+40;
+  };
+  S.leader=function(x1,y1,x2,y2,start){             /* 引线 + 端部箭头 */
+    var e=S.line(x1,y1,x2,y2,S.cl||"mark",start);
+    S.arrow(x2,y2,Math.atan2(y2-y1,x2-x1)*180/Math.PI,S.cl==="mark"?"ahm":"ah",start);
+    return e;
+  };
+  S.tick=function(x,y,vert,cls,start){
+    return vert?S.line(x,y-9,x,y+9,cls,start):S.line(x-9,y,x+9,y,cls,start);
+  };
+  S.pnl=function(x,y,w,h){S.pan.push({e:S.mk("rect",{x:x,y:y,width:w,height:h},"pnl"),keep:S.keep});};
+  S.okdot=function(cx,cy,start){                    /* --ok 只作 12px 状态点(§2.2) */
+    S.op(S.mk("circle",{cx:cx,cy:cy,r:6},"okdot"),1,start,40,cx);
+  };
+  S.t=function(x,y,cls,html,at,w,align,keep){
+    var e=document.createElement("div");
+    e.className="t "+cls;e.innerHTML=html;
+    e.style.left=x+"px";e.style.top=y+"px";
+    if(w){e.style.width=w+"px";if(align)e.style.textAlign=align;}
+    d.appendChild(e);
+    S.texts.push({e:e,at:at||0,keep:keep||S.keep});
+    return e;
+  };
+  S.at=function(e,at){for(var i=0;i<S.texts.length;i++)if(S.texts[i].e===e)S.texts[i].at=at;};
+
+  /* 水平尺寸标注:端部刻度 + 两端箭头 + 数字压在标注线上(§4.3.3) */
+  S.dimH=function(x1,x2,y,text,tStart,opt){
+    opt=opt||{};
+    var cls=opt.line||"ln-dim",a=opt.mark?"ahm":"ah";
+    var te=S.t(0,0,"dimn num"+(opt.mark?" mk":"")+(opt.numcls?" "+opt.numcls:""),esc(text),0);
+    var tw=te.offsetWidth||40,th=te.offsetHeight||24,mid=(x1+x2)/2,gap=tw+20,e;
+    if(gap<Math.abs(x2-x1)-30){
+      e=Math.max(S.line(x1,y,mid-gap/2,y,cls,tStart),S.line(mid+gap/2,y,x2,y,cls,tStart));
+      te.style.left=(mid-tw/2)+"px";te.style.top=(y-th/2)+"px";
+    }else{
+      e=S.line(x1,y,x2,y,cls,tStart);
+      te.style.left=(mid-tw/2)+"px";te.style.top=(y-th-6)+"px";
+    }
+    S.tick(x1,y,true,cls,tStart);S.tick(x2,y,true,cls,tStart);
+    S.arrow(x1,y,180,a,tStart);S.arrow(x2,y,0,a,tStart);
+    S.at(te,e+70);
+    return e;
+  };
+  /* 垂直尺寸标注:数字 90° 竖排压在标注线上(§3.3 标注文字可竖排) */
+  S.dimV=function(x,y1,y2,text,tStart,opt){
+    opt=opt||{};
+    var cls=opt.line||"ln-dim",a=opt.mark?"ahm":"ah",mid=(y1+y2)/2;
+    var te=S.t(0,0,"dimn num"+(opt.mark?" mk":""),esc(text),0);
+    te.style.transform="translate(-50%,-50%) rotate(-90deg)";
+    var tw=te.offsetWidth||40,e;
+    if(Math.abs(y2-y1)>=110){
+      var gap=tw+18;
+      e=Math.max(S.line(x,y1,x,mid-gap/2,cls,tStart),S.line(x,mid+gap/2,x,y2,cls,tStart));
+      te.style.left=x+"px";te.style.top=mid+"px";
+    }else{                                   /* 小尺寸:箭头朝外,数字以短线引出 */
+      e=S.line(x,y1,x,y2,cls,tStart);
+      te.style.left=(x+18)+"px";te.style.top=mid+"px";
+      te.style.transform="translate(0,-50%)";
+      S.line(x,mid,x+14,mid,cls,tStart);
+    }
+    S.tick(x,y1,false,cls,tStart);S.tick(x,y2,false,cls,tStart);
+    S.arrow(x,y1,-90,a,tStart);S.arrow(x,y2,90,a,tStart);
+    S.at(te,e+70);
+    return e;
+  };
+  /* 45° 剖面线:逐根画出,每根 40ms,矩形不生长(§7.4) */
+  S.hatch=function(x,y,w,h,spacing,start,dir,dense){
+    var cid=S.sid+"ch"+(S.uid++);
+    var old=S.parent,keep=S.keep;
+    var cp=S.mk("clipPath",{id:cid});
+    S.parent=cp;S.mk("rect",{x:x,y:y,width:w,height:h});
+    S.parent=null;
+    var gid=S.mk("g",{"clip-path":'url(#'+cid+")"});
+    S.parent=gid;S.keep=false;
+    var n=Math.max(1,Math.floor((w+h)/spacing)),i,end=start,e,d0;
+    for(i=0;i<n;i++){
+      d0=x-h+i*spacing;
+      e=dir>0?S.line(d0,y+h,d0+h,y,dense?"hatch d1":"hatch",start+i*40)
+              :S.line(d0,y,d0+h,y+h,dense?"hatch d1":"hatch",start+i*40);
+      if(e>end)end=e;
+    }
+    S.parent=old;S.keep=keep;
+    return end;
+  };
+
+  /* 未进场的图纸:晒图纸上预印的图框与图签保持画好,图面内容待起笔 */
+  S.arm=function(){
+    S.ops.forEach(function(o){
+      if(o.keep)return;
+      if(o.fill)o.e.style.visibility="hidden";
+      else if(o.wipe){o.wipe.r.setAttribute("width",o.wipe.h?0:o.wipe.wf);
+        o.wipe.r.setAttribute("height",o.wipe.h?o.wipe.hf:0);}
+      else{o.e.style.strokeDasharray=o.len+"";o.e.style.strokeDashoffset=o.len+"";}
+    });
+  };
+  S.play=function(){                              /* 进场 */
+    var i,o,first=!S.drawnOnce;S.drawnOnce=true;  /* 图框图签只在上图时绘制一次 */
+    for(i=0;i<S.ops.length;i++){
+      o=S.ops[i];
+      if(o.keep&&!first)continue;
+      if(o.fill){o.e.style.visibility="hidden";}   /* 箭头/状态点:随所属线条画完才出现 */
+      else if(o.wipe){o.r=o.wipe.r;o.r.setAttribute("width",o.wipe.h?0:o.wipe.wf);
+        o.r.setAttribute("height",o.wipe.h?o.wipe.hf:0);}
+      else{o.e.style.strokeDasharray=o.len+"";o.e.style.strokeDashoffset=o.len+"";}
+    }
+    if(NOANIM){
+      for(i=0;i<S.ops.length;i++){
+        o=S.ops[i];
+        if(o.fill){o.e.style.visibility="";continue;}
+        if(o.wipe){o.r.setAttribute("width",o.wipe.wf);o.r.setAttribute("height",o.wipe.hf);}
+        else{o.e.style.strokeDasharray="none";o.e.style.strokeDashoffset="0";}
+      }
+      S.texts.forEach(function(t){t.e.classList.add("on");});
+      if(S.stampOn)S.stampOn();
+      return;
+    }
+    requestAnimationFrame(function(){
+      for(i=0;i<S.ops.length;i++){
+        o=S.ops[i];
+        if(o.keep&&!first)continue;
+        if(o.fill){o.id=setTimeout(function(e){return function(){e.style.visibility="";};}(o.e),o.s0+o.dur);
+          continue;}
+        if(o.wipe){
+          o.r.style.transition=(o.wipe.h?"width ":"height ")+o.dur+"ms linear "+o.s0+"ms";
+          o.r.setAttribute(o.wipe.h?"width":"height",o.wipe.f+"");
+        }else{
+          o.e.style.transition="stroke-dashoffset "+o.dur+"ms linear "+o.s0+"ms";
+          o.e.style.strokeDashoffset="0";
+        }
+      }
+      S.texts.forEach(function(t){t.id=setTimeout(function(){t.e.classList.add("on");},t.at);});
+    });
+  };
+  /* 退场擦除:进场逆序(内容自左向右绘制 ⇒ 逆序即自右向左),恒速擦除 */
+  S.erase=function(){
+    var list=[],i;
+    for(i=S.ops.length-1;i>=0;i--)if(!S.ops[i].keep)list.push(S.ops[i]);
+    var n=list.length,step=Math.max(10,Math.min(40,T.erase/Math.max(1,n))),tot=0;
+    list.forEach(function(o,k){
+      var st=k*step,dur=Math.max(40,Math.min(800,o.len*MPP));
+      if(o.fill){                                   /* 填充件(箭头/状态点)随逆序撤走 */
+        if(o.id)clearTimeout(o.id);
+        o.id=setTimeout(function(e){return function(){e.style.visibility="hidden";};}(o.e),st);
+      }else if(o.wipe){
+        o.r.style.transition="none";o.r.setAttribute(o.wipe.h?"width":"height",o.wipe.f+"");
+        requestAnimationFrame(function(){
+          o.r.style.transition=(o.wipe.h?"width ":"height ")+dur+"ms linear "+st+"ms";
+          o.r.setAttribute(o.wipe.h?"width":"height","0");
+        });
+      }else{
+        o.e.style.strokeDasharray=o.len+"";
+        requestAnimationFrame(function(){
+          o.e.style.transition="stroke-dashoffset "+dur+"ms linear "+st+"ms";
+          o.e.style.strokeDashoffset=o.len+"";
+        });
+      }
+      if(st+dur>tot)tot=st+dur;
+    });
+    var tl=[],j;
+    for(j=0;j<S.texts.length;j++)if(!S.texts[j].keep)tl.push(S.texts[j]);
+    tl.forEach(function(t,k){
+      if(t.id)clearTimeout(t.id);
+      t.id=setTimeout(function(){t.e.classList.remove("on");},k*Math.max(8,600/Math.max(1,tl.length)));
+    });
+    S.pan.forEach(function(p){
+      if(p.keep)return;
+      p.h=setTimeout(function(){p.e.style.display="none";},tot);
+    });
+    return tot;
+  };
+  S.restore=function(){                           /* 定格解除:全量还原,可重播 */
+    S.ops.forEach(function(o){
+      if(o.id)clearTimeout(o.id);
+      o.e.style.transition="none";
+      o.e.style.visibility="";
+      if(o.wipe){o.r.style.transition="none";o.r.setAttribute("width",o.wipe.wf);
+        o.r.setAttribute("height",o.wipe.hf);}
+      else{o.e.style.strokeDasharray="none";o.e.style.strokeDashoffset="0";}
+    });
+    S.texts.forEach(function(t){if(t.id)clearTimeout(t.id);t.e.classList.add("on");});
+    S.pan.forEach(function(p){if(p.h)clearTimeout(p.h);p.e.style.display="";});
+    if(S.stampOff)S.stampOff();
+  };
+  return S;
+}
+
+/* ---------- 每页公共骨架(§4.2 图面结构) ---------- */
+var FR={x:64,y:64,w:2432,h:1312};        /* 图框:四边各留 64px ⇒ 内容区 2432×1312 */
+var TB={x:1776,y:1176,w:720,h:200};      /* 图签栏:固定右下 */
+var PLX=128,ACX=1776,ACW=720;            /* 主图区左沿 / 注释列(右侧 25%) */
+
+function furniture(c,i,name){
+  c.keep=true;
+  var t=0,e=0,b=120;
+  e=Math.max(                                     /* 1.5px 白线图框,分段同步走笔 */
+    c.line(FR.x,FR.y,FR.x+FR.w,FR.y,"ln",t),
+    c.line(FR.x+FR.w,FR.y,FR.x+FR.w,FR.y+FR.h,"ln",t),
+    c.line(FR.x+FR.w,FR.y+FR.h,FR.x,FR.y+FR.h,"ln",t),
+    c.line(FR.x,FR.y+FR.h,FR.x,FR.y,"ln",t));
+  c.line(FR.x,FR.y+26,FR.x+26,FR.y,"ln",70);
+  c.line(FR.x+FR.w-26,FR.y,FR.x+FR.w,FR.y+26,"ln",70);
+  c.line(FR.x,FR.y+FR.h-26,FR.x+26,FR.y+FR.h,"ln",70);
+  c.line(FR.x+FR.w-26,FR.y+FR.h,FR.x+FR.w,FR.y+FR.h-26,"ln",70);
+  c.line(TB.x,TB.y,TB.x,TB.y+TB.h,"ln",b);          /* 图签栏框 */
+  c.line(TB.x,TB.y,TB.x+TB.w,TB.y,"ln",b);
+  c.line(TB.x+TB.w,TB.y,TB.x+TB.w,TB.y+TB.h,"ln",b);
+  c.line(TB.x,TB.y+TB.h,TB.x+TB.w,TB.y+TB.h,"ln",b);
+  c.line(TB.x,TB.y+66,TB.x+TB.w,TB.y+66,"ln",b+90);
+  c.line(TB.x,TB.y+133,TB.x+TB.w,TB.y+133,"ln",b+90);
+  c.line(TB.x+TB.w/2,TB.y+66,TB.x+TB.w/2,TB.y+TB.h,"ln",b+90);
+  c.t(12,18,"fig",esc(dwg(i)),T0+40,null,null,true);                       /* 框外左上角图号 */
+  c.t(2000,88,"fig",esc(REV)+" \u00b7 "+esc(DATE),T0+40,464,"right",true);  /* 右上修订栏 */
+  c.t(TB.x+18,TB.y+18,"tbname",esc(name),b+200,null,null,true);
+  c.t(TB.x+18,TB.y+80,"plate",'<span class="lab">图号 </span><span class="flip" data-v="'+
+    esc(dwg(i))+'">'+esc(dwg(i))+'</span>',b+220,null,null,true);
+  c.t(TB.x+TB.w/2+18,TB.y+80,"plate",'<span class="lab">比例 </span>'+esc(SCALE),b+220,null,null,true);
+  c.t(TB.x+18,TB.y+147,"plate",'<span class="lab">修订 </span>'+esc(REV),b+230,null,null,true);
+  c.t(TB.x+TB.w/2+18,TB.y+147,"plate",'<span class="lab">日期 </span>'+esc(DATE),b+230,null,null,true);
+  c.keep=false;
+  return T0;
+}
+
+/* ---------- 页 0 · 封面(§6:图框 + 大标题 + 图号;洋红 ≤1 处) ---------- */
+function cover(c,s,i){
+  var t=furniture(c,i,"封面 \u00b7 总目")+40;
+  c.t(PLX,296,"kicker",esc(s.kicker),t);
+  c.t(PLX,352,"dt80",esc(s.title),t+40);
+  var m=String(s.lede).match(/\u7b2c\s*\d+/);                 /* 红笔只圈关键数字 */
+  var html=m?esc(s.lede.slice(0,m.index))+'<span class="key">'+esc(m[0])+'</span>'+
+    esc(s.lede.slice(m.index+m[0].length)):esc(s.lede);
+  var le=c.t(PLX,486,"body",html,t+60,1200);
+  var cir=t+120;
+  if(m){
+    var k=le.querySelector(".key");
+    c.circle(PLX+k.offsetLeft+k.offsetWidth/2,486+k.offsetTop+k.offsetHeight/2,
+      k.offsetWidth/2+22,k.offsetHeight/2+14,cir);
+  }
+  var statEnd=0;
+  s.stats.forEach(function(r,idx){                            /* 引伸线丈量每一项 */
+    var y=684+idx*94,len=160+num(r[1])*26,x1=PLX+300;
+    var lb=c.t(PLX,y+4,"kicker",esc(r[0]),cir+40);
+    var de2=c.dimH(x1,x1+len,y+22,r[1],cir+60+idx*80,{numcls:"stat"});
+    c.at(lb,de2+70);                                   /* 标签随本行标注线落定 */
+    statEnd=Math.max(statEnd,de2);
+  });
+  c.t(PLX,1104,"note","图签总目 \u00b7 全套 "+DWGTOT+" 张 \u00b7 数字由引伸线丈量",statEnd+80);
+  return cir+560;
+}
+
+/* ---------- 页 1 · 数据页(§6:主图区 + 注释列 + 图签栏;Hero 必配尺寸标注) ---------- */
+function metric(c,s,i){
+  var t=furniture(c,i,s.mid+" \u00b7 "+s.name+" \u00b7 数据图")+40;
+  var cn=s.conclusion,a=Math.abs(num(cn.a)),b=Math.abs(num(cn.b));
+  c.t(PLX,296,"kicker",esc(s.mid)+" \u00b7 "+esc(s.name)+" \u00b7 结论",t);
+  c.t(PLX,346,"dt",esc(cn.pre)+"\uff1a"+sp("dg",cn.a)+" "+esc(cn.verb)+" "+sp("dg",cn.b),t+40,1600);
+  /* Hero:标注线先行,数字弹定 */
+  var hy=520,hw,hero=c.t(PLX,hy,"hero",sp("numv",fmt(s.hero.value))+'<span class="unit">'+
+    esc(s.hero.unit)+'</span>',t+60);
+  hw=hero.offsetWidth;
+  c.dimH(PLX,PLX+hw,hy+186,fmt(s.hero.value),t+80,{numcls:"stat"});
+  /* 注释列:1px --line-dim 线框表,等宽数字右对齐,达标用 --ok 12px 状态点(§5) */
+  var tx=ACX,ty=336,rh=78,h2=62,pt=t+60;
+  c.pnl(tx,ty,ACW,s.rows.length*rh+h2);
+  c.line(tx,ty,tx+ACW,ty,"ln-dim",pt);
+  c.line(tx,ty+h2+s.rows.length*rh,tx+ACW,ty+h2+s.rows.length*rh,"ln-dim",pt);
+  c.line(tx,ty,tx,ty+h2+s.rows.length*rh,"ln-dim",pt);
+  c.line(tx+ACW,ty,tx+ACW,ty+h2+s.rows.length*rh,"ln-dim",pt);
+  c.line(tx,ty+h2,tx+ACW,ty+h2,"ln-dim",pt+30);
+  c.line(tx+ACW-168,ty+h2,tx+ACW-168,ty+h2+s.rows.length*rh,"ln-dim",pt+40);
+  c.t(tx+20,ty+18,"th","任务",pt+470);
+  c.t(tx+ACW-150,ty+18,"th","结果",pt+470,130,"right");
+  s.rows.forEach(function(r,k){
+    var y=ty+h2+k*rh;
+    if(k)c.line(tx,y,tx+ACW,y,"ln-dim",pt+60+k*30);
+    if(r[2]==="volt")c.okdot(tx+16,y+rh/2,pt+620);
+    c.t(r[2]==="volt"?tx+32:tx+20,y+26,"row"+(r[2]==="volt"?"":" dim"),esc(r[0]),pt+640+k*80);
+    c.t(tx+ACW-150,y+26,"cellv",esc(r[1]),pt+660+k*80,130,"right");
+  });
+  /* 两截面块:同一比例丈量 a 与 b */
+  var pyu=300/a,by=1080,ax=560,bx=940,bw=180;
+  var hA=Math.round(a*pyu),hB=Math.max(40,Math.round(b*pyu));
+  var g=t+120;
+  c.line(PLX+340,by,1480,by,"ln",g);                            /* 基准线 */
+  var eA=Math.max(c.line(ax,by-hA,ax,by,"ln",g),c.line(ax,by-hA,ax+bw,by-hA,"ln",g),
+                  c.line(ax+bw,by-hA,ax+bw,by,"ln",g),c.line(ax,by,ax+bw,by,"ln",g));
+  var eB=Math.max(c.line(bx,by-hB,bx,by,"ln",g),c.line(bx,by-hB,bx+bw,by-hB,"ln",g),
+                  c.line(bx+bw,by-hB,bx+bw,by,"ln",g),c.line(bx,by,bx+bw,by,"ln",g));
+  var hc=Math.max(eA,eB)+40;
+  c.hatch(ax+5,by-hA-5,bw-10,hA-10,48,hc,1,true);               /* 剖面线 = 截断面 */
+  c.hatch(bx+5,by-hB-5,bw-10,hB-10,48,hc+60,1,true);
+  var dt2=hc+80;
+  /* 虚线 = 隐藏/推断:被推翻的旧值水平投影 */
+  c.dline(ax+bw,by-hA,1400,by-hA,"ln-hid",dt2);
+  c.line(bx+bw,by-hB,1400,by-hB,"ln-dim",dt2);
+  c.dimV(ax-40,by-hA,by,esc(cn.a),dt2);
+  c.dimV(bx+bw+40,by-hB,by,esc(cn.b),dt2);
+  var de=c.dimV(1400,by-hA,by-hB,"\u0394 \u00b7 "+fmt(a-b),dt2+40,{mark:true});
+  c.cl="mark";
+  c.circle(1400,by-(hA+hB)/2,78,80,de-520);                     /* 关键落差用洋红圈注(§5) */
+  var ldr=de-460;
+  c.line(PLX+hw+24,690,bx+bw*0.5,690,"mark",ldr);               /* 洋红引线:折向结果块 */
+  c.leader(bx+bw*0.5,690,bx+bw*0.5,by-hB-14,ldr+320);
+  c.cl="";
+  c.t(PLX,1176,"note wrap",esc(s.note),de+120,1560);
+  return de+120;
+}
+
+/* ---------- 页 2 · 排行(§5:剖面线矩形 + 顶部长度标注,排线逐根) ---------- */
+function ranking(c,s,i){
+  var t=furniture(c,i,s.mid+" \u00b7 "+s.name+" \u00b7 终榜图")+40;
+  var lo=s.domain[0],hi=s.domain[1],rng=hi-lo;
+  c.t(PLX,296,"kicker",esc(s.mid)+" \u00b7 "+esc(s.name),t);
+  c.t(PLX,342,"dt64",esc(s.title),t+40,1560);
+  var px0=480,pw=900,x0=px0-lo/rng*pw,ry=520,e;
+  e=c.line(px0,ry,px0+pw,ry,"ln-dim",t+60);
+  [lo,0,1000,2000,hi].forEach(function(tv){
+    var tvx=px0+(tv-lo)/rng*pw;
+    e=Math.max(e,c.line(tvx,ry-9,tvx,ry+9,"ln-dim",t+60));
+    c.t(tvx-58,ry+20,"scale",fmt(tv),e+70,116,"center");
+  });
+  c.line(x0,564,x0,1150,"ln",t+80);                            /* 0 基线 */
+  c.dline(x0,466,x0,516,"ln-hid",t+100);                       /* 轴上延:推断段 */
+  var y0=630,pitch=110,bh=64;
+  s.bars.forEach(function(bar,idx){
+    var y=y0+idx*pitch,v=bar.v;
+    var L=x0-Math.max(0,-v)/rng*pw,R=x0+Math.max(0,v)/rng*pw;
+    var cls=bar.role==="local"?"ln2":bar.role==="cloud"?"ln":"ln-dim";
+    var dense=bar.role==="local"||bar.role==="cloud";
+    var st=t+40+idx*80;
+    var ne=c.t(PLX,y+18,"row"+(dense?"":" dim"),esc(bar.n),st,340);
+    var e0=Math.max(c.line(L,y,R,y,cls,st),c.line(L,y+bh,R,y+bh,cls,st),
+                    c.line(L,y,L,y+bh,cls,st),c.line(R,y,R,y+bh,cls,st));
+    c.at(ne,e0+70);                                   /* 名称随本条轮廓画完出现 */
+    var sp0=bar.role==="local"?44:dense?56:76;
+    c.hatch(L+4,y+4,R-L-8,bh-8,Math.min(sp0,(R-L+bh)/3),e0+40,v<0?-1:1,dense);
+    var dn=c.dimH(L,R,y-22,fmt(v),e0+40,{mark:bar.role==="local"});
+    if(bar.role==="local"){
+      var te=c.texts[c.texts.length-1].e;
+      c.circle((L+R)/2,y-22,te.offsetWidth/2+22,te.offsetHeight/2+6,dn+40);
+    }
+  });
+  /* 注释列:图例 + 数据来源 + 附注(§4.2) */
+  var lg=t+60;
+  c.t(ACX,296,"ptitle","图例",lg);
+  [["hatch","剖面线 = 截断面"],["hid","虚线 = 隐藏 / 推断"],["ok","状态点 = 达标"],
+   ["dim","标注线 = 丈量值"]].forEach(function(r,k){
+    var y=364+k*70,q,st=lg+40+k*80;
+    if(r[0]==="hatch"){
+      c.line(ACX+4,y+30,ACX+54,y+30,"ln-dim",st);
+      c.line(ACX+4,y+2,ACX+54,y+2,"ln-dim",st);
+      for(q=0;q<4;q++)c.line(ACX+6+q*13,y+30,ACX+20+q*13,y+2,"hatch",st);
+    }else if(r[0]==="hid"){
+      c.dline(ACX+4,y+16,ACX+54,y+16,"ln-hid",st);
+    }else if(r[0]==="ok"){
+      c.okdot(ACX+18,y+16,st);
+    }else{
+      c.line(ACX+4,y+16,ACX+26,y+16,"ln-dim",st);
+      c.line(ACX+32,y+16,ACX+54,y+16,"ln-dim",st);
+      c.arrow(ACX+4,y+16,180,"ahd",st);
+      c.arrow(ACX+54,y+16,0,"ahd",st);
+    }
+    c.t(ACX+72,y,"lg",esc(r[1]),st+90);
+  });
+  c.t(ACX,660,"kicker wrap","数据来源 \u00b7 "+esc(DECK.meta.ver),lg+420,ACW);
+  c.t(ACX,712,"note wrap",esc(s.note),lg+450,ACW);
+  return lg+460;
+}
+
+/* ---------- 页 3 · 段落分隔(§6:仅图框、网格、图签栏三件套 + 段落名) ---------- */
+function divider(c,s,i){
+  var t=furniture(c,i,s.mid+" \u00b7 "+s.name+" \u00b7 分隔签")+40;
+  c.t(PLX,624,"dt80",esc(s.name),t+40);
+  c.t(PLX,748,"kicker",esc(s.sub),t+80);
+  c.t(PLX,838,"note","本节无图面 \u00b7 图签留白待填",t+120);
+  return t+220;
+}
+
+/* ---------- 页 4 · 实录(§5 时间:水平尺度尺,刻度等距、数字挂刻度下方) ---------- */
+function transcript(c,s,i){
+  var t=furniture(c,i,s.mid+" \u00b7 "+s.name+" \u00b7 实录图")+40;
+  c.t(PLX,296,"kicker",esc(s.mid)+" \u00b7 "+esc(s.name),t);
+  c.t(PLX,340,"dt64",esc(s.title),t+40,1560);
+  var rx0=200,rx1=1660,ry=474,n=s.lines.length,e,k;
+  e=c.line(rx0,ry,rx1,ry,"ln-dim",t+60);
+  var step=(rx1-rx0)/(n-1);
+  for(k=0;k<n;k++){
+    var x=rx0+k*step;
+    e=Math.max(e,c.line(x,ry-9,x,ry+9,"ln-dim",t+60));
+    c.t(x-58,ry+20,"scale",esc(s.lines[k][0]),e+70,116,"center");
+  }
+  var ty=608,rh=88,x1=PLX+32,x2=1700,g=t+90;
+  c.pnl(x1,ty,x2-x1,n*rh);
+  e=Math.max(c.line(x1,ty,x2,ty,"ln-dim",g),c.line(x1,ty+n*rh,x2,ty+n*rh,"ln-dim",g),
+             c.line(x1,ty,x1,ty+n*rh,"ln-dim",g),c.line(x2,ty,x2,ty+n*rh,"ln-dim",g),
+             c.line(420,ty,420,ty+n*rh,"ln-dim",g));
+  s.lines.forEach(function(l,k){                                 /* 行分隔;sys 用虚线 */
+    if(k)e=Math.max(e,l[1]==="sys"?c.dline(x1,ty+k*rh,x2,ty+k*rh,"ln-hid",g+60+k*30)
+                                  :c.line(x1,ty+k*rh,x2,ty+k*rh,"ln-dim",g+60+k*30));
+  });
+  s.lines.forEach(function(l,k){
+    var y=ty+k*rh,sys=l[1]==="sys";
+    c.t(x1+18,y+30,"cellv",esc(l[0]),e+70+k*80,240);
+    c.t(444,y+28,"row wrap"+(sys?" dim":""),esc(l[2]),e+110+k*80,1240);
+  });
+  /* 计数器:注释列 Hero + 尺寸标注 */
+  var cy=300,ct=g+60;
+  c.t(ACX,cy,"kicker",esc(s.counter.label),ct);
+  var hero=c.t(ACX,cy+56,"hero h120",sp("numv",fmt(s.counter.value))+
+    '<span class="unit">'+esc(s.counter.unit)+'</span>',ct+40);
+  var hw=Math.min(ACW,hero.offsetWidth);
+  c.dimH(ACX,ACX+hw,cy+248,fmt(s.counter.value),ct+40,{numcls:"stat"});
+  /* 洋红圈注失误时刻,箭头引向该句(§5 / §8) */
+  var mk=e+30,badk=-1;
+  s.lines.forEach(function(l,k){if(l[1]==="sys"&&/损失/.test(l[2]))badk=k;});
+  if(badk>=0){
+    var byy=ty+badk*rh+rh/2;
+    c.circle(x1+138,byy,132,30,mk);
+    c.cl="mark";
+    c.leader(96,byy-52,x1+4,byy-6,mk+120);                      /* 箭头指在被圈行左沿 */
+    c.cl="";
+  }
+  c.t(PLX,1180,"note wrap",esc(s.note),mk+640,1560);
+  return mk+320;
+}
+
+/* ---------- 页 5 · 结束页:竣工图 = 中央大图签 + 数据清单,无图表(§6 / §7.5) ---------- */
+function final(c,s,i){
+  var t=furniture(c,i,"M3 \u00b7 竣工图")+40;
+  var PX=520,PY=300,PW=1400,PH=780,e;
+  c.pnl(PX+2,PY+2,PW-4,PH-4);
+  /* 与图框同批起笔(绘图机多笔并行);自左向右绘制 ⇒ 退场逆序即自右向左 */
+  e=Math.max(c.line(PX,PY,PX,PY+PH,"ln",0),c.line(PX,PY,PX+PW,PY,"ln",0),
+             c.line(PX,PY+PH,PX+PW,PY+PH,"ln",0),c.line(PX+PW,PY,PX+PW,PY+PH,"ln",0));
+  var dl=T0+40;
+  c.line(PX,PY+132,PX+PW,PY+132,"ln-dim",dl);
+  c.line(PX,PY+268,PX+PW,PY+268,"ln-dim",dl+20);
+  var cr=s.credits,rows=cr.length,rh=(PH-268-24)/rows;
+  for(var k=0;k<rows;k++)c.line(PX,PY+268+k*rh,PX+PW,PY+268+k*rh,"ln-dim",dl+40+k*30);
+  c.t(PX+30,PY+40,"kicker","END OF ARCHIVE \u00b7 "+esc(DECK.meta.style),dl+140);
+  c.t(PX+30,PY+152,"dt64",esc(s.close),dl+680,PW-60);
+  cr.forEach(function(r,k){
+    var y=PY+268+k*rh+rh/2;
+    c.t(PX+30,y-20,"row dim",esc(r[0]),dl+760+k*80);
+    c.dimH(PX+340,PX+PW-560,y,r[1],dl+660+k*80,{line:"ln-dim",numcls:"cellv"});
+  });
+  var tt=c.dimH(PX+340,PX+PW-560,PY+PH+44,"TOTAL "+esc(s.total),dl+700,{line:"ln-dim",numcls:"cellv"});
+  /* 竣工章:退场第 1 步 steps(2) 跳盖在图签栏上;属图签栏,擦除时保留 */
+  c.keep=true;
+  var scx=PX+PW-190,scy=PY+PH-40;
+  var gs=S_mkgrp(c,"gstamp");
+  c.parent=gs;
+  c.mk("circle",{cx:scx,cy:scy,r:132},"mark");
+  c.mk("circle",{cx:scx,cy:scy,r:110},"mark");
+  c.parent=null;
+  var st=document.createElement("div");
+  st.className="stamp";
+  st.style.left=(scx-104)+"px";st.style.top=(scy-46)+"px";st.style.width="208px";
+  st.innerHTML='<div class="stampno" style="text-align:center">竣工</div>'+
+    '<div class="stampl" style="text-align:center;margin-top:10px">'+esc(REV)+'</div>';
+  c.d.appendChild(st);
+  c.stampOn=function(){gs.classList.add("on");st.classList.add("on");};
+  c.stampOff=function(){gs.classList.remove("on");st.classList.remove("on");};
+  c.keep=false;
+  c.t(PLX,1188,"note","归档入柜 \u00b7 全套 "+DWGTOT+" 张 \u00b7 本页为竣工图",tt+80);
+}
+function S_mkgrp(c,cls){return c.mk("g",{"class":cls});}
+
+/* ---------- 装配 ---------- */
+var builders={cover:cover,metric:metric,ranking:ranking,divider:divider,
+              transcript:transcript,final:final};
+function build(sl,i){
+  var c=sheet(),d=c.d;
+  slidesEl.appendChild(d);          /* 先入文档:标注线要按文字实际宽度断口 */
+  builders[sl.type](c,sl,i);
+  c.arm();
+  d._c=c;
+  d._enter=function(){
+    c.play();
+    if(sl.type==="final"&&!NOANIM)finalExit(c);
+  };
+  d._reset=function(){                       /* 终场定格解除:还原并允许重播 */
+    (c._seq||[]).forEach(clearTimeout);c._seq=[];
+    c.restore();
+    d.classList.remove("gone");
+    d.style.transform="";
+    void d.offsetWidth;
+    d._seen=0;
+  };
+  return d;
+}
+
+/* ---------- 退场:归档入柜(§7.5 六步) ---------- */
+function finalExit(c){
+  var d=c.d;
+  c._seq=[];
+  c._seq.push(setTimeout(function(){if(c.stampOn)c.stampOn();},T.stamp));        /* 1 竣工章跳盖 */
+  c._seq.push(setTimeout(function(){
+    var tot=c.erase();                                                          /* 2 线条逆序右→左擦除 */
+    c._seq.push(setTimeout(function(){                                          /* 3 只剩图框与图签栏 */
+      d.classList.add("gone");                                                  /* 4 整页下移出画 400ms */
+      c._seq.push(setTimeout(function(){                                        /* 5 网格独留 600ms */
+        frozen=true;hint.textContent=keys();                                    /* 6 蓝底定格 ≥1s */
+      },T.sheet+T.grid));
+    },tot+T.hold));
+  },T.eraseAt));
+}
+
+/* ---------- 换图(§7.3):图签栏先翻牌,整页向下平移,400ms 线性 ---------- */
+function flipPlate(slide){
+  var f=slide.querySelectorAll(".flip"),i;
+  for(i=0;i<f.length;i++)(function(el){
+    var real=el.getAttribute("data-v");
+    if(NOANIM){el.textContent=real;return;}
+    el.textContent="\u2014\u2014\u00b7\u00b7";
+    setTimeout(function(){el.textContent="\u00b7\u00b7\u00b7\u00b7";},60);        /* steps(2) 两帧翻牌 */
+    setTimeout(function(){el.textContent=real;},T.plate);
+  })(f[i]);
+}
+function show(i){
+  var el=nodes[i];
+  el.classList.add("cur");
+  if(el._enter&&!el._seen){el._seen=1;el._enter(el);}
+  hint.textContent=keys();
+}
+function swap(from,to,dir){
+  var a=nodes[from],b=nodes[to];
+  if(NOANIM){
+    a.classList.remove("cur");b.classList.add("cur");flipPlate(b);
+    if(!b._seen){b._seen=1;b._enter(b);}
+    hint.textContent=keys();return;
+  }
+  b.classList.add("mv");
+  b.style.transition="none";
+  b.style.transform="translateY("+(dir>0?-1440:1440)+"px)";
+  flipPlate(b);
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    a.style.transition="transform "+T.sheet+"ms linear";
+    b.style.transition="transform "+T.sheet+"ms linear";
+    a.style.transform="translateY("+(dir>0?1440:-1440)+"px)";
+    b.style.transform="translateY(0)";
+  });});
+  setTimeout(function(){
+    a.classList.remove("mv");a.classList.remove("cur");
+    a.style.transition="";a.style.transform="";
+    b.style.transition="";b.classList.remove("mv");b.classList.add("cur");
+    if(!b._seen){b._seen=1;b._enter(b);}
+    hint.textContent=keys();
+  },T.sheet+30);
+}
+/* 终场定格可解除:本方案无全屏罩层,退场以「整页移出 + 线条擦除」实现,
+   任何翻页输入都要还原这些元素,并让末页能重播整套退场。 */
+function unfinish(){
+  var f=nodes[nodes.length-1];
+  if(f._reset)f._reset();
+  frozen=false;
+}
+function go(to,dir){
+  to=Math.max(0,Math.min(DECK.slides.length-1,to));
+  if(busy)return;
+  if(to===cur){if(frozen)unfinish();return;}
+  if(frozen)unfinish();
+  frozen=false;
+  if(!NOANIM){busy=1;setTimeout(function(){busy=0;},T.sheet+70);}
+  swap(cur,to,dir||(to>cur?1:-1));
+  cur=to;
+}
+function keys(){return (cur+1)+" / "+DECK.slides.length+
+  "   \u00b7   \u2192 下一页   \u2190 上一页   滚轮   点两侧翻页   Home / End   F 纯净屏"+
+  (NOANIM?"   A 开启动效":"   A 降级 noanim");}
+
+var nodes=DECK.slides.map(function(s,i){return build(s,i);});
+var jump=P.has("slide")?parseInt(P.get("slide"),10):0;
+cur=isNaN(jump)?0:Math.max(0,Math.min(DECK.slides.length-1,jump));
+show(cur);
+hint.textContent=keys();
+
+/* 鼠标:滚轮累计过 40px 阈值才翻一次(触控板惯性滚动不连跳);点两侧翻页,中间 44% 安全区 */
+addEventListener("wheel",function(e){
+  if(busy){wheelAcc=0;return;}
+  wheelAcc+=e.deltaY||e.detail||0;
+  if(Math.abs(wheelAcc)<40)return;
+  var d=wheelAcc>0?1:-1;wheelAcc=0;go(cur+d,d);
+},{passive:true});
+stage.addEventListener("click",function(e){
+  var x=e.clientX/innerWidth;
+  if(x<0.28)go(cur-1,-1);else if(x>0.72)go(cur+1,1);
+});
+
+addEventListener("keydown",function(e){
+  var k=e.key;
+  if(k==="ArrowRight"||k==="PageDown"||k===" "){e.preventDefault();go(cur+1,1);}
+  else if(k==="ArrowLeft"||k==="PageUp"){e.preventDefault();go(cur-1,-1);}
+  else if(k==="Home")go(0,-1);
+  else if(k==="End")go(DECK.slides.length-1,1);
+  else if(k==="f"||k==="F")document.documentElement.classList.toggle("clean");
+  else if(k==="a"||k==="A")location.search=NOANIM?"":"noanim=1";
+});
+
+function fit(){stage.style.setProperty("--s",Math.min(innerWidth/2560,innerHeight/1440));}
+addEventListener("resize",fit);fit();
+window.__ready=true;                 /* 供截图/录屏脚本判活 */
+})();
+</script>
+</body>
+</html>

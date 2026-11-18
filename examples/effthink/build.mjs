@@ -277,7 +277,7 @@ if (html.includes("<!--@DATA@-->")) {
 }
 
 // ---- 字体：两个字重的 WOFF2 子集内联（assets/ 缺失时回退到开发机的绝对路径）----
-const FONT_FALLBACK = "file:///E:/Desktop/screenshot/llm-html2video/NotoSansSC-Regular.otf";
+const FONT_FALLBACK = "file:///$DESKTOP/screenshot/llm-html2video/NotoSansSC-Regular.otf";
 for (const [token, rel] of [["__FONT400__", "assets/noto-400.woff2"], ["__FONT700__", "assets/noto-700.woff2"]]) {
   const f = path.join(ROOT, rel);
   const val = existsSync(f) ? "data:font/woff2;base64," + readFileSync(f).toString("base64") : FONT_FALLBACK;

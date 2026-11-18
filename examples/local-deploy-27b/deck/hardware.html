@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>硬件配置与推理引擎 · 本地 27B</title>
+<style>
+:root{
+  --paper:#FAFAF7; --ink:#111111; --gray:#8A8A85; --hair:#D8D8D2; --red:#E4032E;
+  --fsans:"Noto Sans SC","Microsoft YaHei","PingFang SC",sans-serif;
+  --fmono:"Cascadia Code","JetBrains Mono","IBM Plex Mono",Consolas,monospace;
+  --hairw:0.75px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--hair)}
+#page{width:2560px;height:1440px;background:var(--paper);color:var(--ink);
+  font-family:var(--fsans);position:relative;overflow:hidden}
+.wrap{position:absolute;inset:96px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;height:48px}
+.kick{font:400 26px/32px var(--fmono);letter-spacing:.2em;color:var(--gray)}
+.pg{font:400 24px/48px var(--fmono);color:var(--ink);letter-spacing:.06em}
+.h2{margin:32px 0 0;font:700 64px/1.25 var(--fsans)}
+.rule{height:var(--hairw);background:var(--hair);margin-top:48px}
+.cols{display:flex;gap:32px;margin-top:48px}
+.col{width:1168px}
+.colhd{font:700 28px/1.2 var(--fsans);padding-bottom:16px;border-bottom:var(--hairw) solid var(--hair);
+  display:flex;justify-content:space-between}
+.colhd .tag{font:400 22px/1 var(--fmono);color:var(--gray);letter-spacing:.1em}
+.row{display:flex;justify-content:space-between;align-items:baseline;height:56px;
+  border-bottom:var(--hairw) solid var(--hair)}
+.row.last{border-bottom:none}
+.row .k{font:700 30px/1.3 var(--fsans);color:var(--ink)}
+.row .v{font:400 24px/1.3 var(--fmono);color:var(--ink);text-align:right;max-width:980px}
+.row.em .v{font-weight:700}
+.row.em .k{color:var(--red)}
+.row .v .rd{color:var(--red)}
+.fig{margin-top:40px;border-top:var(--hairw) solid var(--hair);padding-top:32px}
+.fighd{display:flex;justify-content:space-between;align-items:baseline;height:32px}
+.fighd .l{font:700 28px/1 var(--fsans)}
+.fighd .r{font:400 22px/1 var(--fmono);color:var(--gray);letter-spacing:.1em}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:16px;margin-top:24px}
+.cell img{width:100%;height:240px;object-fit:contain;background:#fff;border:var(--hairw) solid var(--hair);display:block}
+.cell .cap{margin-top:8px;font:400 20px/1.4 var(--fmono);color:var(--gray);letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div id="page"><div class="wrap">
+  <div class="hdr"><span class="kick">LOCAL DEPLOY · 27B</span><span class="pg">HARDWARE / ENGINE</span></div>
+  <h2 class="h2">硬件配置与推理引擎</h2>
+  <div class="rule"></div>
+  <div class="cols">
+    <div class="col">
+      <div class="colhd">硬件清单<span class="tag">实机核对</span></div>
+      <div class="row"><span class="k">CPU</span><span class="v">Intel Core Ultra 5 245K · 14核 / 14线程 · 带核显</span></div>
+      <div class="row em"><span class="k">显卡</span><span class="v">RTX 5060 Ti ×2 · 索泰 月影 三风扇 + 星夜 双风扇 · 各 16 GB · 驱动 596.49</span></div>
+      <div class="row"><span class="k">PCIe</span><span class="v">Gen5 · 两卡 ×8（×16 槽拆分双 ×8，CPU 直连）</span></div>
+      <div class="row"><span class="k">功耗上限</span><span class="v">单卡 180 W</span></div>
+      <div class="row"><span class="k">内存</span><span class="v">Crucial 16 GB ×2 = 32 GB DDR5 · 4800+5600 混速 · 双通道</span></div>
+      <div class="row"><span class="k">主板 / BIOS</span><span class="v">铭瑄 MS-iCraft Z890 Pacific · AMI E2.2D</span></div>
+      <div class="row"><span class="k">电源</span><span class="v">爱国者 aigo EV850 极客版 850W 白金牌全模组</span></div>
+      <div class="row"><span class="k">机箱 / 散热</span><span class="v">长城隐刃 H600 全塔（7 风扇正压）· 利民 PA120 SE 双塔风冷</span></div>
+      <div class="row last"><span class="k">磁盘 / 系统</span><span class="v">KIOXIA EXCERIA PLUS G3 2 TB ×2 · Windows 11 25H2</span></div>
+      <div class="row last"><span class="k">WSL</span><span class="v">Ubuntu (WSL2) · CUDA 13.1</span></div>
+    </div>
+    <div class="col">
+      <div class="colhd">推理引擎<span class="tag">capy-flash · 当前档</span></div>
+      <div class="row em"><span class="k">引擎</span><span class="v">capy-flash（原 ninfer-tp2）· 社区双卡改版 · v3 容器底座</span></div>
+      <div class="row"><span class="k">模型</span><span class="v">qwen3.8-27b（coder390）· 稠密 27 B 非 MoE · 平均 6.1 bits</span></div>
+      <div class="row"><span class="k">权重</span><span class="v">W4A4 / W8A8 · 多层原生 nvfp4 · 20.8 GiB · 每卡 10.4 GiB</span></div>
+      <div class="row"><span class="k">KV</span><span class="v">int8 · 池 219,776 tokens（nvfp4 约 393k 但精度太低未用）</span></div>
+      <div class="row"><span class="k">上下文</span><span class="v">219,776（max-context = kv-capacity，保单流最长）</span></div>
+      <div class="row"><span class="k">张量并行</span><span class="v">--tp 2 · 无 P2P · pinned-host mailbox · 打通上限 1.16×</span></div>
+      <div class="row"><span class="k">投机解码</span><span class="v">dflash2 K=7 + lm-head-draft · WSL 死锁补丁已修</span></div>
+      <div class="row"><span class="k">识图</span><span class="v">--vision · 视觉塔钉卡 0 · 并发 2（4 路总吞吐不涨 +4.9 s 排队）</span></div>
+      <div class="row last"><span class="k">速度</span><span class="v">decode 中位 <span class="rd">99.9</span> tok/s · p90 131.1 · TTFT 中位 337 ms</span></div>
+    </div>
+  </div>
+  <div class="fig">
+    <div class="fighd"><span class="l">硬件实拍与产品图</span><span class="r">assets/hardware</span></div>
+    <div class="grid">
+      <div class="cell"><img src="../assets/hardware/cropped/gpu-two-cards.jpg" alt="双卡 RTX 5060 Ti"><div class="cap">RTX 5060 Ti ×2</div></div>
+      <div class="cell"><img src="../assets/hardware/cropped/dual-gpu-position.jpg" alt="双卡插槽位"><div class="cap">PCIe 槽位 ×8+×8</div></div>
+      <div class="cell"><img src="../assets/hardware/z890-pacific-front.jpg" alt="铭瑄 Z890 Pacific 主板"><div class="cap">Z890 Pacific 主板</div></div>
+      <div class="cell"><img src="../assets/hardware/cropped/case-h600-white.jpg" alt="长城隐刃 H600 机箱"><div class="cap">隐刃 H600 机箱</div></div>
+      <div class="cell"><img src="../assets/hardware/cropped/cooler-pa120se-crop.jpg" alt="利民 PA120 SE 风冷"><div class="cap">PA120 SE 双塔风冷</div></div>
+      <div class="cell"><img src="../assets/hardware/cropped/psu-ev850.jpg" alt="爱国者 EV850 电源"><div class="cap">EV850 850W 白金</div></div>
+      <div class="cell"><img src="../assets/hardware/cropped/power-meter-crop.jpg" alt="整机插座功率读数"><div class="cap">插座整机 360 W</div></div>
+    </div>
+  </div>
+</div></div>
+</body>
+</html>

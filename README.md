@@ -18,10 +18,13 @@
 | `tools/fonts/` | 字体子集化 `subset-fonts.py` |
 | `tools/pages/` | 展示页模板（`p_top / p_style / p_mid / p_script / p_end` 五件套） |
 | `docs/tts-抽卡.md` | TTS 抽卡方法论：参数作用、选片判据、拼轨对轴、已证伪路线 |
+| `docs/design-language-*.md` | 7 套设计语言方案说明（远岸 / 蓝图 / 瑞士网格 / 磷光 / 浮世绘 / 合成波 / 白盒） |
 | `assets/voice-ref/` | 开源参考音源（来源与许可见 `SOURCE.md`） |
 | `examples/p3r/` | 实际项目：P3R 配色展示页 + 数据事实卡 + 中文口播（27 页 / 387s） |
 | `examples/effthink/` | 实际项目：AI 对局战报（含 p2 分册管线） |
 | `examples/presentation-v1/v2/v3/` | 三代表情页实验（v2 五件套模板、v3 构成主义封面） |
+| `examples/design-samples/` | 7 套设计语言的单文件页面模板（同一份内容横向选型，可直接录屏） |
+| `examples/local-deploy-27b/` | 两台 RTX 5060 Ti 16GB 跑 27B 的 15 页 deck、硬件配置页与口播稿 |
 
 > 示例工程只包含页面源码、构建脚本与数据；图片/音频/视频素材未随仓库提供（清单见 `manifests/images.md`）。直接打开 `index.html` 可以看结构与交互，缺素材的位置会显示占位或空白，按清单自行准备即可。
 
